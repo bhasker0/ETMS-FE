@@ -1,0 +1,202 @@
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { UchapatApi, UchapatApiItem, KarigarUchapatSummary } from '@/lib/api/uchapat';
+import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
+import { useAuth } from '@/lib/auth-context';
+import { useAppDrawer } from '@/lib/app-drawer-context';
+import { formatINR } from '@/lib/utils';
+import {
+  Wallet,
+  Plus,
+  ArrowRight,
+} from 'lucide-react';
+
+export default function KarigarUchapatPage() {
+  const { activeCompany } = useAuth();
+  const { openDrawer } = useAppDrawer();
+  const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
+  const [selectedKarigarId, setSelectedKarigarId] = useState<string>('');
+  const [transactions, setTransactions] = useState<UchapatApiItem[]>([]);
+  const [summary, setSummary] = useState<KarigarUchapatSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadKarigarData = useCallback(async (karigarId: string) => {
+    if (!karigarId) return;
+    try {
+      const [txList, sum] = await Promise.all([
+        UchapatApi.getAll({ karigar_id: karigarId }),
+        UchapatApi.getSummaryByKarigar(karigarId).catch(() => null),
+      ]);
+      setTransactions(txList);
+      setSummary(sum);
+    } catch (e: any) {
+      console.warn('Karigar ledger load error:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchInitial = async () => {
+      setLoading(true);
+      try {
+        const kList = await KarigarsApi.getAll();
+        setKarigars(kList);
+        if (kList.length > 0) {
+          setSelectedKarigarId(kList[0].id);
+        }
+      } catch (e: any) {
+        console.warn('Uchapat init error:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitial();
+  }, [activeCompany?.id]);
+
+  useEffect(() => {
+    if (selectedKarigarId) {
+      loadKarigarData(selectedKarigarId);
+    }
+  }, [selectedKarigarId, loadKarigarData]);
+
+  const selectedKarigar = karigars.find((k) => k.id === selectedKarigarId) || karigars[0];
+
+  const totalUnsettledSum = transactions
+    .filter((tx) => !tx.is_settled)
+    .reduce((acc, tx) => acc + Number(tx.amount), 0);
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+      {/* Card Header / Page Header */}
+      <div className="p-5 sm:p-6 border-b border-slate-200 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
+              <Wallet className="w-3.5 h-3.5 text-slate-400" />
+              <span>કારીગર ઉપાડ ખાતાવહી • Karigar Advance Ledger</span>
+            </div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+              Uchapat Passbook (રોકડ / UPI ઉપાડ)
+            </h1>
+            <p className="text-xs text-slate-500">
+              Cash, UPI and Bank Transfer advances with unsettled balance tracking
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/karigar/hisab"
+              className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
+            >
+              <span>Fortnight Hisab (હિસાબ)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+
+            <button
+              onClick={() => openDrawer('ADD_UCHAPAT', { karigarId: selectedKarigarId }, () => loadKarigarData(selectedKarigarId))}
+              className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Give Advance (ઉપાડ)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Small State Chips in Header */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
+            <Wallet className="w-3.5 h-3.5 text-[#0284C7]" />
+            <span>Selected Karigar: <strong className="font-bold text-slate-900">{selectedKarigar?.name || 'None'}</strong></span>
+          </span>
+
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-xs text-rose-800">
+            <span>Unsettled Advances: <strong className="font-bold text-rose-700">{formatINR(totalUnsettledSum)}</strong></span>
+          </span>
+
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-700">
+            <span>Wage Model: <strong className="font-bold text-slate-900">{selectedKarigar?.wage_type || 'PIECE_RATE'}</strong></span>
+          </span>
+        </div>
+      </div>
+
+      {/* Card Content */}
+      <div className="p-5 sm:p-6 space-y-5">
+        {/* Karigar Switcher Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200/80">
+          {karigars.map((k) => (
+            <button
+              key={k.id}
+              onClick={() => setSelectedKarigarId(k.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                selectedKarigarId === k.id
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              {k.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Ledger Table */}
+        {selectedKarigar && (
+          <div className="space-y-4">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th className="p-3.5">Disbursal Date</th>
+                    <th className="p-3.5">Amount (₹)</th>
+                    <th className="p-3.5">Payment Mode</th>
+                    <th className="p-3.5">Purpose / Reason</th>
+                    <th className="p-3.5">Settlement Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-sans">
+                  {transactions.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-slate-50/80 transition">
+                      <td className="p-3.5 font-mono text-slate-600">
+                        {new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="p-3.5 font-mono font-bold text-rose-600 text-sm">
+                        - {formatINR(tx.amount)}
+                      </td>
+                      <td className="p-3.5">
+                        <span className="px-2 py-0.5 rounded text-2xs font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                          {tx.payment_mode}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-slate-700">
+                        {tx.reason || 'General advance'}
+                      </td>
+                      <td className="p-3.5">
+                        {tx.is_settled ? (
+                          <span className="px-2 py-0.5 rounded-full text-2xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            Settled in Hisab
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-2xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                            Unsettled (બાકી)
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+
+                  {transactions.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-slate-400">
+                        No advance entries recorded for this Karigar. Click &quot;+ Give Advance&quot; to log.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

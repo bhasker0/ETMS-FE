@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Theme Palette */
+    --background: 210 40% 98%;           /* #F8FAFC - Base Surface */
+    --foreground: 222 33% 18%;           /* #1E293B - Slate Dark Text */
+    --card: 0 0% 100%;                   /* #FFFFFF - Pure Card Surface */
+    --card-foreground: 222 33% 18%;      /* #1E293B */
+    --popover: 0 0% 100%;                /* #FFFFFF */
+    --popover-foreground: 222 33% 18%;
+    --primary: 190 100% 36%;             /* #0099B8 - Ocean Teal */
+    --primary-foreground: 0 0% 100%;     /* White Text on Primary */
+    --secondary: 195 82% 31%;           /* #0E7090 - Deep Blue */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96.1%;              /* #F1F5F9 */
+    --muted-foreground: 215 16% 47%;     /* #64748B - Slate Muted */
+    --accent: 27 91% 54%;                /* #F58220 - Warm Orange */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;            /* #EF4444 - Danger Red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;               /* #E2E8F0 - Slate Border */
+    --input: 214 32% 91%;
+    --ring: 190 100% 36%;                /* Ocean Teal Focus Ring */
+    --radius: 0.75rem;
+  }
+}
+
+body {
+  background-color: #F8FAFC;
+  color: #1E293B;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle scrollbars matching slate palette */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Standard UI Tabular alignment using primary font (Inter) */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Monospace font strictly for PDF tax invoices, thermal slips & financial ledgers */
+.ledger-nums, .print-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono), monospace;
+}
+
+/* Print CSS */
+@media print {
+  body, .bg-card, .bg-white {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  header, nav, footer, button, .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
