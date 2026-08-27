@@ -28,7 +28,7 @@ services:
       - etms-network
 
   nginx:
-    image: nginx:alpine
+    image: docker.io/library/nginx:alpine
     container_name: etms_proxy
     restart: unless-stopped
     ports:
