@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Logging into ETMS Factory Portal...</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #0f172a;
+      color: white;
+    }
+    .card {
+      text-align: center;
+      background: #1e293b;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 1px solid #334155;
+      max-width: 400px;
+    }
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top: 3px solid #6366f1;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner"></div>
+    <h2 style="margin: 0 0 0.5rem; font-size: 1.2rem;">Establishing ETMS Factory Session...</h2>
+    <p id="msg" style="color: #94a3b8; font-size: 0.85rem; margin: 0;">Authorizing tenant identity from OPS Super Admin</p>
+  </div>
+  <script>
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const dataStr = params.get('data');
+      if (dataStr) {
+        const authData = JSON.parse(decodeURIComponent(escape(atob(dataStr))));
+        localStorage.setItem('etms_access_token', authData.accessToken);
+        localStorage.setItem('etms_user_profile', JSON.stringify(authData.user));
+        localStorage.setItem('etms_active_company_id', authData.activeCompanyId);
+        localStorage.setItem('etms_companies', JSON.stringify(authData.companies || []));
+        localStorage.setItem('etms_munim_companies', JSON.stringify(authData.munimApprovedCompanies || []));
+        document.getElementById('msg').innerText = 'Access granted. Opening Factory Operations...';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 300);
+      } else {
+        document.getElementById('msg').innerText = 'No session data provided. Redirecting to login...';
+        setTimeout(() => { window.location.href = '/login'; }, 1500);
+      }
+    } catch (e) {
+      console.error(e);
+      document.getElementById('msg').innerText = 'Failed to parse session data. Redirecting...';
+      setTimeout(() => { window.location.href = '/login'; }, 1500);
+    }
+  </script>
+</body>
+</html>
