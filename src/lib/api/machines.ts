@@ -6,6 +6,7 @@ export interface MachineApiItem {
   head_count: 24 | 32 | 44 | 66;
   rpm: number;
   make_model?: string;
+  status?: 'RUNNING' | 'STOPPED' | 'MAINTENANCE' | string;
   is_active: boolean;
   company_id: string;
   created_at: string;

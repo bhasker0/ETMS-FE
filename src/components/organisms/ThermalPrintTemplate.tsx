@@ -19,7 +19,30 @@ export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) =
   };
 
   return (
-    <div className="w-[80mm] max-w-[80mm] mx-auto bg-white text-black p-3 font-mono text-xs leading-tight border border-dashed border-slate-400 shadow-sm print:border-none print:shadow-none print:m-0 print:p-1">
+    <>
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: 80mm auto;
+            margin: 0mm 2mm;
+          }
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+          }
+          .thermal-receipt-container {
+            width: 80mm !important;
+            max-width: 80mm !important;
+            margin: 0 auto !important;
+            padding: 2mm !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-variant-numeric: tabular-nums;
+          }
+        }
+      `}</style>
+      <div className="thermal-receipt-container w-[80mm] max-w-[80mm] mx-auto bg-white text-black p-3 font-mono text-xs leading-tight border border-dashed border-slate-400 shadow-sm print:border-none print:shadow-none print:m-0 print:p-1">
       {/* Header */}
       <div className="text-center border-b border-black pb-2 mb-2 space-y-0.5">
         <div className="font-extrabold text-sm uppercase tracking-tight">
@@ -116,5 +139,6 @@ export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) =
         </div>
       </div>
     </div>
+    </>
   );
 };

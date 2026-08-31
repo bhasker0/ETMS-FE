@@ -12,7 +12,9 @@ export type DrawerType =
   | 'COMPUTE_HISAB'
   | 'LOG_SHIFT'
   | 'ADD_CHALLAN'
-  | 'CREATE_INVOICE';
+  | 'CREATE_INVOICE'
+  | 'ADD_PARTY'
+  | 'EDIT_PARTY';
 
 export interface DrawerInstance {
   id: string;

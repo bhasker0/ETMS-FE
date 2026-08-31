@@ -5,18 +5,21 @@ import { WageHisabApi, WageHisabCalculationResult } from '@/lib/api/wage-hisab';
 import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import {
   Calculator,
   Download,
   CheckCircle2,
   Plus,
+  Share2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function WageHisabPage() {
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [selectedKarigarId, setSelectedKarigarId] = useState('');
   const [startDate, setStartDate] = useState('2026-08-01');
@@ -109,6 +112,26 @@ export default function WageHisabPage() {
     }
   };
 
+  const handleWhatsAppDispatch = () => {
+    if (!calculationResult) return;
+    const msg =
+      `*${activeCompany?.name || 'Embroidery Factory'} - પાક્ષિક પગાર હિસાબ સ્લિપ*\n\n` +
+      `👤 *કારીગર:* ${calculationResult.karigar_name}\n` +
+      `📅 *સમયગાળો:* ${calculationResult.startDate} થી ${calculationResult.endDate}\n` +
+      `🧵 *કુલ ઉત્પાદન:* ${calculationResult.total_meters} મીટર (${calculationResult.total_shifts} શિફ્ટ)\n` +
+      `💰 *કુલ મજૂરી:* ₹${Number(calculationResult.gross_earnings || 0).toFixed(2)}\n` +
+      `🔻 *બાદ ઉપાડ (Uchapat):* -₹${Number(calculationResult.total_uchapat_advances || 0).toFixed(2)}\n` +
+      (calculationResult.deductions > 0
+        ? `🔻 *અન્ય કપાત:* -₹${Number(calculationResult.deductions || 0).toFixed(2)}\n`
+        : '') +
+      `━━━━━━━━━━━━━━━━━━\n` +
+      `💵 *ચૂકવવાપાત્ર ચોખ્ખી રકમ:* *₹${Number(calculationResult.net_payable || 0).toFixed(2)}*\n\n` +
+      `સુરત એમ્બ્રોઇડરી મેનેજમેન્ટ સિસ્ટમ (ETMS)`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    toast.success(`Prepared WhatsApp payslip slip for ${calculationResult.karigar_name}`);
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
       {/* Card Header / Page Header */}
@@ -117,10 +140,10 @@ export default function WageHisabPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Calculator className="w-3.5 h-3.5 text-slate-400" />
-              <span>કારીગર પખવાડિયા હિસાબ • Karigar Fortnightly Wage Settlement</span>
+              <span>{t.generateFortnightHisab || 'Karigar Fortnightly Wage Settlement'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Wage Hisab & Settlement (૧૫ દિવસનો હિસાબ)
+              {t.settleHisab || 'Wage Hisab & Settlement'}
             </h1>
             <p className="text-xs text-slate-500">
               Formula: Net Pay = (Shift Output × Rate) − Uchapat Advances − Deductions
@@ -132,7 +155,7 @@ export default function WageHisabPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Compute Hisab (નવો હિસાબ)</span>
+            <span>+ {t.computeHisab || 'Compute Hisab'}</span>
           </button>
         </div>
 
@@ -140,11 +163,11 @@ export default function WageHisabPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <Calculator className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Karigars Registered: <strong className="font-bold text-slate-900">{karigars.length}</strong></span>
+            <span>Karigars: <strong className="font-bold text-slate-900">{karigars.length}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-            <span>Settlement Cycle: <strong className="font-bold text-emerald-700">15-Day Fortnight (પખવાડિયું)</strong></span>
+            <span>{t.customFortnight || 'Settlement Cycle: 15-Day Fortnight'}</span>
           </span>
         </div>
       </div>
@@ -178,6 +201,15 @@ export default function WageHisabPage() {
                 >
                   <Download className="w-3.5 h-3.5 text-slate-500" />
                   <span>Download PDF</span>
+                </button>
+
+                <button
+                  onClick={handleWhatsAppDispatch}
+                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
+                  title="Send Fortnightly Pay Slip to Karigar on WhatsApp"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>WhatsApp Slip</span>
                 </button>
 
                 <button

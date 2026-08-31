@@ -4,22 +4,40 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { formatNumber } from '@/lib/utils';
 import {
   Truck,
   Plus,
   Search,
   ArrowRight,
+  AlertTriangle,
+  Scissors,
+  X,
+  CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Drawer } from '@/components/ui/drawer';
+import { useAppDrawer } from '@/lib/app-drawer-context';
 
 export default function ChallansListPage() {
   const { activeCompany } = useAuth();
+  const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [challans, setChallans] = useState<InwardChallanApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  // Quality Defect & Deduction Modal State (SCRUM-141)
+  const [defectLot, setDefectLot] = useState<InwardChallanApiItem | null>(null);
+  const [defectType, setDefectType] = useState('Weft Cut / Needle Hole');
+  const [defectMeters, setDefectMeters] = useState<number>(3.5);
+  const [deductionRate, setDeductionRate] = useState<number>(45);
+  const [defectNotes, setDefectNotes] = useState('Oil stains on 2 than borders');
+  const [inspectedLots, setInspectedLots] = useState<Record<string, { meters: number; deduction: number }>>({
+    'LOT-8892': { meters: 2.5, deduction: 112.5 },
+  });
 
   // Inward Lot Drawer Form State
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
@@ -98,10 +116,10 @@ export default function ChallansListPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Truck className="w-3.5 h-3.5 text-slate-400" />
-              <span>આવક ડિલિવરી ચલણ • Inward Fabric Delivery Challans</span>
+              <span>{t.inwardChallanTitle || 'Inward Fabric Delivery Challans'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Inward Lots ({challans.length})
+              {t.navChallans || 'Inward Lots'} ({challans.length})
             </h1>
             <p className="text-xs text-slate-500">
               Raw grey fabric lots from Surat traders with shrinkage tracking
@@ -109,11 +127,11 @@ export default function ChallansListPage() {
           </div>
 
           <button
-            onClick={() => setIsAddDrawerOpen(true)}
+            onClick={() => openDrawer('ADD_CHALLAN', {}, fetchChallans)}
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Add Inward Lot (આવક)</span>
+            <span>+ {t.saveChallan || 'Add Inward Lot'}</span>
           </button>
         </div>
 
@@ -125,7 +143,7 @@ export default function ChallansListPage() {
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-900">
-            <span>Total Thans: <strong className="font-bold text-amber-800">{totalTakas} Thans (તાકા)</strong></span>
+            <span>Total Thans: <strong className="font-bold text-amber-800">{totalTakas} Thans</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-blue-800">
@@ -210,7 +228,17 @@ export default function ChallansListPage() {
                       {c.status}
                     </span>
                   </td>
-                  <td className="p-3.5 text-right">
+                  <td className="p-3.5 text-right space-x-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setDefectLot(c)}
+                      className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-md text-2xs font-medium inline-flex items-center gap-1 transition"
+                      title="Log Fabric Flaws, Defective Meters & Yarn Wastage"
+                    >
+                      <Scissors className="w-3 h-3 text-amber-600" />
+                      <span>{inspectedLots[c.lot_no] ? `${inspectedLots[c.lot_no].meters}m Defect` : 'Defect Check'}</span>
+                    </button>
+
                     <Link
                       href={`/invoices/new?lot=${c.lot_no}&challanId=${c.id}`}
                       className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md text-2xs font-medium inline-flex items-center gap-1 transition"
@@ -365,6 +393,126 @@ export default function ChallansListPage() {
           </div>
         </form>
       </Drawer>
+
+      {/* FABRIC QUALITY DEFECT & DEDUCTION MODAL (SCRUM-141) */}
+      {defectLot && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white text-slate-900 rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                <Scissors className="w-5 h-5 text-amber-600" />
+                <span>Quality Inspection & Defect Deduction • {defectLot.lot_no}</span>
+              </div>
+              <button
+                onClick={() => setDefectLot(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Trader (વેપારી):</span>
+                <span className="font-semibold text-slate-800">{defectLot.trader_name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Fabric Quality:</span>
+                <span className="font-semibold text-slate-800">{defectLot.fabric_quality}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Total Lot Volume:</span>
+                <span className="font-mono font-bold text-slate-900">{defectLot.inward_meters} meters ({defectLot.than_count} Thans)</span>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="text-slate-700 font-medium">Defect Classification *</label>
+                <select
+                  value={defectType}
+                  onChange={(e) => setDefectType(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-amber-600"
+                >
+                  <option value="Weft Cut / Needle Hole">Weft Cut / Needle Hole (કાપડમાં કાણું / કટ)</option>
+                  <option value="Oil & Grease Stains">Oil & Grease Stains (ઓઇલ / ગ્રીસના ડાઘ)</option>
+                  <option value="Metallic Yarn Breakage">Metallic Yarn Breakage (ઝરી / દોરા તૂટ)</option>
+                  <option value="Shade & Color Variation">Shade & Color Variation (કલર શેડ ફેરફાર)</option>
+                  <option value="Shrinkage & Width Shortage">Shrinkage & Width Shortage (પનો ઓછો હોવો)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-slate-700 font-medium">Defective Meters *</label>
+                  <input
+                    type="number"
+                    min="0.5"
+                    step="0.5"
+                    value={defectMeters}
+                    onChange={(e) => setDefectMeters(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-slate-700 font-medium">Debit Rate (₹/m) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={deductionRate}
+                    onChange={(e) => setDeductionRate(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between font-mono">
+                <span className="text-xs font-medium text-rose-800">Recommended Debit Deduction:</span>
+                <span className="text-sm font-bold text-rose-700">₹{(defectMeters * deductionRate).toFixed(2)}</span>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-slate-700 font-medium">Inspection Notes & Mending Route</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sent 2 thans for manual mending before embroidery"
+                  value={defectNotes}
+                  onChange={(e) => setDefectNotes(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDefectLot(null)}
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const ded = Number((defectMeters * deductionRate).toFixed(2));
+                  setInspectedLots((prev) => ({
+                    ...prev,
+                    [defectLot.lot_no]: { meters: defectMeters, deduction: ded },
+                  }));
+                  toast.success(`Logged ${defectMeters}m defects for ${defectLot.lot_no}. Deduction: ₹${ded}`);
+                  setDefectLot(null);
+                }}
+                className="flex-2 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Apply Debit Note Deduction</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

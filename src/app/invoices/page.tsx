@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { OutwardInvoicesApi, OutwardInvoiceApiItem } from '@/lib/api/invoices';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import {
   FileText,
@@ -11,6 +12,9 @@ import {
   Download,
   Share2,
   Search,
+  Truck,
+  X,
+  CheckCircle2,
 } from 'lucide-react';
 import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
 import { toast } from 'sonner';
@@ -18,9 +22,16 @@ import { Drawer } from '@/components/ui/drawer';
 
 export default function InvoicesListPage() {
   const { activeCompany } = useAuth();
+  const { t } = useI18n();
   const [invoices, setInvoices] = useState<OutwardInvoiceApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // E-Way Bill Modal State (SCRUM-137)
+  const [selectedEwbInvoice, setSelectedEwbInvoice] = useState<OutwardInvoiceApiItem | null>(null);
+  const [ewbVehicleNo, setEwbVehicleNo] = useState('GJ05AB1234');
+  const [ewbTransporterId, setEwbTransporterId] = useState('24AAACT1234A1Z1');
+  const [ewbDistanceKm, setEwbDistanceKm] = useState<number>(45);
 
   // Invoice Drawer Form State
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
@@ -107,6 +118,68 @@ export default function InvoicesListPage() {
     }
   };
 
+  const handleDownloadEwbJson = (inv: OutwardInvoiceApiItem) => {
+    const ewbPayload = {
+      version: '1.0.0421',
+      billLists: [
+        {
+          userGstin: activeCompany?.gstin || '24AAAAA0000A1Z5',
+          supplyType: 'O',
+          subSupplyType: '1',
+          docType: 'INV',
+          docNo: inv.invoice_no,
+          docDate: inv.invoice_date,
+          fromGstin: activeCompany?.gstin || '24AAAAA0000A1Z5',
+          fromTrdName: activeCompany?.name || 'Textile Mills',
+          fromAddr1: activeCompany?.address || 'Surat GIDC Industrial Area',
+          fromPlace: 'Surat',
+          fromPincode: 395002,
+          fromStateCode: 24,
+          toGstin: inv.trader_gstin || 'URP',
+          toTrdName: inv.trader_name,
+          toAddr1: 'Surat Textile Market Ring Road',
+          toPlace: 'Surat',
+          toPincode: 395003,
+          toStateCode: 24,
+          totalValue: Number(inv.gross_amount || 0),
+          cgstValue: Number(inv.cgst_amount || 0),
+          sgstValue: Number(inv.sgst_amount || 0),
+          igstValue: Number(inv.igst_amount || 0),
+          totInvValue: Number(inv.net_amount || 0),
+          itemList: [
+            {
+              itemNo: 1,
+              productName: 'Job Work Embroidery on Fabric',
+              productDesc: 'SAC 9988 Embroidery Jobwork',
+              hsnCode: 9988,
+              quantity: Number(inv.outward_meters || 100),
+              qtyUnit: 'MTR',
+              taxableAmount: Number(inv.gross_amount || 0),
+              sgstRate: 2.5,
+              cgstRate: 2.5,
+              igstRate: 0,
+            },
+          ],
+          transporterId: ewbTransporterId || '24AAACT1234A1Z1',
+          transDocNo: `TR-${inv.invoice_no}`,
+          transMode: '1',
+          distance: ewbDistanceKm || 45,
+          vehicleNo: ewbVehicleNo || 'GJ05AB1234',
+        },
+      ],
+    };
+
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(ewbPayload, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `EWB_NIC_${inv.invoice_no}_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    toast.success(`Generated Government NIC E-Way Bill JSON for ${inv.invoice_no}`);
+    setSelectedEwbInvoice(null);
+  };
+
   const filtered = invoices.filter(
     (i) =>
       i.invoice_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,10 +197,10 @@ export default function InvoicesListPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <FileText className="w-3.5 h-3.5 text-slate-400" />
-              <span>SAC 9988 • 5% GST Jobwork Tax Invoices</span>
+              <span>{t.invoiceTitle || 'SAC 9988 Jobwork Tax Invoices'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Outward Invoices ({invoices.length})
+              {t.navInvoices || 'Outward Invoices'} ({invoices.length})
             </h1>
             <p className="text-xs text-slate-500">
               Stitch billing for {activeCompany?.name} with instant Puppeteer PDF export
@@ -139,7 +212,7 @@ export default function InvoicesListPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Create SAC 9988 Invoice</span>
+            <span>+ {t.createInvoiceBtn || 'Create SAC 9988 Invoice'}</span>
           </button>
         </div>
 
@@ -147,15 +220,15 @@ export default function InvoicesListPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <FileText className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Total Invoices: <strong className="font-bold text-slate-900">{invoices.length} Bills</strong></span>
+            <span>{t.total || 'Total Invoices'}: <strong className="font-bold text-slate-900">{invoices.length}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-            <span>Billed Volume: <strong className="font-bold text-emerald-700">{formatINR(totalInvoicedSum)}</strong></span>
+            <span>{t.totalBilled || 'Billed Volume'}: <strong className="font-bold text-emerald-700">{formatINR(totalInvoicedSum)}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-xs text-purple-800">
-            <span>GST Rate: <strong className="font-bold text-purple-900">SAC 9988 (5%)</strong></span>
+            <span>{t.sacCodeLabel || 'GST Rate: SAC 9988 (5%)'}</span>
           </span>
         </div>
       </div>
@@ -225,6 +298,15 @@ export default function InvoicesListPage() {
                   </td>
                   <td className="p-3.5 text-right space-x-2">
                     <button
+                      onClick={() => setSelectedEwbInvoice(inv)}
+                      className="p-1.5 hover:bg-amber-50 text-amber-700 rounded-md transition inline-flex items-center gap-1 text-2xs font-medium"
+                      title="Generate Government NIC E-Way Bill JSON"
+                    >
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>E-Way Bill</span>
+                    </button>
+
+                    <button
                       onClick={() => handleDownloadPdf(inv.id, inv.invoice_no)}
                       className="p-1.5 hover:bg-slate-100 text-slate-700 rounded-md transition inline-flex items-center gap-1 text-2xs font-medium"
                       title="Download Official Puppeteer PDF"
@@ -235,7 +317,7 @@ export default function InvoicesListPage() {
 
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(
-                        `Invoice ${inv.invoice_no} from ${activeCompany?.name}: Total ₹${inv.net_amount.toFixed(2)}`
+                        `Invoice ${inv.invoice_no} from ${activeCompany?.name}: Total ₹${Number(inv.net_amount || 0).toFixed(2)}`
                       )}`}
                       target="_blank"
                       rel="noreferrer"
@@ -393,6 +475,96 @@ export default function InvoicesListPage() {
           </div>
         </form>
       </Drawer>
+
+      {/* E-WAY BILL MODAL (SCRUM-137) */}
+      {selectedEwbInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white text-slate-900 rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-amber-700 font-bold text-sm">
+                <Truck className="w-5 h-5" />
+                <span>NIC E-Way Bill Generator • {selectedEwbInvoice.invoice_no}</span>
+              </div>
+              <button
+                onClick={() => setSelectedEwbInvoice(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Consignor (GSTIN):</span>
+                <span className="font-mono font-bold text-slate-800">{activeCompany?.gstin || '24AAAAA0000A1Z5'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Consignee (Trader):</span>
+                <span className="font-semibold text-slate-800">{selectedEwbInvoice.trader_name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Invoice Net Amount:</span>
+                <span className="font-mono font-bold text-amber-900">{formatINR(selectedEwbInvoice.net_amount)}</span>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="text-slate-700 font-medium">Vehicle Number (Part-B Transport) *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. GJ05AB1234"
+                  value={ewbVehicleNo}
+                  onChange={(e) => setEwbVehicleNo(e.target.value.toUpperCase())}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-amber-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-slate-700 font-medium">Transporter GSTIN / ID</label>
+                  <input
+                    type="text"
+                    placeholder="24AAACT1234A1Z1"
+                    value={ewbTransporterId}
+                    onChange={(e) => setEwbTransporterId(e.target.value.toUpperCase())}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-slate-700 font-medium">Approx Distance (KM)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={ewbDistanceKm}
+                    onChange={(e) => setEwbDistanceKm(parseInt(e.target.value) || 0)}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSelectedEwbInvoice(null)}
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDownloadEwbJson(selectedEwbInvoice)}
+                className="flex-2 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download NIC EWB JSON Payload</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

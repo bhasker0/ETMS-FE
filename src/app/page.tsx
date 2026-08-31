@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
+import { useAppDrawer } from '@/lib/app-drawer-context';
 import { MachinesApi, MachineApiItem } from '@/lib/api/machines';
 import { ShiftLogsApi, ShiftLogApiItem } from '@/lib/api/shift-logs';
 import { OutwardInvoicesApi, OutwardInvoiceApiItem } from '@/lib/api/invoices';
@@ -26,6 +28,7 @@ import { useRouter } from 'next/navigation';
 export default function FactoryDashboard() {
   const router = useRouter();
   const { user, activeCompany, isAuthenticated, isLoading } = useAuth();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -33,33 +36,34 @@ export default function FactoryDashboard() {
     }
   }, [isLoading, isAuthenticated, router]);
 
+  const { openDrawer } = useAppDrawer();
   const [machines, setMachines] = useState<MachineApiItem[]>([]);
   const [shifts, setShifts] = useState<ShiftLogApiItem[]>([]);
   const [invoices, setInvoices] = useState<OutwardInvoiceApiItem[]>([]);
   const [challans, setChallans] = useState<InwardChallanApiItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      try {
-        const [mList, sList, iList, cList] = await Promise.all([
-          MachinesApi.getAll().catch(() => []),
-          ShiftLogsApi.getAll().catch(() => []),
-          OutwardInvoicesApi.getAll().catch(() => []),
-          InwardChallansApi.getAll().catch(() => []),
-        ]);
-        setMachines(mList);
-        setShifts(sList);
-        setInvoices(iList);
-        setChallans(cList);
-      } catch (e) {
-        console.warn('Dashboard fetch error:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [mList, sList, iList, cList] = await Promise.all([
+        MachinesApi.getAll().catch(() => []),
+        ShiftLogsApi.getAll().catch(() => []),
+        OutwardInvoicesApi.getAll().catch(() => []),
+        InwardChallansApi.getAll().catch(() => []),
+      ]);
+      setMachines(mList);
+      setShifts(sList);
+      setInvoices(iList);
+      setChallans(cList);
+    } catch (e) {
+      console.warn('Dashboard fetch error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDashboardData();
   }, [activeCompany?.id]);
 
@@ -76,7 +80,7 @@ export default function FactoryDashboard() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Activity className="w-3.5 h-3.5 text-slate-400" />
-              <span>Factory Overview • યુનિટ ડેશબોર્ડ</span>
+              <span>{t.factoryOverview || 'Factory Overview'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
               {activeCompany?.name || 'Surat Embroidery Unit'}
@@ -86,31 +90,34 @@ export default function FactoryDashboard() {
             </p>
           </div>
 
-          {/* Quick Action Buttons */}
+          {/* Quick Action Drawer Buttons */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <Link
-              href="/shift/new"
-              className="px-3 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-xs"
+            <button
+              type="button"
+              onClick={() => openDrawer('LOG_SHIFT', {}, () => fetchDashboardData())}
+              className="px-3 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Log Shift</span>
-            </Link>
+              <span>{t.navShiftNew || 'Log Shift'}</span>
+            </button>
 
-            <Link
-              href="/challans/inward"
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
+            <button
+              type="button"
+              onClick={() => openDrawer('ADD_CHALLAN', {}, () => fetchDashboardData())}
+              className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
             >
               <Truck className="w-3.5 h-3.5 text-slate-500" />
-              <span>Inward Lot</span>
-            </Link>
+              <span>{t.saveChallan || 'Inward Lot'}</span>
+            </button>
 
-            <Link
-              href="/invoices/new"
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
+            <button
+              type="button"
+              onClick={() => openDrawer('CREATE_INVOICE', {}, () => fetchDashboardData())}
+              className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
             >
               <FileText className="w-3.5 h-3.5 text-slate-500" />
-              <span>SAC 9988 Bill</span>
-            </Link>
+              <span>{t.navInvoices || 'SAC 9988 Bill'}</span>
+            </button>
           </div>
         </div>
 
@@ -118,22 +125,22 @@ export default function FactoryDashboard() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <Wrench className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Active Fleet: <strong className="font-bold text-slate-900">{activeMachinesCount} / {machines.length} Online</strong></span>
+            <span>{t.activeFleet || 'Active Fleet'}: <strong className="font-bold text-slate-900">{activeMachinesCount} / {machines.length} Online</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-blue-800">
             <TrendingUp className="w-3.5 h-3.5 text-[#1D4ED8]" />
-            <span>Total Output: <strong className="font-bold text-slate-900">{formatNumber(totalMeters)} m</strong> <span className="text-2xs">({formatNumber(totalStitches)} st.)</span></span>
+            <span>{t.totalOutput || 'Total Output'}: <strong className="font-bold text-slate-900">{formatNumber(totalMeters)} m</strong> <span className="text-2xs">({formatNumber(totalStitches)} st.)</span></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
             <FileText className="w-3.5 h-3.5 text-[#059669]" />
-            <span>SAC 9988 Billed: <strong className="font-bold text-emerald-700">{formatINR(totalBilled)}</strong></span>
+            <span>{t.totalBilled || 'SAC 9988 Billed'}: <strong className="font-bold text-emerald-700">{formatINR(totalBilled)}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-900">
             <Truck className="w-3.5 h-3.5 text-[#D97706]" />
-            <span>Inward Lots: <strong className="font-bold text-amber-800">{challans.length} Lots</strong></span>
+            <span>{t.navChallans || 'Inward Lots'}: <strong className="font-bold text-amber-800">{challans.length} Lots</strong></span>
           </span>
         </div>
       </div>
@@ -147,14 +154,14 @@ export default function FactoryDashboard() {
             <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
               <div>
                 <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Machine Floor Status (મશીન સ્થિતિ)
+                  {t.machineFloorStatus || 'Machine Floor Status'}
                 </h2>
                 <span className="text-2xs text-slate-400 font-mono">
-                  {machines.length} Units Configured
+                  {machines.length} {t.unitsConfigured || 'Units Configured'}
                 </span>
               </div>
               <Link href="/machines" className="text-2xs text-slate-600 hover:text-slate-900 font-medium">
-                View All ➔
+                {t.viewAll || 'View All'} ➔
               </Link>
             </div>
 
@@ -176,7 +183,7 @@ export default function FactoryDashboard() {
                     </div>
 
                     <span className="px-2 py-0.5 rounded text-2xs font-mono font-semibold bg-slate-100 border border-slate-200 text-slate-700">
-                      {m.head_count} HEADS
+                      {m.head_count} {t.heads || 'HEADS'}
                     </span>
                   </div>
 
@@ -184,7 +191,7 @@ export default function FactoryDashboard() {
                     <span className="text-slate-500">{m.rpm || 850} RPM</span>
                     <span className="text-emerald-700 font-medium flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>Ready</span>
+                      <span>{t.ready || 'Ready'}</span>
                     </span>
                   </div>
                 </div>
@@ -203,12 +210,12 @@ export default function FactoryDashboard() {
             <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
               <div>
                 <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Recent Invoices (તાજેતરના બીલ)
+                  {t.recentInvoices || 'Recent Invoices'}
                 </h2>
                 <span className="text-2xs text-slate-400 font-mono">GST SAC 9988</span>
               </div>
               <Link href="/invoices" className="text-2xs text-slate-600 hover:text-slate-900 font-medium">
-                View All ➔
+                {t.viewAll || 'View All'} ➔
               </Link>
             </div>
 

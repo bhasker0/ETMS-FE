@@ -18,6 +18,8 @@ import {
   Building2,
   Check,
   User,
+  Users,
+  Briefcase,
   LogOut,
   Menu,
   X,
@@ -27,6 +29,7 @@ import {
 import { toast } from 'sonner';
 import { useConfig } from '@/lib/config-context';
 import { CompanyConfigDrawer } from './CompanyConfigDrawer';
+import { LanguageSwitcher } from '../molecules/LanguageSwitcher';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -48,14 +51,16 @@ export const Navbar: React.FC = () => {
   ];
 
   const navItems = [
-    { href: '/', label: 'Dashboard', icon: <Layers className="w-4 h-4" /> },
-    { href: '/shift', label: 'Shift Logs', sub: 'શિફ્ટ', icon: <Clock className="w-4 h-4" /> },
-    { href: '/machines', label: 'Machines', sub: 'મશીન', icon: <Wrench className="w-4 h-4" /> },
-    { href: '/challans', label: 'Inward Lots', sub: 'આવક', icon: <Truck className="w-4 h-4" /> },
-    { href: '/karigar/uchapat', label: 'Uchapat', sub: 'ઉપાડ', icon: <Wallet className="w-4 h-4" /> },
-    { href: '/invoices', label: 'Invoices', sub: 'SAC 9988', icon: <FileText className="w-4 h-4" /> },
-    { href: '/karigar/hisab', label: 'Wage Hisab', sub: 'હિસાબ', icon: <Calculator className="w-4 h-4" /> },
-    { href: '/munim/dashboard', label: 'Munim Portal', sub: 'મુનીમ', icon: <FileSpreadsheet className="w-4 h-4 text-blue-600" /> },
+    { href: '/', label: t.navDashboard || 'Dashboard', icon: <Layers className="w-4 h-4" /> },
+    { href: '/shift', label: t.navShiftList || 'Shift Logs', icon: <Clock className="w-4 h-4" /> },
+    { href: '/machines', label: t.activeMachines || 'Machines', icon: <Wrench className="w-4 h-4" /> },
+    { href: '/karigars', label: t.navKarigars || 'Karigars', icon: <Users className="w-4 h-4" /> },
+    { href: '/challans', label: t.navChallans || 'Inward Lots', icon: <Truck className="w-4 h-4" /> },
+    { href: '/parties', label: t.navParties || 'Parties', icon: <Briefcase className="w-4 h-4" /> },
+    { href: '/karigar/uchapat', label: t.navKarigarUchapat || 'Uchapat', icon: <Wallet className="w-4 h-4" /> },
+    { href: '/invoices', label: t.navInvoices || 'Invoices', icon: <FileText className="w-4 h-4" /> },
+    { href: '/karigar/hisab', label: t.settleHisab || 'Wage Hisab', icon: <Calculator className="w-4 h-4" /> },
+    { href: '/munim/dashboard', label: t.navMunimDashboard || 'Munim Portal', icon: <FileSpreadsheet className="w-4 h-4 text-blue-600" /> },
   ];
 
   const handlePersonaSwitch = async (persona: typeof personas[0]) => {
@@ -127,7 +132,7 @@ export const Navbar: React.FC = () => {
             {companyDropdownOpen && (
               <div className="absolute top-full left-0 mt-1.5 w-72 bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-1.5 space-y-1">
                 <div className="px-2.5 py-1 text-2xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                  Switch Active Company (ટેનન્ટ)
+                  {t.switchCompanyDropdownTitle || 'Switch Active Company'}
                 </div>
                 <div className="max-h-60 overflow-y-auto space-y-0.5">
                   {allAvailableCompanies.map((c) => {
@@ -175,11 +180,14 @@ export const Navbar: React.FC = () => {
             <span>+ Log Shift</span>
           </Link>
 
+          {/* Language Switcher Dropdown */}
+          <LanguageSwitcher />
+
           {/* Configuration Gear Icon Button */}
           <button
             onClick={openConfigDrawer}
             className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-[#0099B8] rounded-lg transition text-xs flex items-center justify-center shadow-2xs group"
-            title="Company Configuration & Settings (કંપની સેટિંગ્સ)"
+            title="Company Configuration & Settings"
           >
             <Settings className="w-4 h-4 transition-transform group-hover:rotate-45" />
           </button>
@@ -207,7 +215,7 @@ export const Navbar: React.FC = () => {
                 </div>
 
                 <div className="px-2 py-1 text-2xs font-bold uppercase tracking-wider text-slate-400">
-                  Fast Persona Switch (ટેસ્ટ એકાઉન્ટ)
+                  {t.fastPersonaSwitchTitle || 'Fast Persona Switch'}
                 </div>
 
                 <div className="space-y-0.5">
@@ -299,7 +307,6 @@ export const Navbar: React.FC = () => {
                   {item.icon}
                   <span>{item.label}</span>
                 </div>
-                <span className="text-2xs text-slate-400">{item.sub}</span>
               </Link>
             );
           })}

@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n';
 import { Building2, ChevronDown, Check, Plus, ShieldCheck } from 'lucide-react';
+import { Drawer } from '@/components/ui/drawer';
 import { toast } from 'sonner';
 
 export const CompanySelector: React.FC = () => {
   const { allAvailableCompanies, activeCompany, switchCompany } = useAuth();
   const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [newName, setNewName] = useState('');
   const [newGstin, setNewGstin] = useState('');
   const [newPhone, setNewPhone] = useState('');
@@ -20,7 +21,7 @@ export const CompanySelector: React.FC = () => {
     e.preventDefault();
     if (!newName.trim() || !newGstin.trim()) return;
     toast.info('Company registration request sent to admin.');
-    setShowAddModal(false);
+    setShowAddDrawer(false);
     setNewName('');
     setNewGstin('');
     setNewPhone('');
@@ -49,7 +50,9 @@ export const CompanySelector: React.FC = () => {
         <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-[#E2E8F0] rounded-2xl shadow-xl z-50 p-2 space-y-1">
           <div className="px-3 py-1.5 text-2xs font-bold uppercase tracking-wider text-[#64748B] border-b border-[#E2E8F0] flex justify-between items-center">
             <span>{t.linkedCompanies}</span>
-            <span className="bg-[#E0F2FE] text-[#0284C7] px-1.5 py-0.5 rounded-md text-2xs font-mono font-bold">{allAvailableCompanies.length}</span>
+            <span className="bg-[#E0F2FE] text-[#0284C7] px-1.5 py-0.5 rounded-md text-2xs font-mono font-bold">
+              {allAvailableCompanies.length}
+            </span>
           </div>
 
           <div className="max-h-60 overflow-y-auto space-y-1">
@@ -63,7 +66,9 @@ export const CompanySelector: React.FC = () => {
                     setIsOpen(false);
                   }}
                   className={`w-full p-2.5 rounded-xl text-left flex items-start justify-between transition min-h-[50px] ${
-                    isSelected ? 'bg-[#0099B8]/10 border border-[#0099B8]/30 text-[#0099B8]' : 'hover:bg-[#F8FAFC] text-[#1E293B]'
+                    isSelected
+                      ? 'bg-[#0099B8]/10 border border-[#0099B8]/30 text-[#0099B8]'
+                      : 'hover:bg-[#F8FAFC] text-[#1E293B]'
                   }`}
                 >
                   <div className="space-y-0.5 truncate pr-2">
@@ -88,7 +93,7 @@ export const CompanySelector: React.FC = () => {
             <button
               onClick={() => {
                 setIsOpen(false);
-                setShowAddModal(true);
+                setShowAddDrawer(true);
               }}
               className="w-full py-2 bg-[#E0F2FE] hover:bg-[#0099B8] text-[#0284C7] hover:text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition"
             >
@@ -99,89 +104,89 @@ export const CompanySelector: React.FC = () => {
         </div>
       )}
 
-      {/* Add Company Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-[#1E293B]/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <div className="flex items-center gap-2 text-[#0099B8]">
-                <ShieldCheck className="w-5 h-5" />
-                <h3 className="font-bold text-lg text-[#1E293B]">નવી કંપની લિંક કરો</h3>
-              </div>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-[#64748B] hover:text-[#1E293B] p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddSubmit} className="space-y-3">
-              <div>
-                <label className="text-xs text-[#1E293B] font-bold block mb-1">કંપની / કારખાનાનું નામ *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="દા.ત. શ્રી બાલાજી એમ્બ્રોઇડરી"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-[#1E293B] font-bold block mb-1">GSTIN નંબર *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="24AAAAA0000A1Z5"
-                  value={newGstin}
-                  onChange={(e) => setNewGstin(e.target.value.toUpperCase())}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8] uppercase font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-[#1E293B] font-bold block mb-1">મોબાઈલ નંબર</label>
-                <input
-                  type="tel"
-                  placeholder="+91 98250 XXXXX"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-[#1E293B] font-bold block mb-1">સરનામું (GIDC Area)</label>
-                <input
-                  type="text"
-                  placeholder="સચીન / પાંડેસરા / કતારગામ જીઆઇડીસી, સુરત"
-                  value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8]"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="w-1/2 py-2.5 bg-[#F8FAFC] hover:bg-[#E2E8F0] text-[#64748B] rounded-xl font-bold text-sm"
-                >
-                  {t.cancel}
-                </button>
-                <button
-                  type="submit"
-                  className="w-1/2 py-2.5 bg-[#0099B8] hover:bg-[#0E7090] text-white rounded-xl font-bold text-sm shadow-md"
-                >
-                  {t.save}
-                </button>
-              </div>
-            </form>
+      {/* Add Company Right Slide-Over Drawer */}
+      <Drawer
+        isOpen={showAddDrawer}
+        onClose={() => setShowAddDrawer(false)}
+        title="નવી કંપની લિંક કરો"
+        subtitle="સુરત ટેક્સટાઇલ યુનિટ / Link Embroidery Factory"
+        icon={<ShieldCheck className="w-5 h-5 text-[#0099B8]" />}
+        size="md"
+        footer={
+          <div className="flex gap-2 w-full justify-end">
+            <button
+              type="button"
+              onClick={() => setShowAddDrawer(false)}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+            >
+              {t.cancel}
+            </button>
+            <button
+              type="button"
+              onClick={handleAddSubmit}
+              className="px-4 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white rounded-lg text-xs font-semibold shadow-xs"
+            >
+              {t.save}
+            </button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form onSubmit={handleAddSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs text-[#1E293B] font-bold block mb-1">
+              કંપની / કારખાનાનું નામ (Company Name) *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="દા.ત. શ્રી બાલાજી એમ્બ્રોઇડરી"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8]"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-[#1E293B] font-bold block mb-1">
+              GSTIN નંબર (24 Gujarat Code) *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="24AAAAA0000A1Z5"
+              value={newGstin}
+              onChange={(e) => setNewGstin(e.target.value.toUpperCase())}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8] uppercase font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-[#1E293B] font-bold block mb-1">
+              મોબાઈલ નંબર (Mobile Number)
+            </label>
+            <input
+              type="tel"
+              placeholder="+91 98250 XXXXX"
+              value={newPhone}
+              onChange={(e) => setNewPhone(e.target.value)}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8]"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-[#1E293B] font-bold block mb-1">
+              સરનામું (GIDC Area / Location)
+            </label>
+            <input
+              type="text"
+              placeholder="સચીન / પાંડેસરા / કતારગામ જીઆઇડીસી, સુરત"
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[#1E293B] text-sm focus:outline-none focus:border-[#0099B8]"
+            />
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 };

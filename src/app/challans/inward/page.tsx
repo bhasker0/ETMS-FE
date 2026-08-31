@@ -1,22 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { InwardChallansApi, CreateInwardChallanDto } from '@/lib/api/challans';
+import { PartiesApi, PartyApiItem } from '@/lib/api/parties';
+import { useAppDrawer } from '@/lib/app-drawer-context';
 import { useAuth } from '@/lib/auth-context';
 import {
   Truck,
   Save,
   ArrowLeft,
+  Briefcase,
+  Plus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function InwardChallanFormPage() {
   const router = useRouter();
   const { activeCompany } = useAuth();
+  const { openDrawer } = useAppDrawer();
 
-  const [traderName, setTraderName] = useState('Ambaji Fashion Surat');
-  const [traderGstin, setTraderGstin] = useState('24BBCDE5678G1Z3');
+  const [parties, setParties] = useState<PartyApiItem[]>([]);
+  const [traderName, setTraderName] = useState('');
+  const [traderGstin, setTraderGstin] = useState('');
   const [lotNo, setLotNo] = useState(`LOT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`);
   const [thanCount, setThanCount] = useState<number>(24);
   const [inwardMeters, setInwardMeters] = useState<number>(1200);
@@ -25,12 +31,22 @@ export default function InwardChallanFormPage() {
   const [notes, setNotes] = useState('Delivered via Sachin GIDC tempo transport');
   const [submitting, setSubmitting] = useState(false);
 
-  const predefinedTraders = [
-    { name: 'Ambaji Fashion Surat', gstin: '24BBCDE5678G1Z3' },
-    { name: 'Radhe Krishna Sarees', gstin: '24AABCR1234F1Z1' },
-    { name: 'Surat Dress Materials', gstin: '24CDEFG9012H1Z5' },
-    { name: 'Mahadev Silks Ring Road', gstin: '24DEFGH3456I1Z7' },
-  ];
+  const fetchParties = async () => {
+    try {
+      const list = await PartiesApi.getAll();
+      setParties(list);
+      if (list.length > 0 && !traderName) {
+        setTraderName(list[0].name);
+        if (list[0].gstin) setTraderGstin(list[0].gstin);
+      }
+    } catch (e) {
+      console.warn('Parties fetch error in inward challan page:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchParties();
+  }, [activeCompany?.id]);
 
   const fabricPresets = [
     'Georgette 60g / Heavy Foil',
@@ -97,25 +113,41 @@ export default function InwardChallanFormPage() {
       <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
         {/* Quick fill traders */}
         <div className="space-y-1.5">
-          <label className="text-2xs font-semibold text-slate-500 uppercase tracking-wider">
-            Quick-Select Surat Trader (વેપારી પસંદ કરો)
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-2xs font-semibold text-slate-500 uppercase tracking-wider">
+              Select Registered Trader / Party (વેપારી પસંદ કરો)
+            </label>
+            <button
+              type="button"
+              onClick={() =>
+                openDrawer('ADD_PARTY', {}, (newParty: PartyApiItem) => {
+                  fetchParties();
+                  setTraderName(newParty.name);
+                  if (newParty.gstin) setTraderGstin(newParty.gstin);
+                })
+              }
+              className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] inline-flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Add New Party</span>
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
-            {predefinedTraders.map((t) => (
+            {parties.map((p) => (
               <button
-                key={t.name}
+                key={p.id}
                 type="button"
                 onClick={() => {
-                  setTraderName(t.name);
-                  setTraderGstin(t.gstin);
+                  setTraderName(p.name);
+                  setTraderGstin(p.gstin || '');
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
-                  traderName === t.name
+                  traderName === p.name
                     ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                     : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                 }`}
               >
-                {t.name}
+                {p.name}
               </button>
             ))}
           </div>

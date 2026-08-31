@@ -17,8 +17,28 @@ export interface MunimRequestApiItem {
   company_gstin?: string;
   munim_name?: string;
   munim_mobile?: string;
-  initiated_by: 'MUNIM' | 'COMPANY';
+  company?: {
+    id: string;
+    name: string;
+    gstin?: string;
+    address?: string;
+    phone?: string;
+  };
+  munimUser?: {
+    id: string;
+    full_name: string;
+    mobile?: string;
+    email?: string;
+  };
+  requester?: {
+    id: string;
+    full_name: string;
+    mobile?: string;
+  };
+  initiator_type?: 'MUNIM_TO_COMPANY' | 'COMPANY_TO_MUNIM';
+  initiated_by?: 'MUNIM' | 'COMPANY';
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'REVOKED';
+  request_notes?: string;
   created_at: string;
 }
 
@@ -62,19 +82,34 @@ export const MunimApi = {
     return res?.data || [];
   },
 
-  munimInviteCompany: async (payload: { gstin?: string; mobile?: string }): Promise<any> => {
-    const res: any = await apiClient.post('/api/v1/munim/invite-company', payload);
+  munimInviteCompany: async (payload: { gstin?: string; mobile?: string; companyMobile?: string; notes?: string }): Promise<any> => {
+    const res: any = await apiClient.post('/api/v1/munim/invite-company', {
+      gstin: payload.gstin,
+      companyMobile: payload.companyMobile || payload.mobile,
+      notes: payload.notes,
+    });
     return res?.data;
   },
 
-  companyInviteMunim: async (payload: { munim_mobile: string }): Promise<any> => {
-    const res: any = await apiClient.post('/api/v1/munim/company-invite-munim', payload);
+  companyInviteMunim: async (payload: { munim_mobile?: string; munimMobile?: string; notes?: string }): Promise<any> => {
+    const res: any = await apiClient.post('/api/v1/munim/company-invite-munim', {
+      munimMobile: payload.munimMobile || payload.munim_mobile,
+      notes: payload.notes,
+    });
     return res?.data;
   },
 
   respondToRequest: async (requestId: string, action: 'ACCEPT' | 'REJECT' | 'REVOKE'): Promise<any> => {
+    const statusMap: Record<string, string> = {
+      ACCEPT: 'ACCEPTED',
+      REJECT: 'REJECTED',
+      REVOKE: 'REVOKED',
+      ACCEPTED: 'ACCEPTED',
+      REJECTED: 'REJECTED',
+      REVOKED: 'REVOKED',
+    };
     const res: any = await apiClient.patch(`/api/v1/munim/requests/${requestId}/respond`, {
-      action,
+      status: statusMap[action] || action,
     });
     return res?.data;
   },

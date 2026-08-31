@@ -24,7 +24,7 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      if (activeCompanyId) {
+      if (activeCompanyId && activeCompanyId !== 'undefined' && activeCompanyId !== 'null') {
         config.headers['x-company-id'] = activeCompanyId;
       }
     }

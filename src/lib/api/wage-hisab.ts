@@ -41,7 +41,34 @@ export interface SettleWageHisabDto {
 export const WageHisabApi = {
   calculate: async (dto: CalculateWageHisabDto): Promise<WageHisabCalculationResult> => {
     const res: any = await apiClient.post('/api/v1/wage-hisab/calculate', dto);
-    return res?.data;
+    const raw = res?.data || res;
+
+    const karigar = raw?.karigar || {};
+    const period = raw?.period || {};
+    const summary = raw?.summary || {};
+
+    const totalMeters = Number(raw?.total_meters ?? summary?.totalMeters ?? 0);
+    const grossEarnings = Number(raw?.gross_earnings ?? summary?.grossEarnings ?? 0);
+    const totalUchapat = Number(raw?.total_uchapat_advances ?? summary?.totalUchapatAdvances ?? 0);
+    const deductions = Number(raw?.deductions ?? summary?.deductions ?? 0);
+    const netPayable = Number(raw?.net_payable ?? summary?.netPayable ?? (grossEarnings - totalUchapat - deductions));
+
+    return {
+      karigar_id: raw?.karigar_id || karigar?.id || dto.karigar_id,
+      karigar_name: raw?.karigar_name || karigar?.name || 'Karigar',
+      wage_type: raw?.wage_type || karigar?.wage_type || 'PIECE_RATE',
+      startDate: raw?.startDate || period?.startDate || dto.startDate,
+      endDate: raw?.endDate || period?.endDate || dto.endDate,
+      total_shifts: Number(raw?.total_shifts ?? summary?.shiftsCount ?? 0),
+      total_meters: totalMeters,
+      rate_per_meter: Number(raw?.rate_per_meter ?? karigar?.rate_per_meter ?? 1.2),
+      gross_earnings: grossEarnings,
+      total_uchapat_advances: totalUchapat,
+      deductions: deductions,
+      deduction_reason: raw?.deduction_reason || summary?.deduction_reason || dto.deduction_reason || '',
+      net_payable: netPayable,
+      included_advance_ids: raw?.included_advance_ids || [],
+    };
   },
 
   settle: async (dto: SettleWageHisabDto): Promise<any> => {

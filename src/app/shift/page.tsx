@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ShiftLogsApi, ShiftLogApiItem, DowntimeAnalytics } from '@/lib/api/shift-logs';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { useI18n } from '@/lib/i18n';
 import { formatNumber } from '@/lib/utils';
 import {
   Clock,
@@ -18,6 +19,7 @@ import {
 export default function ShiftLogsListPage() {
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [shifts, setShifts] = useState<ShiftLogApiItem[]>([]);
   const [downtimeStats, setDowntimeStats] = useState<DowntimeAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,10 +68,10 @@ export default function ShiftLogsListPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>દૈનિક શિફ્ટ કાઉન્ટર • Daily Production Counter Logs</span>
+              <span>{t.navShiftList || 'Daily Production Counter Logs'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Shift Production Registry ({shifts.length})
+              {t.navShiftList || 'Shift Production Registry'} ({shifts.length})
             </h1>
             <p className="text-xs text-slate-500">
               Day & Night production telemetry, stitch tallies and machine downtime tracking
@@ -81,7 +83,7 @@ export default function ShiftLogsListPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Log Shift Counter</span>
+            <span>{t.navShiftNew || 'Log Shift Counter'}</span>
           </button>
         </div>
 

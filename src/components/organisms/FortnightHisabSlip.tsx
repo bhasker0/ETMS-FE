@@ -92,7 +92,7 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
             <tr>
               <td className="p-2.5 font-medium text-slate-700">કારીગર ભાવ દર (Rate/1k St.)</td>
               <td className="p-2.5 text-right font-mono text-slate-900">
-                ₹{karigar.ratePerThousand.toFixed(2)}
+                ₹{Number(karigar.ratePerThousand || 0).toFixed(2)}
               </td>
             </tr>
             <tr className="bg-slate-50 font-bold">

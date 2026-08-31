@@ -6,16 +6,19 @@ import { UchapatApi, UchapatApiItem, KarigarUchapatSummary } from '@/lib/api/uch
 import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { useI18n } from '@/lib/i18n';
 import { formatINR } from '@/lib/utils';
 import {
   Wallet,
   Plus,
   ArrowRight,
+  Share2,
 } from 'lucide-react';
 
 export default function KarigarUchapatPage() {
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [selectedKarigarId, setSelectedKarigarId] = useState<string>('');
   const [transactions, setTransactions] = useState<UchapatApiItem[]>([]);
@@ -74,10 +77,10 @@ export default function KarigarUchapatPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Wallet className="w-3.5 h-3.5 text-slate-400" />
-              <span>કારીગર ઉપાડ ખાતાવહી • Karigar Advance Ledger</span>
+              <span>{t.uchapatTitle || 'Karigar Advance Ledger'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Uchapat Passbook (રોકડ / UPI ઉપાડ)
+              {t.uchapatTitle || 'Advance Salary Passbook'}
             </h1>
             <p className="text-xs text-slate-500">
               Cash, UPI and Bank Transfer advances with unsettled balance tracking
@@ -85,11 +88,27 @@ export default function KarigarUchapatPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() =>
+                openDrawer('ADD_KARIGAR', {}, async (createdKarigar?: any) => {
+                  const kList = await KarigarsApi.getAll();
+                  setKarigars(kList);
+                  if (createdKarigar?.id) {
+                    setSelectedKarigarId(createdKarigar.id);
+                  }
+                })
+              }
+              className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ New Karigar</span>
+            </button>
+
             <Link
               href="/karigar/hisab"
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
+              className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
             >
-              <span>Fortnight Hisab (હિસાબ)</span>
+              <span>{t.settleHisab || 'Fortnight Hisab'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
@@ -98,7 +117,7 @@ export default function KarigarUchapatPage() {
               className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Give Advance (ઉપાડ)</span>
+              <span>{t.giveAdvanceBtn || 'Give Advance'}</span>
             </button>
           </div>
         </div>
@@ -139,6 +158,32 @@ export default function KarigarUchapatPage() {
           ))}
         </div>
 
+        {/* Empty state if no karigars */}
+        {karigars.length === 0 && (
+          <div className="p-12 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <Wallet className="w-10 h-10 text-slate-300 mx-auto" />
+            <h3 className="text-sm font-bold text-slate-800">No Karigars Registered</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Onboard machine operators and floor karigars to track piece-rate earnings, wage deductions, and cash advances.
+            </p>
+            <button
+              onClick={() =>
+                openDrawer('ADD_KARIGAR', {}, async (createdKarigar?: any) => {
+                  const kList = await KarigarsApi.getAll();
+                  setKarigars(kList);
+                  if (createdKarigar?.id) {
+                    setSelectedKarigarId(createdKarigar.id);
+                  }
+                })
+              }
+              className="px-4 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs inline-flex items-center gap-1.5 transition shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Onboard First Karigar</span>
+            </button>
+          </div>
+        )}
+
         {/* Ledger Table */}
         {selectedKarigar && (
           <div className="space-y-4">
@@ -151,6 +196,7 @@ export default function KarigarUchapatPage() {
                     <th className="p-3.5">Payment Mode</th>
                     <th className="p-3.5">Purpose / Reason</th>
                     <th className="p-3.5">Settlement Status</th>
+                    <th className="p-3.5 text-right">Receipt Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-sans">
@@ -181,12 +227,32 @@ export default function KarigarUchapatPage() {
                           </span>
                         )}
                       </td>
+                      <td className="p-3.5 text-right">
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            `*${activeCompany?.name || 'Embroidery Factory'} - ઉપાડ પહોંચ (Uchapat Receipt)*\n\n` +
+                            `👤 *કારીગર:* ${selectedKarigar.name}\n` +
+                            `📅 *તારીખ:* ${new Date(tx.date).toLocaleDateString('en-GB')}\n` +
+                            `💵 *ઉપાડ રકમ:* *₹${Number(tx.amount || 0).toFixed(2)}*\n` +
+                            `💳 *ચૂકવણી મોડ:* ${tx.payment_mode}\n` +
+                            `📝 *વિગત:* ${tx.reason || 'રોકડ ઉપાડ'}\n\n` +
+                            `સુરત એમ્બ્રોઇડરી મેનેજમેન્ટ સિસ્ટમ (ETMS)`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 hover:bg-emerald-50 text-emerald-700 rounded-md transition inline-flex items-center gap-1 text-2xs font-medium"
+                          title="Share Uchapat receipt on WhatsApp"
+                        >
+                          <Share2 className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+                      </td>
                     </tr>
                   ))}
 
                   {transactions.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-slate-400">
+                      <td colSpan={6} className="p-8 text-center text-slate-400">
                         No advance entries recorded for this Karigar. Click &quot;+ Give Advance&quot; to log.
                       </td>
                     </tr>

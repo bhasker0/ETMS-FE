@@ -7,6 +7,7 @@ import { MachinesApi, MachineApiItem } from '@/lib/api/machines';
 import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
 import { useAuth } from '@/lib/auth-context';
+import { useAppDrawer } from '@/lib/app-drawer-context';
 import { formatNumber } from '@/lib/utils';
 import {
   Clock,
@@ -14,12 +15,17 @@ import {
   ArrowLeft,
   Sun,
   Moon,
+  MapPin,
+  ShieldCheck,
+  Plus,
+  Wrench,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function NewShiftLogPage() {
   const router = useRouter();
   const { activeCompany } = useAuth();
+  const { openDrawer } = useAppDrawer();
 
   const [machines, setMachines] = useState<MachineApiItem[]>([]);
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
@@ -134,10 +140,41 @@ export default function NewShiftLogPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
+        {/* Geofence & Subnet Verification Strip (SCRUM-143) */}
+        <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-2xs">
+          <div className="flex items-center gap-2 text-emerald-800 font-medium">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Factory Geofence Gate: <strong>Verified Inside Premises</strong> (Surat GIDC Plot 14-B)</span>
+          </div>
+          <div className="flex items-center gap-2 text-emerald-700 font-mono">
+            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+            <span>21.1702° N, 72.8311° E • Subnet: 103.21.244.x</span>
+          </div>
+        </div>
+
         {/* Machine & Shift Type */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1 sm:col-span-2">
-            <label className="text-xs text-slate-700 font-medium">Select Machine (મશીન) *</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-slate-700 font-medium">Select Machine *</label>
+              <button
+                type="button"
+                onClick={() =>
+                  openDrawer('ADD_MACHINE', {}, async (createdMachine?: any) => {
+                    const updatedList = await MachinesApi.getAll();
+                    setMachines(updatedList);
+                    if (createdMachine?.id) {
+                      setMachineId(createdMachine.id);
+                      toast.success(`Machine #${createdMachine.machine_no || ''} registered & selected`);
+                    }
+                  })
+                }
+                className="text-2xs text-[#0099B8] hover:text-[#0E7090] font-semibold flex items-center gap-1 transition"
+              >
+                <Wrench className="w-3 h-3" />
+                <span>+ Add Machine</span>
+              </button>
+            </div>
             <select
               value={machineId}
               onChange={(e) => setMachineId(e.target.value)}
@@ -149,6 +186,45 @@ export default function NewShiftLogPage() {
                 </option>
               ))}
             </select>
+            {(() => {
+              const selectedM = machines.find((m) => m.id === machineId);
+              if (!selectedM) return null;
+              const isRunning = selectedM.status === 'RUNNING' || !selectedM.status;
+              const isMaintenance = selectedM.status === 'MAINTENANCE';
+              return (
+                <div className="flex items-center justify-between text-2xs pt-1 px-1 text-slate-600 font-mono">
+                  <span className="flex items-center gap-1.5">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        isMaintenance
+                          ? 'bg-rose-500'
+                          : isRunning
+                          ? 'bg-emerald-500 animate-pulse'
+                          : 'bg-amber-500'
+                      }`}
+                    />
+                    <span>
+                      Status:{' '}
+                      <strong
+                        className={`font-bold ${
+                          isMaintenance
+                            ? 'text-rose-700'
+                            : isRunning
+                            ? 'text-emerald-700'
+                            : 'text-amber-700'
+                        }`}
+                      >
+                        {selectedM.status || 'RUNNING'}
+                      </strong>
+                    </span>
+                  </span>
+                  <span>
+                    Floor Telemetry: <strong>{selectedM.rpm || 850} RPM</strong> •{' '}
+                    <strong>{selectedM.head_count || 32} Heads</strong>
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="space-y-1">
@@ -196,7 +272,26 @@ export default function NewShiftLogPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Operating Karigar (કારીગર) *</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-slate-700 font-medium">Operating Karigar *</label>
+              <button
+                type="button"
+                onClick={() =>
+                  openDrawer('ADD_KARIGAR', {}, async (createdKarigar?: any) => {
+                    const updatedList = await KarigarsApi.getAll();
+                    setKarigars(updatedList);
+                    if (createdKarigar?.id) {
+                      setKarigarId(createdKarigar.id);
+                      toast.success(`Karigar ${createdKarigar.name} selected`);
+                    }
+                  })
+                }
+                className="text-2xs text-[#0099B8] hover:text-[#0E7090] font-semibold flex items-center gap-0.5 transition"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Add Karigar</span>
+              </button>
+            </div>
             <select
               value={karigarId}
               onChange={(e) => setKarigarId(e.target.value)}

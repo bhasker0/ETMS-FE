@@ -3,15 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDrawer, DrawerInstance } from '@/lib/app-drawer-context';
 import { Drawer } from '@/components/ui/drawer';
-import { KarigarsApi, KarigarApiItem, CreateKarigarDto } from '@/lib/api/karigars';
+import { KarigarsApi, KarigarApiItem, CreateKarigarDto, WageType } from '@/lib/api/karigars';
 import { MachinesApi, MachineApiItem, CreateMachineDto } from '@/lib/api/machines';
 import { UchapatApi, PaymentMode } from '@/lib/api/uchapat';
 import { MunimApi } from '@/lib/api/munim';
 import { WageHisabApi } from '@/lib/api/wage-hisab';
 import { ShiftLogsApi, CreateShiftLogDto } from '@/lib/api/shift-logs';
-import { InwardChallansApi, InwardChallanApiItem, CreateInwardChallanDto } from '@/lib/api/challans';
+import { InwardChallansApi, InwardChallanApiItem, CreateInwardChallanDto, InwardChallanDesignItem } from '@/lib/api/challans';
 import { OutwardInvoicesApi } from '@/lib/api/invoices';
+import { PartiesApi, PartyApiItem, CreatePartyDto } from '@/lib/api/parties';
 import { formatNumber, formatINR } from '@/lib/utils';
+import { PartyPicker } from '@/components/molecules/PartyPicker';
 import { toast } from 'sonner';
 import {
   Users,
@@ -24,6 +26,8 @@ import {
   FileText,
   Sun,
   Moon,
+  Plus,
+  Briefcase,
 } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
@@ -35,14 +39,38 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
   const [name, setName] = useState(editingItem?.name || '');
   const [mobile, setMobile] = useState(editingItem?.mobile || '');
-  const [wageType, setWageType] = useState<'PIECE_RATE' | 'FIXED_MONTHLY'>(editingItem?.wage_type || 'PIECE_RATE');
+  const [wageType, setWageType] = useState<WageType>(editingItem?.wage_type || 'PIECE_RATE');
   const [defaultRatePerMeter, setDefaultRatePerMeter] = useState(editingItem?.default_rate_per_meter || 0.18);
   const [defaultMonthlySalary, setDefaultMonthlySalary] = useState(editingItem?.default_monthly_salary || 18000);
+  const [incentiveThresholdValue, setIncentiveThresholdValue] = useState(editingItem?.incentive_threshold_value || 100000);
+  const [incentiveThresholdType, setIncentiveThresholdType] = useState<'STITCHES' | 'PIECES' | 'METERS'>(editingItem?.incentive_threshold_type || 'STITCHES');
+  const [incentiveRate, setIncentiveRate] = useState(editingItem?.incentive_rate || 0.25);
+  const [incentiveRateType, setIncentiveRateType] = useState<'PER_1K_STITCHES' | 'PER_PIECE' | 'PER_METER'>(editingItem?.incentive_rate_type || 'PER_1K_STITCHES');
   const [isActive, setIsActive] = useState(editingItem?.is_active ?? true);
   const [submitting, setSubmitting] = useState(false);
 
+  const [mobileError, setMobileError] = useState('');
+
+  const handleMobileChange = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 10);
+    setMobile(digits);
+    if (digits.length === 0) {
+      setMobileError('');
+    } else if (digits.length < 10) {
+      setMobileError('Must be 10 digits');
+    } else if (!/^[6-9]\d{9}$/.test(digits)) {
+      setMobileError('Must start with 6, 7, 8, or 9');
+    } else {
+      setMobileError('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
+      toast.error('Please enter a valid 10-digit Indian mobile number');
+      return;
+    }
     setSubmitting(true);
     try {
       const payload: CreateKarigarDto = {
@@ -50,7 +78,11 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         mobile,
         wage_type: wageType,
         default_rate_per_meter: wageType === 'PIECE_RATE' ? Number(defaultRatePerMeter) : undefined,
-        default_monthly_salary: wageType === 'FIXED_MONTHLY' ? Number(defaultMonthlySalary) : undefined,
+        default_monthly_salary: wageType === 'FIXED_MONTHLY' || wageType === 'FIXED_PLUS_INCENTIVE' ? Number(defaultMonthlySalary) : undefined,
+        incentive_threshold_value: wageType === 'FIXED_PLUS_INCENTIVE' ? Number(incentiveThresholdValue) : undefined,
+        incentive_threshold_type: wageType === 'FIXED_PLUS_INCENTIVE' ? incentiveThresholdType : undefined,
+        incentive_rate: wageType === 'FIXED_PLUS_INCENTIVE' ? Number(incentiveRate) : undefined,
+        incentive_rate_type: wageType === 'FIXED_PLUS_INCENTIVE' ? incentiveRateType : undefined,
         is_active: isActive,
       };
 
@@ -80,7 +112,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       title={editingItem ? 'Edit Karigar / Operator (કારીગર સુધારો)' : 'Add New Karigar / Operator (નવો કારીગર ઉમેરો)'}
       subtitle={editingItem ? 'કારીગર વિગતો અને વેતન દરો અપડેટ કરો' : 'કારીગર મૂળભૂત માહિતી અને પગાર/મજૂરી દરો'}
       icon={<Users className="w-5 h-5 text-slate-700" />}
-      size="md"
+      size="lg"
       footer={
         <div className="flex items-center gap-2 w-full">
           <button
@@ -96,8 +128,8 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               const form = document.getElementById(`karigar-form-${instance.id}`) as HTMLFormElement;
               if (form) form.requestSubmit();
             }}
-            disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
+            disabled={submitting || !!mobileError}
+            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
           >
             {submitting ? 'Saving...' : editingItem ? 'Save Changes' : 'Create Karigar'}
           </button>
@@ -118,48 +150,74 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Mobile Number (મોબાઇલ નંબર) *</label>
-          <input
-            type="tel"
-            required
-            pattern="[0-9]{10}"
-            placeholder="10-digit mobile"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 focus:outline-none focus:border-slate-900"
-          />
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-slate-700 font-medium">Mobile Number (મોબાઇલ નંબર) *</label>
+            {mobileError && <span className="text-2xs text-rose-600 font-medium">{mobileError}</span>}
+            {!mobileError && mobile.length === 10 && (
+              <span className="text-2xs text-emerald-600 font-medium">✓ Valid Mobile</span>
+            )}
+          </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400 font-medium">
+              +91
+            </span>
+            <input
+              type="tel"
+              required
+              placeholder="98250 12345"
+              value={mobile}
+              onChange={(e) => handleMobileChange(e.target.value)}
+              className={`w-full bg-white border ${
+                mobileError ? 'border-rose-400 focus:border-rose-500' : 'border-slate-300 focus:border-slate-900'
+              } rounded-lg pl-11 pr-3 py-2 text-sm font-mono text-slate-900 focus:outline-none`}
+            />
+          </div>
         </div>
 
         <div className="space-y-1">
           <label className="text-xs text-slate-700 font-medium">Wage Model (મજૂરી પ્રકાર) *</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setWageType('PIECE_RATE')}
-              className={`p-2.5 rounded-lg border text-xs font-semibold transition ${
+              className={`p-2.5 rounded-lg border text-xs font-semibold transition text-center ${
                 wageType === 'PIECE_RATE'
-                  ? 'border-slate-900 bg-slate-900 text-white'
+                  ? 'border-[#0099B8] bg-[#0099B8] text-white shadow-xs'
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Piece Rate (ટાંકા/મીટર દીઠ)
+              <div>Piece Rate</div>
+              <div className="text-3xs opacity-80">(ટાંકા/મીટર દીઠ)</div>
             </button>
             <button
               type="button"
               onClick={() => setWageType('FIXED_MONTHLY')}
-              className={`p-2.5 rounded-lg border text-xs font-semibold transition ${
+              className={`p-2.5 rounded-lg border text-xs font-semibold transition text-center ${
                 wageType === 'FIXED_MONTHLY'
-                  ? 'border-slate-900 bg-slate-900 text-white'
+                  ? 'border-[#0099B8] bg-[#0099B8] text-white shadow-xs'
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Fixed Monthly (માસિક પગાર)
+              <div>Fixed Monthly</div>
+              <div className="text-3xs opacity-80">(માસિક પગાર)</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setWageType('FIXED_PLUS_INCENTIVE')}
+              className={`p-2.5 rounded-lg border text-xs font-semibold transition text-center ${
+                wageType === 'FIXED_PLUS_INCENTIVE'
+                  ? 'border-[#0099B8] bg-[#0099B8] text-white shadow-xs'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <div>Fixed + Incentive</div>
+              <div className="text-3xs opacity-80">(ફિક્સ + કમિશન)</div>
             </button>
           </div>
         </div>
 
-        {wageType === 'PIECE_RATE' ? (
-          <div className="space-y-1">
+        {wageType === 'PIECE_RATE' && (
+          <div className="space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
             <label className="text-xs text-slate-700 font-medium">Default Rate Per Meter (₹ / મીટર) *</label>
             <input
               type="number"
@@ -169,9 +227,12 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               onChange={(e) => setDefaultRatePerMeter(parseFloat(e.target.value) || 0)}
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
             />
+            <p className="text-2xs text-slate-500">Wages calculated directly on total meters produced (₹{defaultRatePerMeter}/m).</p>
           </div>
-        ) : (
-          <div className="space-y-1">
+        )}
+
+        {wageType === 'FIXED_MONTHLY' && (
+          <div className="space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
             <label className="text-xs text-slate-700 font-medium">Monthly Salary (માસિક ફિક્સ પગાર ₹) *</label>
             <input
               type="number"
@@ -180,6 +241,80 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               onChange={(e) => setDefaultMonthlySalary(parseFloat(e.target.value) || 0)}
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
             />
+            <p className="text-2xs text-slate-500">Fixed fortnightly payout is ₹{Math.round(defaultMonthlySalary / 2)} (half month).</p>
+          </div>
+        )}
+
+        {wageType === 'FIXED_PLUS_INCENTIVE' && (
+          <div className="space-y-3 bg-cyan-50/50 p-4 rounded-xl border border-cyan-200">
+            <div className="space-y-1">
+              <label className="text-xs text-slate-800 font-semibold">Fixed Base Monthly Salary (માસિક મૂળ પગાર ₹) *</label>
+              <input
+                type="number"
+                required
+                value={defaultMonthlySalary}
+                onChange={(e) => setDefaultMonthlySalary(parseFloat(e.target.value) || 0)}
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
+              />
+              <span className="text-2xs text-slate-500">Guaranteed base wage: ₹{Math.round(defaultMonthlySalary / 2)} per fortnight.</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-cyan-200/60">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-800 font-medium">Production Threshold (કમિશન થ્રેશોલ્ડ)</label>
+                <input
+                  type="number"
+                  required
+                  value={incentiveThresholdValue}
+                  onChange={(e) => setIncentiveThresholdValue(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-800 font-medium">Threshold Unit</label>
+                <select
+                  value={incentiveThresholdType}
+                  onChange={(e) => setIncentiveThresholdType(e.target.value as any)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900"
+                >
+                  <option value="STITCHES">Stitches (ટાંકા)</option>
+                  <option value="PIECES">Pieces / Sarees (સાડી / પીસ)</option>
+                  <option value="METERS">Meters (મીટર)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-800 font-medium">Commission Rate (કમિશન દર ₹)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={incentiveRate}
+                  onChange={(e) => setIncentiveRate(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-emerald-700"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-800 font-medium">Commission Basis</label>
+                <select
+                  value={incentiveRateType}
+                  onChange={(e) => setIncentiveRateType(e.target.value as any)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900"
+                >
+                  <option value="PER_1K_STITCHES">₹ per 1,000 Stitches</option>
+                  <option value="PER_PIECE">₹ per Piece / Saree</option>
+                  <option value="PER_METER">₹ per Meter</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-lg bg-white border border-cyan-200 text-2xs text-cyan-900 font-mono">
+              Formula: ₹{defaultMonthlySalary} base + ₹{incentiveRate} / {incentiveRateType === 'PER_1K_STITCHES' ? '1k stitches' : incentiveRateType === 'PER_PIECE' ? 'piece' : 'meter'} for output above {incentiveThresholdValue.toLocaleString()} {incentiveThresholdType.toLowerCase()}.
+            </div>
           </div>
         )}
 
@@ -923,12 +1058,23 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Linked Fabric Inward Lot</label>
+            <label className="text-xs text-slate-700 font-medium">Linked Fabric Inward Lot (સુરત આવક લોટ)</label>
             <select
               value={inwardChallanId}
-              onChange={(e) => setInwardChallanId(e.target.value)}
+              onChange={(e) => {
+                const cId = e.target.value;
+                setInwardChallanId(cId);
+                const selectedChallan = challans.find((c) => c.id === cId);
+                if (selectedChallan) {
+                  if (selectedChallan.items && selectedChallan.items.length > 0) {
+                    setDesignNo(selectedChallan.items[0].design_no);
+                  } else if (selectedChallan.design_no) {
+                    setDesignNo(selectedChallan.design_no);
+                  }
+                }
+              }}
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
             >
               <option value="">-- Optional General Shift --</option>
@@ -940,15 +1086,38 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             </select>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Embroidery Design Code</label>
-            <input
-              type="text"
-              value={designNo}
-              onChange={(e) => setDesignNo(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono"
-            />
-          </div>
+          {(() => {
+            const selectedChallan = challans.find((c) => c.id === inwardChallanId);
+            if (selectedChallan?.items && selectedChallan.items.length > 1) {
+              return (
+                <div className="space-y-1">
+                  <label className="text-xs text-cyan-900 font-semibold">Select Design from Multi-Design Lot</label>
+                  <select
+                    value={designNo}
+                    onChange={(e) => setDesignNo(e.target.value)}
+                    className="w-full bg-white border border-cyan-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-semibold"
+                  >
+                    {selectedChallan.items.map((item, idx) => (
+                      <option key={idx} value={item.design_no}>
+                        {item.design_no} ({item.stitch_count.toLocaleString()} stitches • ₹{item.commission_rate} comm • {item.meters}m)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Embroidery Design Code</label>
+                <input
+                  type="text"
+                  value={designNo}
+                  onChange={(e) => setDesignNo(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono"
+                />
+              </div>
+            );
+          })()}
         </div>
 
         <div className="p-4 bg-slate-100 rounded-xl border border-slate-200 space-y-3">
@@ -1038,16 +1207,98 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 /* 7. Challan Drawer Form (Add Inward Lot)                                    */
 /* -------------------------------------------------------------------------- */
 const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
-  const { closeDrawer } = useAppDrawer();
-  const [traderName, setTraderName] = useState('Ambaji Fashion Surat');
-  const [traderGstin, setTraderGstin] = useState('24BBCDE5678G1Z3');
-  const [lotNo, setLotNo] = useState(`LOT-2026-${Math.floor(100 + Math.random() * 900)}`);
-  const [thanCount, setThanCount] = useState<number>(24);
-  const [inwardMeters, setInwardMeters] = useState<number>(1200);
-  const [fabricQuality, setFabricQuality] = useState('Georgette 60g / Heavy Foil');
-  const [designNo, setDesignNo] = useState('DSG-108-ZARI');
-  const [notes, setNotes] = useState('Delivered via Sachin GIDC tempo transport');
+  const { closeDrawer, openDrawer } = useAppDrawer();
+  const [parties, setParties] = useState<PartyApiItem[]>([]);
+  const [selectedPartyId, setSelectedPartyId] = useState('');
+  const [traderName, setTraderName] = useState('');
+  const [traderGstin, setTraderGstin] = useState('');
+  const [lotNo, setLotNo] = useState(`LOT-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [thanCount, setThanCount] = useState<number>(10);
+  const [inwardMeters, setInwardMeters] = useState<number>(1000);
+  const [fabricQuality, setFabricQuality] = useState('Georgette 60g');
+  const [designNo, setDesignNo] = useState('DSG-108');
+  const [stitchCount, setStitchCount] = useState<number>(24000);
+  const [karigarCommissionRate, setKarigarCommissionRate] = useState<number>(0.25);
+  const [karigarCommissionType, setKarigarCommissionType] = useState<'PER_1K_STITCHES' | 'PER_PIECE' | 'PER_METER'>('PER_1K_STITCHES');
+  const [jobworkPricePer1k, setJobworkPricePer1k] = useState<number>(0.60);
+  const [isMultiDesign, setIsMultiDesign] = useState(false);
+  const [designItems, setDesignItems] = useState<InwardChallanDesignItem[]>([
+    {
+      design_no: 'DSG-108-A',
+      stitch_count: 24000,
+      commission_type: 'PER_1K_STITCHES',
+      commission_rate: 0.25,
+      jobwork_price_per_1k: 0.60,
+      meters: 500,
+      than_count: 5,
+    },
+    {
+      design_no: 'DSG-108-B',
+      stitch_count: 32000,
+      commission_type: 'PER_1K_STITCHES',
+      commission_rate: 0.30,
+      jobwork_price_per_1k: 0.75,
+      meters: 500,
+      than_count: 5,
+    },
+  ]);
+  const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    PartiesApi.getAll()
+      .then((data) => {
+        setParties(data);
+        if (data.length > 0) {
+          setSelectedPartyId(data[0].id);
+          setTraderName(data[0].name);
+          if (data[0].gstin) setTraderGstin(data[0].gstin);
+        } else {
+          setTraderName('Ambaji Fashion Surat');
+          setTraderGstin('24BBCDE5678G1Z3');
+        }
+      })
+      .catch(() => {
+        setTraderName('Ambaji Fashion Surat');
+        setTraderGstin('24BBCDE5678G1Z3');
+      });
+  }, []);
+
+  const handlePartySelect = (partyId: string) => {
+    setSelectedPartyId(partyId);
+    const p = parties.find((item) => item.id === partyId);
+    if (p) {
+      setTraderName(p.name);
+      if (p.gstin) setTraderGstin(p.gstin);
+    }
+  };
+
+  const addDesignItem = () => {
+    setDesignItems((prev) => [
+      ...prev,
+      {
+        design_no: `DSG-${prev.length + 101}`,
+        stitch_count: 24000,
+        commission_type: 'PER_1K_STITCHES',
+        commission_rate: 0.25,
+        jobwork_price_per_1k: 0.60,
+        meters: 200,
+        than_count: 2,
+      },
+    ]);
+  };
+
+  const removeDesignItem = (idx: number) => {
+    setDesignItems((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateDesignItem = (idx: number, field: keyof InwardChallanDesignItem, val: any) => {
+    setDesignItems((prev) => {
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], [field]: val };
+      return copy;
+    });
+  };
 
   const handleCreateChallan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1057,19 +1308,27 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
     }
     setSubmitting(true);
     try {
+      const calculatedMeters = isMultiDesign ? designItems.reduce((acc, item) => acc + Number(item.meters || 0), 0) : Number(inwardMeters);
+      const calculatedThans = isMultiDesign ? designItems.reduce((acc, item) => acc + Number(item.than_count || 0), 0) : Number(thanCount);
+
       const payload: CreateInwardChallanDto = {
         trader_name: traderName,
         trader_gstin: traderGstin,
         lot_no: lotNo,
-        than_count: Number(thanCount),
-        inward_meters: Number(inwardMeters),
+        than_count: calculatedThans,
+        inward_meters: calculatedMeters,
         fabric_quality: fabricQuality,
-        design_no: designNo,
+        design_no: isMultiDesign && designItems.length > 0 ? designItems[0].design_no : designNo,
+        stitch_count: Number(stitchCount),
+        karigar_commission_rate: Number(karigarCommissionRate),
+        karigar_commission_type: karigarCommissionType,
+        jobwork_price_per_1k: Number(jobworkPricePer1k),
+        items: isMultiDesign ? designItems : undefined,
         notes,
       };
 
       const result = await InwardChallansApi.create(payload);
-      toast.success(`Inward Lot ${lotNo} registered successfully`);
+      toast.success(`Inward Lot ${lotNo} registered with design specs successfully`);
       closeDrawer();
       if (instance.onSuccess) instance.onSuccess(result);
     } catch (err: any) {
@@ -1084,10 +1343,10 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title="Register Inward Fabric Lot (આવક ચલણ)"
-      subtitle="સુરત વેપારી પાસેથી મળેલ કાચું કાપડ ચલણ એન્ટ્રી"
+      title="Register Inward Fabric Lot (આવક ચલણ & ડિઝાઇન)"
+      subtitle="સુરત વેપારી પાસેથી મળેલ કાપડ લોટ અને ડિઝાઇન દીઠ ટાંકા/કમિશન એન્ટ્રી"
       icon={<Truck className="w-5 h-5 text-slate-700" />}
-      size="lg"
+      size="xl"
       footer={
         <div className="flex items-center gap-2 w-full">
           <button
@@ -1112,17 +1371,16 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       }
     >
       <form id={`challan-form-${instance.id}`} onSubmit={handleCreateChallan} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Trader Firm Name (વેપારીનું નામ) *</label>
-          <input
-            type="text"
-            required
-            placeholder="e.g. Ambaji Fashion Surat"
-            value={traderName}
-            onChange={(e) => setTraderName(e.target.value)}
-            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900 font-medium"
-          />
-        </div>
+        <PartyPicker
+          selectedPartyId={selectedPartyId}
+          partyName={traderName}
+          partyGstin={traderGstin}
+          onSelect={(p) => {
+            setSelectedPartyId(p.id || '');
+            setTraderName(p.name);
+            if (p.gstin) setTraderGstin(p.gstin);
+          }}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -1150,32 +1408,6 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Than Count (તાકા) *</label>
-            <input
-              type="number"
-              required
-              min="1"
-              value={thanCount}
-              onChange={(e) => setThanCount(parseInt(e.target.value, 10) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Inward Meters Length (m) *</label>
-            <input
-              type="number"
-              required
-              min="1"
-              value={inwardMeters}
-              onChange={(e) => setInwardMeters(parseFloat(e.target.value) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1">
             <label className="text-xs text-slate-700 font-medium">Fabric Quality Specification *</label>
             <input
               type="text"
@@ -1188,16 +1420,234 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Design / Pattern Code</label>
-            <input
-              type="text"
-              placeholder="DSG-108-ZARI"
-              value={designNo}
-              onChange={(e) => setDesignNo(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
-            />
+            <label className="text-xs text-slate-700 font-medium">Multi-Design Structure</label>
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id={`multi-design-${instance.id}`}
+                checked={isMultiDesign}
+                onChange={(e) => setIsMultiDesign(e.target.checked)}
+                className="w-4 h-4 text-[#0099B8] rounded border-slate-300"
+              />
+              <label htmlFor={`multi-design-${instance.id}`} className="text-xs font-medium text-slate-800 cursor-pointer">
+                Multiple Cloths / Designs in this Lot (એક લોટમાં વિવિધ ડિઝાઈન)
+              </label>
+            </div>
           </div>
         </div>
+
+        {!isMultiDesign ? (
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <span className="text-2xs font-bold uppercase tracking-wider text-slate-700 block">
+              Design Specifications & Rates (ડિઝાઇન વિગત અને કમિશન દરો)
+            </span>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Design / Pattern No *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="DSG-108"
+                  value={designNo}
+                  onChange={(e) => setDesignNo(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Stitches / Repeat (ટાંકા) *</label>
+                <input
+                  type="number"
+                  required
+                  min="1000"
+                  value={stitchCount}
+                  onChange={(e) => setStitchCount(parseInt(e.target.value, 10) || 0)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Jobwork Bill Price (₹ / 1k st)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={jobworkPricePer1k}
+                  onChange={(e) => setJobworkPricePer1k(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Karigar Commission Rate (₹)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={karigarCommissionRate}
+                  onChange={(e) => setKarigarCommissionRate(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-emerald-700"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Commission Basis</label>
+                <select
+                  value={karigarCommissionType}
+                  onChange={(e) => setKarigarCommissionType(e.target.value as any)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900"
+                >
+                  <option value="PER_1K_STITCHES">₹ per 1,000 Stitches</option>
+                  <option value="PER_PIECE">₹ per Piece / Saree</option>
+                  <option value="PER_METER">₹ per Meter</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-200">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Than Count (તાકા) *</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={thanCount}
+                  onChange={(e) => setThanCount(parseInt(e.target.value, 10) || 0)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-700 font-medium">Inward Meters Length (m) *</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={inwardMeters}
+                  onChange={(e) => setInwardMeters(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-cyan-50/50 border border-cyan-200 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-2xs font-bold uppercase tracking-wider text-cyan-900">
+                Multi-Design Cloth Breakdown (વિવિધ ડિઝાઈન મુજબ કાપડ)
+              </span>
+              <button
+                type="button"
+                onClick={addDesignItem}
+                className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] flex items-center gap-1 bg-white px-2.5 py-1 rounded-md border border-cyan-200 shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add Design Row</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {designItems.map((item, idx) => (
+                <div key={idx} className="p-3 bg-white border border-cyan-200 rounded-lg space-y-2 relative">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xs font-bold text-slate-700">Design #{idx + 1}</span>
+                    {designItems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeDesignItem(idx)}
+                        className="text-rose-500 hover:text-rose-700 text-2xs font-semibold"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div>
+                      <label className="text-3xs text-slate-500">Design No</label>
+                      <input
+                        type="text"
+                        value={item.design_no}
+                        onChange={(e) => updateDesignItem(idx, 'design_no', e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-mono font-bold text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-3xs text-slate-500">Stitch Count</label>
+                      <input
+                        type="number"
+                        value={item.stitch_count}
+                        onChange={(e) => updateDesignItem(idx, 'stitch_count', parseInt(e.target.value, 10) || 0)}
+                        className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-mono text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-3xs text-slate-500">Than (તાકા)</label>
+                      <input
+                        type="number"
+                        value={item.than_count}
+                        onChange={(e) => updateDesignItem(idx, 'than_count', parseInt(e.target.value, 10) || 0)}
+                        className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-mono text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-3xs text-slate-500">Meters (મીટર)</label>
+                      <input
+                        type="number"
+                        value={item.meters}
+                        onChange={(e) => updateDesignItem(idx, 'meters', parseFloat(e.target.value) || 0)}
+                        className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-mono font-bold text-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-100">
+                    <div>
+                      <label className="text-3xs text-slate-500">Karigar Commission (₹)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={item.commission_rate}
+                        onChange={(e) => updateDesignItem(idx, 'commission_rate', parseFloat(e.target.value) || 0)}
+                        className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-mono text-emerald-700 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-3xs text-slate-500">Commission Basis</label>
+                      <select
+                        value={item.commission_type}
+                        onChange={(e) => updateDesignItem(idx, 'commission_type', e.target.value as any)}
+                        className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-900"
+                      >
+                        <option value="PER_1K_STITCHES">₹ / 1k Stitches</option>
+                        <option value="PER_PIECE">₹ / Saree</option>
+                        <option value="PER_METER">₹ / Meter</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-3xs text-slate-500">Bill Price / 1k (₹)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={item.jobwork_price_per_1k}
+                        onChange={(e) => updateDesignItem(idx, 'jobwork_price_per_1k', parseFloat(e.target.value) || 0)}
+                        className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-mono text-slate-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-cyan-200 text-xs font-mono">
+              <span className="text-slate-600 font-sans font-medium">Lot Totals:</span>
+              <span className="font-bold text-slate-900">
+                {designItems.reduce((acc, i) => acc + Number(i.than_count || 0), 0)} Than • {designItems.reduce((acc, i) => acc + Number(i.meters || 0), 0)} Meters
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-1">
           <label className="text-xs text-slate-700 font-medium">Transport / Delivery Notes</label>
@@ -1219,11 +1669,13 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 /* -------------------------------------------------------------------------- */
 const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const [parties, setParties] = useState<PartyApiItem[]>([]);
+  const [selectedPartyId, setSelectedPartyId] = useState('');
   const [challans, setChallans] = useState<InwardChallanApiItem[]>([]);
-  const [traderName, setTraderName] = useState('Ambaji Fashion Surat');
-  const [traderGstin, setTraderGstin] = useState('24BBCDE5678G1Z3');
+  const [traderName, setTraderName] = useState('');
+  const [traderGstin, setTraderGstin] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [inwardChallanId, setInwardChallanId] = useState('');
+  const [selectedLotIds, setSelectedLotIds] = useState<string[]>([]);
   const [billedMeters, setBilledMeters] = useState<number>(1200);
   const [ratePerMeter, setRatePerMeter] = useState<number>(18.5);
   const [taxRate] = useState<number>(5);
@@ -1233,10 +1685,60 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
     InwardChallansApi.getAll()
       .then((data) => {
         setChallans(data);
-        if (data.length > 0) setInwardChallanId(data[0].id);
+        if (data.length > 0) {
+          setSelectedLotIds([data[0].id]);
+          setBilledMeters(Number(data[0].inward_meters) || 1000);
+        }
       })
       .catch((e) => console.warn('Failed to load challans in invoice drawer:', e));
+
+    PartiesApi.getAll()
+      .then((data) => {
+        setParties(data);
+        if (data.length > 0) {
+          setSelectedPartyId(data[0].id);
+          setTraderName(data[0].name);
+          if (data[0].gstin) setTraderGstin(data[0].gstin);
+        } else {
+          setTraderName('Ambaji Fashion Surat');
+          setTraderGstin('24BBCDE5678G1Z3');
+        }
+      })
+      .catch(() => {
+        setTraderName('Ambaji Fashion Surat');
+        setTraderGstin('24BBCDE5678G1Z3');
+      });
   }, []);
+
+  const partyLots = challans.filter((c) => {
+    if (!traderName.trim()) return true;
+    return (
+      c.trader_name.toLowerCase().includes(traderName.toLowerCase()) ||
+      (traderGstin && c.trader_gstin && c.trader_gstin.toUpperCase() === traderGstin.toUpperCase())
+    );
+  });
+
+  const handleToggleLot = (lotId: string) => {
+    setSelectedLotIds((prev) => {
+      const next = prev.includes(lotId) ? prev.filter((id) => id !== lotId) : [...prev, lotId];
+      const sumMeters = challans
+        .filter((c) => next.includes(c.id))
+        .reduce((acc, c) => acc + Number(c.inward_meters || 0), 0);
+      if (sumMeters > 0) setBilledMeters(sumMeters);
+      return next;
+    });
+  };
+
+  const handleSelectAllLots = () => {
+    if (selectedLotIds.length === partyLots.length) {
+      setSelectedLotIds([]);
+    } else {
+      const allIds = partyLots.map((c) => c.id);
+      setSelectedLotIds(allIds);
+      const sumMeters = partyLots.reduce((acc, c) => acc + Number(c.inward_meters || 0), 0);
+      if (sumMeters > 0) setBilledMeters(sumMeters);
+    }
+  };
 
   const taxableAmount = Math.round(Number(billedMeters) * Number(ratePerMeter));
   const gstAmount = Math.round(taxableAmount * (taxRate / 100));
@@ -1250,11 +1752,23 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
     }
     setSubmitting(true);
     try {
+      const selectedLots = challans.filter((c) => selectedLotIds.includes(c.id));
+      const lotItemsPayload = selectedLots.map((c) => ({
+        inward_challan_id: c.id,
+        lot_no: c.lot_no,
+        meters: Number(c.inward_meters),
+        thans: Number(c.than_count),
+        fabric_quality: c.fabric_quality,
+        design_no: c.design_no,
+        rate: Number(ratePerMeter),
+      }));
+
       const result = await OutwardInvoicesApi.create({
         trader_name: traderName,
         trader_gstin: traderGstin,
         invoice_date: invoiceDate,
-        inward_challan_id: inwardChallanId || undefined,
+        inward_challan_id: selectedLotIds.length > 0 ? selectedLotIds[0] : undefined,
+        lot_items: lotItemsPayload.length > 0 ? lotItemsPayload : undefined,
         total_stitches: Math.round(Number(billedMeters) * 1000),
         machine_heads: 32,
         rate_per_1000: Number(ratePerMeter),
@@ -1262,7 +1776,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         outward_meters: Number(billedMeters),
       });
 
-      toast.success('SAC 9988 Invoice generated successfully!');
+      toast.success(`SAC 9988 Invoice generated for ${selectedLots.length || 1} lots!`);
       closeDrawer();
       if (instance.onSuccess) instance.onSuccess(result);
     } catch (err: any) {
@@ -1278,9 +1792,9 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       onClose={closeDrawer}
       level={level}
       title="Create SAC 9988 Outward Bill (ઇનવોઇસ બનાવો)"
-      subtitle="સુરત એમ્બ્રોઇડરી જ્હોબવર્ક 5% GST ટેક્સ બિલ"
+      subtitle="સુરત એમ્બ્રોઇડરી જ્હોબવર્ક 5% GST ટેક્સ બિલ (બહુવિધ લોટ બિલિંગ)"
       icon={<FileText className="w-5 h-5 text-slate-700" />}
-      size="lg"
+      size="xl"
       footer={
         <div className="flex items-center gap-2 w-full">
           <button
@@ -1305,17 +1819,17 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       }
     >
       <form id={`invoice-form-${instance.id}`} onSubmit={handleCreateInvoice} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Billed Trader / Party Name *</label>
-          <input
-            type="text"
-            required
-            placeholder="e.g. Ambaji Fashion Surat"
-            value={traderName}
-            onChange={(e) => setTraderName(e.target.value)}
-            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900 font-medium"
-          />
-        </div>
+        <PartyPicker
+          selectedPartyId={selectedPartyId}
+          partyName={traderName}
+          partyGstin={traderGstin}
+          label="Billed Trader / Party Name (બિલ વેપારીનું નામ)"
+          onSelect={(p) => {
+            setSelectedPartyId(p.id || '');
+            setTraderName(p.name);
+            if (p.gstin) setTraderGstin(p.gstin);
+          }}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -1341,20 +1855,78 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Link Inward Fabric Lot (Challan)</label>
-          <select
-            value={inwardChallanId}
-            onChange={(e) => setInwardChallanId(e.target.value)}
-            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
-          >
-            <option value="">-- Direct SAC 9988 Billing --</option>
-            {challans.map((c) => (
-              <option key={c.id} value={c.id}>
-                Lot #{c.lot_no} • {c.trader_name} ({c.inward_meters}m {c.fabric_quality})
-              </option>
-            ))}
-          </select>
+        {/* Multi-Lot Inward Consolidation Section */}
+        <div className="p-4 bg-cyan-50/50 border border-cyan-200 rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-2xs font-bold uppercase tracking-wider text-cyan-900 block">
+                Multi-Lot Consolidation (એક બિલમાં બહુવિધ લોટ જોડો)
+              </span>
+              <span className="text-3xs text-slate-500">
+                Found {partyLots.length} available lots for {traderName || 'Party'}
+              </span>
+            </div>
+            {partyLots.length > 0 && (
+              <button
+                type="button"
+                onClick={handleSelectAllLots}
+                className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] bg-white px-2.5 py-1 rounded-md border border-cyan-200 shadow-2xs"
+              >
+                {selectedLotIds.length === partyLots.length ? 'Deselect All' : 'Select All Lots'}
+              </button>
+            )}
+          </div>
+
+          {partyLots.length > 0 ? (
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {partyLots.map((c) => {
+                const isSelected = selectedLotIds.includes(c.id);
+                return (
+                  <label
+                    key={c.id}
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                      isSelected
+                        ? 'bg-white border-[#0099B8] shadow-xs'
+                        : 'bg-slate-50/60 border-slate-200 hover:bg-white'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleToggleLot(c.id)}
+                      className="w-4 h-4 mt-0.5 text-[#0099B8] rounded border-slate-300"
+                    />
+                    <div className="flex-1 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-slate-900">Lot #{c.lot_no}</span>
+                        <span className="font-mono font-bold text-emerald-700">{c.inward_meters} m</span>
+                      </div>
+                      <div className="text-2xs text-slate-600 flex items-center gap-2 pt-0.5">
+                        <span>{c.fabric_quality}</span>
+                        {c.design_no && <span className="font-mono text-cyan-800 font-semibold">• {c.design_no}</span>}
+                        <span>• {c.than_count} Thans</span>
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs text-slate-500 text-center">
+              No active inward lots found for this party. Direct billing meters will apply.
+            </div>
+          )}
+
+          {selectedLotIds.length > 0 && (
+            <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-cyan-200 text-xs font-mono">
+              <span className="text-slate-600 font-sans font-medium">
+                Consolidated {selectedLotIds.length} Lots:
+              </span>
+              <span className="font-bold text-[#0099B8] text-sm">
+                {billedMeters} Meters Total
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="p-4 bg-slate-100 rounded-xl border border-slate-200 space-y-3">
@@ -1410,6 +1982,246 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 };
 
 /* -------------------------------------------------------------------------- */
+/* 9. Party / Trader Drawer Form (Add / Edit)                                 */
+/* -------------------------------------------------------------------------- */
+const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
+  const { closeDrawer } = useAppDrawer();
+  const editingItem = instance.payload?.party as PartyApiItem | undefined;
+
+  const [name, setName] = useState(editingItem?.name || '');
+  const [gstin, setGstin] = useState(editingItem?.gstin || '');
+  const [mobile, setMobile] = useState(editingItem?.mobile || '');
+  const [email, setEmail] = useState(editingItem?.email || '');
+  const [address, setAddress] = useState(editingItem?.address || '');
+  const [city, setCity] = useState(editingItem?.city || 'Surat');
+  const [creditPeriodDays, setCreditPeriodDays] = useState(editingItem?.credit_period_days || 15);
+  const [openingBalance, setOpeningBalance] = useState(editingItem?.opening_balance || 0);
+  const [isActive, setIsActive] = useState(editingItem?.is_active ?? true);
+  const [transactionSummary, setTransactionSummary] = useState<any>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (editingItem?.id) {
+      PartiesApi.getById(editingItem.id)
+        .then((res) => {
+          if (res && res.transaction_summary) {
+            setTransactionSummary(res.transaction_summary);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [editingItem?.id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      toast.error('Party / Trader name is required');
+      return;
+    }
+    if (gstin && gstin.trim().length !== 15) {
+      toast.error('GSTIN must be exactly 15 characters');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload: CreatePartyDto = {
+        name: name.trim(),
+        gstin: gstin.trim().toUpperCase() || undefined,
+        mobile: mobile.trim() || undefined,
+        email: email.trim() || undefined,
+        address: address.trim() || undefined,
+        city: city.trim() || 'Surat',
+        state_code: '24',
+        credit_period_days: Number(creditPeriodDays),
+        opening_balance: Number(openingBalance),
+        is_active: isActive,
+      };
+
+      let result: PartyApiItem;
+      if (editingItem) {
+        result = await PartiesApi.update(editingItem.id, payload);
+        toast.success(`Party ${name} updated successfully`);
+      } else {
+        result = await PartiesApi.create(payload);
+        toast.success(`Party ${name} registered successfully`);
+      }
+
+      closeDrawer();
+      if (instance.onSuccess) instance.onSuccess(result);
+    } catch (err: any) {
+      toast.error('Failed to save party: ' + (err.message || 'Error occurred'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Drawer
+      isOpen={true}
+      onClose={closeDrawer}
+      level={level}
+      title={editingItem ? 'Edit Trader / Party (વેપારી સુધારો)' : 'Add New Trader / Party (નવી પાર્ટી ઉમેરો)'}
+      subtitle="ટેક્સટાઇલ જોબવર્ક વેપારી, જીએસટી નંબર અને ક્રેડિટ દિવસો"
+      icon={<Briefcase className="w-5 h-5 text-slate-700" />}
+      size="md"
+      footer={
+        <div className="flex items-center gap-2 w-full">
+          <button
+            type="button"
+            onClick={closeDrawer}
+            className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const form = document.getElementById(`party-form-${instance.id}`) as HTMLFormElement;
+              if (form) form.requestSubmit();
+            }}
+            disabled={submitting}
+            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
+          >
+            {submitting ? 'Saving...' : editingItem ? 'Update Party' : 'Register Party'}
+          </button>
+        </div>
+      }
+    >
+      <form id={`party-form-${instance.id}`} onSubmit={handleSubmit} className="space-y-4">
+        {transactionSummary && (
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <span className="text-2xs font-bold uppercase text-slate-500 tracking-wider block">
+              Trading Activity Summary (વેપાર હિસાબ સારાંશ)
+            </span>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                <div className="text-2xs text-slate-500">Inward Lots</div>
+                <div className="text-sm font-bold text-slate-900">{transactionSummary.total_challans}</div>
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                <div className="text-2xs text-slate-500">Invoices</div>
+                <div className="text-sm font-bold text-slate-900">{transactionSummary.total_invoices}</div>
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                <div className="text-2xs text-slate-500">Billed Total</div>
+                <div className="text-xs font-bold font-mono text-emerald-700">{formatINR(transactionSummary.total_billed_amount)}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-1">
+          <label className="text-xs text-slate-700 font-medium">Party / Trader Firm Name (પેઢીનું નામ) *</label>
+          <input
+            type="text"
+            required
+            placeholder="e.g., Shree Ram Tex Fab"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">GSTIN (15 Digits)</label>
+            <input
+              type="text"
+              maxLength={15}
+              placeholder="24ABCDE1234F1Z5"
+              value={gstin}
+              onChange={(e) => setGstin(e.target.value.toUpperCase())}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono uppercase text-slate-900"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Contact Phone / Mobile</label>
+            <input
+              type="tel"
+              placeholder="9825198251"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Email Address</label>
+            <input
+              type="email"
+              placeholder="trader@textile.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">City</label>
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs text-slate-700 font-medium">Market / Factory Address</label>
+          <textarea
+            rows={2}
+            placeholder="Plot / Mill / Ring Road Market Shop No..."
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Payment Credit Terms (Days)</label>
+            <input
+              type="number"
+              min={0}
+              value={creditPeriodDays}
+              onChange={(e) => setCreditPeriodDays(Number(e.target.value))}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Opening Balance (₹)</label>
+            <input
+              type="number"
+              value={openingBalance}
+              onChange={(e) => setOpeningBalance(Number(e.target.value))}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 pt-1">
+          <input
+            type="checkbox"
+            id={`party-active-${instance.id}`}
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            className="rounded text-[#0099B8] focus:ring-[#0099B8]"
+          />
+          <label htmlFor={`party-active-${instance.id}`} className="text-xs text-slate-700 font-medium">
+            Active Trader Account (સક્રિય વેપારી)
+          </label>
+        </div>
+      </form>
+    </Drawer>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
 /* Master AppDrawer Renderer Component                                        */
 /* -------------------------------------------------------------------------- */
 export const AppDrawer: React.FC = () => {
@@ -1446,6 +2258,10 @@ export const AppDrawer: React.FC = () => {
 
           case 'CREATE_INVOICE':
             return <InvoiceDrawerForm key={instance.id} instance={instance} level={index} />;
+
+          case 'ADD_PARTY':
+          case 'EDIT_PARTY':
+            return <PartyDrawerForm key={instance.id} instance={instance} level={index} />;
 
           default:
             return null;

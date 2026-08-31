@@ -58,6 +58,7 @@ export default function KarigarsMasterPage() {
   const activeCount = karigars.filter((k) => k.is_active).length;
   const pieceRateCount = karigars.filter((k) => k.wage_type === 'PIECE_RATE').length;
   const fixedSalaryCount = karigars.filter((k) => k.wage_type === 'FIXED_MONTHLY').length;
+  const hybridCount = karigars.filter((k) => k.wage_type === 'FIXED_PLUS_INCENTIVE').length;
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
@@ -73,7 +74,7 @@ export default function KarigarsMasterPage() {
               Karigars ({karigars.length})
             </h1>
             <p className="text-xs text-slate-500">
-              Wage rates, piece-rate per meter, monthly salary structure
+              Wage rates, piece-rate per meter, monthly fixed salary & production incentive models
             </p>
           </div>
 
@@ -101,6 +102,10 @@ export default function KarigarsMasterPage() {
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-700">
             <span>Fixed Monthly: <strong className="font-bold text-slate-900">{fixedSalaryCount}</strong></span>
           </span>
+
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-xs text-cyan-900">
+            <span>Fixed + Incentive: <strong className="font-bold text-cyan-900">{hybridCount}</strong></span>
+          </span>
         </div>
       </div>
 
@@ -126,7 +131,7 @@ export default function KarigarsMasterPage() {
                 <th className="p-3.5">Name</th>
                 <th className="p-3.5">Mobile</th>
                 <th className="p-3.5">Wage Type</th>
-                <th className="p-3.5">Rate / Salary</th>
+                <th className="p-3.5">Rate / Salary & Incentive</th>
                 <th className="p-3.5">Status</th>
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
@@ -141,16 +146,33 @@ export default function KarigarsMasterPage() {
                       className={`px-2 py-0.5 rounded text-2xs font-semibold ${
                         k.wage_type === 'PIECE_RATE'
                           ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : k.wage_type === 'FIXED_PLUS_INCENTIVE'
+                          ? 'bg-cyan-50 text-cyan-800 border border-cyan-200'
                           : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}
                     >
-                      {k.wage_type === 'PIECE_RATE' ? 'Piece Rate (ટાંકા દર)' : 'Monthly Fixed'}
+                      {k.wage_type === 'PIECE_RATE'
+                        ? 'Piece Rate (ટાંકા દર)'
+                        : k.wage_type === 'FIXED_PLUS_INCENTIVE'
+                        ? 'Fixed + Incentive (કમિશન)'
+                        : 'Monthly Fixed'}
                     </span>
                   </td>
-                  <td className="p-3.5 font-mono font-medium text-slate-800">
-                    {k.wage_type === 'PIECE_RATE'
-                      ? `₹${k.default_rate_per_meter || 0.18} / meter`
-                      : formatINR(k.default_monthly_salary || 18000)}
+                  <td className="p-3.5 font-mono text-slate-800">
+                    {k.wage_type === 'PIECE_RATE' && (
+                      <span className="font-medium">₹{k.default_rate_per_meter || 0.18} / meter</span>
+                    )}
+                    {k.wage_type === 'FIXED_MONTHLY' && (
+                      <span className="font-medium">{formatINR(k.default_monthly_salary || 18000)} / mo</span>
+                    )}
+                    {k.wage_type === 'FIXED_PLUS_INCENTIVE' && (
+                      <div>
+                        <div className="font-bold text-slate-900">{formatINR(k.default_monthly_salary || 18000)} / mo</div>
+                        <div className="text-3xs text-emerald-700 font-semibold">
+                          + ₹{k.incentive_rate || 0.25} / {k.incentive_rate_type === 'PER_PIECE' ? 'piece' : k.incentive_rate_type === 'PER_METER' ? 'm' : '1k st.'} above {(k.incentive_threshold_value || 100000).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
                   </td>
                   <td className="p-3.5">
                     {k.is_active ? (

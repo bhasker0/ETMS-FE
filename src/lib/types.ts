@@ -1,4 +1,4 @@
-export type Language = 'gu' | 'hi' | 'en';
+export type Language = 'en' | 'gu' | 'hi' | 'mr' | 'ta' | 'te' | 'kn' | 'bn';
 export type UserRole = 'shopfloor' | 'owner' | 'munim';
 
 export type ShiftType = 'day' | 'night';

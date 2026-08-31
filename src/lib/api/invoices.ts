@@ -46,7 +46,15 @@ export interface OutwardInvoiceApiItem {
   net_amount: number;
   is_interstate: boolean;
   shrinkage_percent: number;
-  is_tally_synced: boolean;
+  lot_items?: Array<{
+    inward_challan_id: string;
+    lot_no: string;
+    meters: number;
+    thans?: number;
+    fabric_quality?: string;
+    design_no?: string;
+    rate?: number;
+  }>;
   company_id: string;
   created_at: string;
 }
@@ -61,6 +69,15 @@ export interface CreateOutwardInvoiceDto {
   rate_per_1000: number;
   inward_meters: number;
   outward_meters: number;
+  lot_items?: Array<{
+    inward_challan_id: string;
+    lot_no: string;
+    meters: number;
+    thans?: number;
+    fabric_quality?: string;
+    design_no?: string;
+    rate?: number;
+  }>;
   notes?: string;
 }
 

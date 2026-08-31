@@ -2,6 +2,16 @@ import { apiClient } from '../api-client';
 
 export type ChallanStatus = 'RECEIVED' | 'IN_PROGRESS' | 'COMPLETED' | 'DISPATCHED';
 
+export interface InwardChallanDesignItem {
+  design_no: string;
+  stitch_count: number;
+  commission_type: 'PER_1K_STITCHES' | 'PER_PIECE' | 'PER_METER';
+  commission_rate: number;
+  jobwork_price_per_1k: number;
+  meters: number;
+  than_count: number;
+}
+
 export interface InwardChallanApiItem {
   id: string;
   trader_name: string;
@@ -11,6 +21,11 @@ export interface InwardChallanApiItem {
   inward_meters: number;
   fabric_quality: string;
   design_no?: string;
+  stitch_count?: number;
+  karigar_commission_rate?: number;
+  karigar_commission_type?: 'PER_1K_STITCHES' | 'PER_PIECE' | 'PER_METER';
+  jobwork_price_per_1k?: number;
+  items?: InwardChallanDesignItem[];
   status: ChallanStatus;
   notes?: string;
   company_id: string;
@@ -27,6 +42,11 @@ export interface CreateInwardChallanDto {
   inward_meters: number;
   fabric_quality: string;
   design_no?: string;
+  stitch_count?: number;
+  karigar_commission_rate?: number;
+  karigar_commission_type?: 'PER_1K_STITCHES' | 'PER_PIECE' | 'PER_METER';
+  jobwork_price_per_1k?: number;
+  items?: InwardChallanDesignItem[];
   notes?: string;
 }
 

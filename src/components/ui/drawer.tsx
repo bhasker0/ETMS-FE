@@ -10,7 +10,7 @@ export interface DrawerProps {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   icon?: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
   level?: number; // 0 for base drawer, 1 for nested drawer in drawer, 2 for level 3, etc.
   children: React.ReactNode;
   footer?: React.ReactNode;
@@ -25,6 +25,8 @@ const sizeClasses = {
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
   '3xl': 'max-w-3xl',
+  '4xl': 'max-w-4xl',
+  '5xl': 'max-w-5xl',
   full: 'max-w-full',
 };
 

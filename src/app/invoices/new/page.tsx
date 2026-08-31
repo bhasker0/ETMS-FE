@@ -8,7 +8,10 @@ import {
   CreateOutwardInvoiceDto,
 } from '@/lib/api/invoices';
 import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
+import { PartiesApi, PartyApiItem } from '@/lib/api/parties';
+import { useAppDrawer } from '@/lib/app-drawer-context';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { formatINR } from '@/lib/utils';
 import {
   FileText,
@@ -16,6 +19,8 @@ import {
   ArrowLeft,
   AlertTriangle,
   CheckCircle2,
+  Briefcase,
+  Plus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,11 +28,28 @@ function NewInvoiceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { activeCompany } = useAuth();
+  const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
 
   const qChallanId = searchParams.get('challanId');
 
   // Inward challans list for linking
   const [challans, setChallans] = useState<InwardChallanApiItem[]>([]);
+  // Parties list for auto-fill
+  const [parties, setParties] = useState<PartyApiItem[]>([]);
+
+  const fetchParties = async () => {
+    try {
+      const list = await PartiesApi.getAll();
+      setParties(list);
+    } catch (e) {
+      console.warn('Parties load error:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchParties();
+  }, [activeCompany?.id]);
 
   // Form State
   const [inwardChallanId, setInwardChallanId] = useState(qChallanId || '');
@@ -162,10 +184,10 @@ function NewInvoiceContent() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <FileText className="w-3.5 h-3.5 text-slate-400" />
-              <span>GST SAC 9988 • Embroidery Jobwork Invoice Creator</span>
+              <span>{t.invoiceTitle || 'GST SAC 9988 Jobwork Invoice Creator'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Create Outward Invoice (નવું જીએસટી બીલ)
+              {t.createInvoiceBtn || 'Create Outward Invoice'}
             </h1>
           </div>
         </div>
@@ -199,6 +221,45 @@ function NewInvoiceContent() {
                   {challans.map((ch) => (
                     <option key={ch.id} value={ch.id}>
                       {ch.lot_no} • {ch.trader_name} ({ch.than_count} Thans)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Quick Party Picker */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs text-slate-700 font-medium">Select Registered Party (પાર્ટી પસંદ કરો)</label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openDrawer('ADD_PARTY', {}, (newParty: PartyApiItem) => {
+                        fetchParties();
+                        setTraderName(newParty.name);
+                        if (newParty.gstin) setTraderGstin(newParty.gstin);
+                      })
+                    }
+                    className="text-2xs font-semibold text-[#0099B8] hover:text-[#0E7090] inline-flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>+ Add New Party</span>
+                  </button>
+                </div>
+                <select
+                  value={parties.find((p) => p.name === traderName)?.id || ''}
+                  onChange={(e) => {
+                    const selected = parties.find((p) => p.id === e.target.value);
+                    if (selected) {
+                      setTraderName(selected.name);
+                      if (selected.gstin) setTraderGstin(selected.gstin);
+                    }
+                  }}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+                >
+                  <option value="">-- Choose From Registered Parties --</option>
+                  {parties.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} {p.gstin ? `(${p.gstin})` : '(URP)'}
                     </option>
                   ))}
                 </select>

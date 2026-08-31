@@ -11,6 +11,13 @@ export interface PendingSyncItem {
   retryCount?: number;
 }
 
+export interface SyncConflict {
+  id: string;
+  item: PendingSyncItem;
+  serverMessage?: string;
+  detectedAt: string;
+}
+
 // API endpoint mapping for each entity type and action
 const API_ENDPOINTS: Record<string, Record<string, { method: string; url: string }>> = {
   shift: {
@@ -41,6 +48,7 @@ const BASE_RETRY_DELAY_MS = 1000;
 class OfflineStore {
   private isBrowser = typeof window !== 'undefined';
   private syncListeners: ((pendingCount: number) => void)[] = [];
+  private conflictListeners: ((conflicts: SyncConflict[]) => void)[] = [];
   private isSyncing = false;
 
   constructor() {
@@ -132,10 +140,16 @@ class OfflineStore {
 
       return true;
     } catch (err: any) {
-      // If it's a 409 Conflict, the item was already synced — treat as success
+      // If it's a 409 Conflict, register conflict so supervisor can resolve
       if (err?.response?.status === 409) {
-        logger.info(`Item ${item.id} already exists on server (409 Conflict), removing from queue.`);
-        return true;
+        logger.warn(`Item ${item.id} encountered 409 Conflict on server.`, { syncId: item.id });
+        this.addConflict({
+          id: `conflict-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          item,
+          serverMessage: err?.response?.data?.message || 'Concurrent modification conflict detected on server',
+          detectedAt: new Date().toISOString(),
+        });
+        return true; // Remove from active dispatch queue and park in conflict queue
       }
 
       // If it's a 4xx error (client error other than 409), don't retry — data is invalid
@@ -150,6 +164,62 @@ class OfflineStore {
       // Server errors or network failures — keep for retry
       return false;
     }
+  }
+
+  getConflicts(): SyncConflict[] {
+    if (!this.isBrowser) return [];
+    try {
+      return JSON.parse(localStorage.getItem('etms_sync_conflicts') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  addConflict(conflict: SyncConflict): void {
+    if (!this.isBrowser) return;
+    try {
+      const conflicts = this.getConflicts();
+      conflicts.push(conflict);
+      localStorage.setItem('etms_sync_conflicts', JSON.stringify(conflicts));
+      this.notifyConflictListeners();
+    } catch (e) {
+      logger.error('Failed to save sync conflict', { error: String(e) });
+    }
+  }
+
+  async resolveConflict(conflictId: string, resolution: 'OVERWRITE' | 'DISCARD'): Promise<void> {
+    if (!this.isBrowser) return;
+    try {
+      const conflicts = this.getConflicts();
+      const target = conflicts.find((c) => c.id === conflictId);
+      if (!target) return;
+
+      if (resolution === 'OVERWRITE') {
+        const endpoint = API_ENDPOINTS[target.item.type]?.['update'] || API_ENDPOINTS[target.item.type]?.['create'];
+        if (endpoint) {
+          await apiClient.put(endpoint.url, { ...target.item.data, force_override: true });
+        }
+      }
+
+      const remaining = conflicts.filter((c) => c.id !== conflictId);
+      localStorage.setItem('etms_sync_conflicts', JSON.stringify(remaining));
+      this.notifyConflictListeners();
+    } catch (e) {
+      logger.error('Failed to resolve sync conflict', { error: String(e) });
+    }
+  }
+
+  onConflictsChange(callback: (conflicts: SyncConflict[]) => void): () => void {
+    this.conflictListeners.push(callback);
+    callback(this.getConflicts());
+    return () => {
+      this.conflictListeners = this.conflictListeners.filter((cb) => cb !== callback);
+    };
+  }
+
+  private notifyConflictListeners(): void {
+    const conflicts = this.getConflicts();
+    this.conflictListeners.forEach((cb) => cb(conflicts));
   }
 
   /**
