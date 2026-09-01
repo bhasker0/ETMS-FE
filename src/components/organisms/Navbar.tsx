@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useConfig } from '@/lib/config-context';
+import { useAppDrawer } from '@/lib/app-drawer-context';
 import { CompanyConfigDrawer } from './CompanyConfigDrawer';
 import { LanguageSwitcher } from '../molecules/LanguageSwitcher';
 import { HighContrastToggle } from '../molecules/HighContrastToggle';
@@ -43,6 +44,7 @@ export const Navbar: React.FC = () => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { openConfigDrawer } = useConfig();
+  const { openDrawer } = useAppDrawer();
 
   // Quick test personas
   const personas = [
@@ -181,13 +183,14 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* New Shift Action */}
-          <Link
-            href="/shift/new"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] text-xs font-semibold rounded-md shadow-sm transition"
+          <button
+            type="button"
+            onClick={() => openDrawer('LOG_SHIFT', {})}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] hover:bg-[#9494ff] text-white text-xs font-semibold rounded-md shadow-xs transition cursor-pointer active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Log Shift</span>
-          </Link>
+          </button>
 
           {/* High Contrast / Theme Toggle */}
           <HighContrastToggle />

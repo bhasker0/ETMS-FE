@@ -88,13 +88,14 @@ export default function ChallansListPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/challans/inward"
-              className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm shrink-0 cursor-pointer"
+            <button
+              type="button"
+              onClick={() => openDrawer('ADD_CHALLAN', {}, fetchChallans)}
+              className="px-3.5 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-xs shrink-0 cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>Register Inward Lot</span>
-            </Link>
+            </button>
           </div>
         </div>
 
