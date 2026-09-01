@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
+import { LanguageSwitcher } from '@/components/molecules/LanguageSwitcher';
 import {
   Layers,
   ArrowRight,
@@ -24,6 +26,7 @@ import { toast } from 'sonner';
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const { requestPasswordReset, verifyAndResetPassword } = useAuth();
+  const { t } = useI18n();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [mobile, setMobile] = useState('');
@@ -38,7 +41,7 @@ export default function ForgotPasswordPage() {
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mobile || mobile.length < 10) {
-      toast.error('Please enter a valid 10-digit mobile number');
+      toast.error(t.auth_digitsHint ? `${t.auth_mobileLabel} (10 digits)` : 'Please enter a valid 10-digit mobile number');
       return;
     }
     setSubmitting(true);
@@ -86,7 +89,7 @@ export default function ForgotPasswordPage() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(t.fp_passMinLength || 'Password must be at least 6 characters');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -118,7 +121,7 @@ export default function ForgotPasswordPage() {
         <div className="absolute top-0 left-0 w-96 h-96 bg-[#0099B8]/20 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#0E7090]/30 rounded-full blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
 
-        {/* Top Header Logo */}
+        {/* Top Header Logo & Pre-Auth Language Switcher */}
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#0099B8] text-white flex items-center justify-center font-bold shadow-lg shadow-[#0099B8]/30">
@@ -126,24 +129,29 @@ export default function ForgotPasswordPage() {
             </div>
             <div>
               <div className="text-xl font-black tracking-tight flex items-center gap-2">
-                ETMS Surat
+                {t.brandTitle || 'ETMS Surat'}
                 <span className="px-2 py-0.5 bg-[#0099B8]/30 border border-[#0099B8]/50 text-cyan-200 text-2xs font-mono font-semibold rounded-md">
-                  SAC 9988
+                  {t.sac9988Tag || 'SAC 9988'}
                 </span>
               </div>
               <p className="text-2xs text-cyan-200/80 font-medium">
-                Surat Embroidery SaaS Micro-ERP • સુરત એમ્બ્રોઇડરી યુનિટ સોફ્ટવેર
+                {t.auth_subTitleTag || 'Surat Embroidery SaaS Micro-ERP'}
               </p>
             </div>
           </div>
 
-          <Link
-            href="/login"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-xs text-cyan-100 font-medium transition"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Sign In</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-0.5">
+              <LanguageSwitcher />
+            </div>
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-xs text-cyan-100 font-medium transition"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{t.fp_backToSignIn || 'Back to Sign In'}</span>
+            </Link>
+          </div>
         </div>
 
         {/* Hero Branding Content */}
@@ -151,15 +159,15 @@ export default function ForgotPasswordPage() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 rounded-full text-xs font-semibold">
               <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Secure Password Reset System</span>
+              <span>{t.fp_heroTag || 'Secure Password Reset System'}</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Instant Account Recovery for Factory Owners & Staff
+              {t.fp_heroTitle || 'Instant Account Recovery for Factory Owners & Staff'}
             </h1>
 
             <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-normal">
-              Reset your password securely via SMS OTP verification. Your factory shift logs, SAC 9988 invoices, and Karigar wage records remain 100% safe and encrypted.
+              {t.fp_heroDesc || 'Reset your password securely via SMS OTP verification. Your factory shift logs, SAC 9988 invoices, and Karigar wage records remain 100% safe and encrypted.'}
             </p>
           </div>
 
@@ -172,8 +180,8 @@ export default function ForgotPasswordPage() {
                   : 'bg-white/10 border-white/15 text-slate-300'
               }`}
             >
-              <div className="text-2xs uppercase tracking-wider text-cyan-200 mb-1">Step 01</div>
-              <div className="text-xs font-bold">1. Enter Mobile</div>
+              <div className="text-2xs uppercase tracking-wider text-cyan-200 mb-1">{t.fp_step01Badge || 'Step 01'}</div>
+              <div className="text-xs font-bold">{t.fp_step1 || '1. Enter Mobile'}</div>
             </div>
 
             <div
@@ -183,8 +191,8 @@ export default function ForgotPasswordPage() {
                   : 'bg-white/10 border-white/15 text-slate-300'
               }`}
             >
-              <div className="text-2xs uppercase tracking-wider text-cyan-200 mb-1">Step 02</div>
-              <div className="text-xs font-bold">2. Verify OTP</div>
+              <div className="text-2xs uppercase tracking-wider text-cyan-200 mb-1">{t.fp_step02Badge || 'Step 02'}</div>
+              <div className="text-xs font-bold">{t.fp_step2 || '2. Verify OTP'}</div>
             </div>
 
             <div
@@ -194,16 +202,16 @@ export default function ForgotPasswordPage() {
                   : 'bg-white/10 border-white/15 text-slate-300'
               }`}
             >
-              <div className="text-2xs uppercase tracking-wider text-cyan-200 mb-1">Step 03</div>
-              <div className="text-xs font-bold">3. New Password</div>
+              <div className="text-2xs uppercase tracking-wider text-cyan-200 mb-1">{t.fp_step03Badge || 'Step 03'}</div>
+              <div className="text-xs font-bold">{t.fp_step3 || '3. New Password'}</div>
             </div>
           </div>
         </div>
 
         {/* Footer info */}
         <div className="relative z-10 pt-6 border-t border-white/15 flex items-center justify-between text-xs text-cyan-200/80 font-mono">
-          <span>Surat Textile Hub Protection</span>
-          <span>Helpdesk: +91 98250 12345</span>
+          <span>{t.fp_protection || 'Surat Textile Hub Protection'}</span>
+          <span>{t.fp_helpdesk || 'Helpdesk: +91 98250 12345'}</span>
         </div>
       </div>
 
@@ -217,10 +225,10 @@ export default function ForgotPasswordPage() {
                 className="text-xs font-bold text-[#0099B8] hover:text-[#0E7090] flex items-center gap-1 transition"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Sign In Screen</span>
+                <span>{t.fp_backToSignIn || 'Sign In Screen'}</span>
               </Link>
               <span className="px-2.5 py-1 bg-[#E0F2FE] text-[#0284C7] rounded-full text-2xs font-bold font-mono">
-                Step {step} of 3
+                {step === 1 ? (t.fp_step01Badge || 'Step 01') : step === 2 ? (t.fp_step02Badge || 'Step 02') : (t.fp_step03Badge || 'Step 03')}
               </span>
             </div>
 
@@ -229,17 +237,17 @@ export default function ForgotPasswordPage() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <h2 className="text-2xl font-extrabold text-[#1E293B] tracking-tight">
-                    Forgot Password?
+                    {t.fp_title || 'Forgot Password?'}
                   </h2>
                   <p className="text-xs text-[#64748B]">
-                    Enter your registered 10-digit mobile number to receive a verification OTP code.
+                    {t.fp_step1Desc || 'Enter your registered 10-digit mobile number to receive a verification OTP code.'}
                   </p>
                 </div>
 
                 <form onSubmit={handleRequestOtp} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1E293B]">
-                      Registered Mobile (મોબાઈલ નંબર)
+                      {t.auth_mobileLabel || 'Registered Mobile'}
                     </label>
                     <div className="relative">
                       <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[#64748B] text-xs font-semibold pr-2 border-r border-[#E2E8F0]">
@@ -263,7 +271,7 @@ export default function ForgotPasswordPage() {
                     disabled={submitting}
                     className="w-full py-3.5 bg-[#0099B8] hover:bg-[#0E7090] active:scale-[0.99] text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
                   >
-                    <span>{submitting ? 'Sending OTP...' : 'Send OTP (ઓટીપી મોકલો)'}</span>
+                    <span>{submitting ? (t.fp_sendingOtp || 'Sending OTP...') : (t.fp_sendOtpBtn || 'Send OTP')}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -275,13 +283,13 @@ export default function ForgotPasswordPage() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <h2 className="text-2xl font-extrabold text-[#1E293B] tracking-tight">
-                    Enter Verification OTP
+                    {t.fp_step2Title || 'Enter Verification OTP'}
                   </h2>
                   <p className="text-xs text-[#64748B]">
-                    Enter the 6-digit OTP sent to <span className="font-mono font-bold text-[#1E293B]">+91 {mobile}</span>.
+                    {t.fp_step2Desc || 'Enter the 6-digit OTP sent to'} <span className="font-mono font-bold text-[#1E293B]">+91 {mobile}</span>.
                   </p>
                   <div className="p-3 bg-[#E0F2FE] border border-[#0284C7]/20 rounded-xl text-2xs text-[#0284C7] font-semibold flex items-center justify-between">
-                    <span>Demo Verification Code:</span>
+                    <span>{t.fp_demoOtpNotice || 'Demo Verification Code:'}</span>
                     <span className="font-mono font-bold text-sm bg-white px-2 py-0.5 rounded shadow-xs">123456</span>
                   </div>
                 </div>
@@ -289,7 +297,7 @@ export default function ForgotPasswordPage() {
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1E293B]">
-                      6-Digit OTP Code (ઓટીપી)
+                      {t.fp_otpLabel || '6-Digit OTP Code'}
                     </label>
                     <input
                       type="text"
@@ -303,9 +311,9 @@ export default function ForgotPasswordPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-2xs text-[#64748B]">
-                    <span>Didn&apos;t receive code?</span>
+                    <span>{t.fp_noCode || "Didn't receive code?"}</span>
                     {resendTimer > 0 ? (
-                      <span className="font-mono text-[#0099B8]">Resend in {resendTimer}s</span>
+                      <span className="font-mono text-[#0099B8]">{resendTimer}s</span>
                     ) : (
                       <button
                         type="button"
@@ -313,7 +321,7 @@ export default function ForgotPasswordPage() {
                         className="font-bold text-[#0099B8] hover:underline flex items-center gap-1"
                       >
                         <RefreshCw className="w-3 h-3" />
-                        <span>Resend OTP</span>
+                        <span>{t.fp_resendBtn || 'Resend OTP'}</span>
                       </button>
                     )}
                   </div>
@@ -322,7 +330,7 @@ export default function ForgotPasswordPage() {
                     type="submit"
                     className="w-full py-3.5 bg-[#0099B8] hover:bg-[#0E7090] active:scale-[0.99] text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2"
                   >
-                    <span>Verify & Continue (ચકાસણી કરો)</span>
+                    <span>{t.fp_verifyBtn || 'Verify & Continue'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -334,16 +342,16 @@ export default function ForgotPasswordPage() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <h2 className="text-2xl font-extrabold text-[#1E293B] tracking-tight">
-                    Set New Password
+                    {t.fp_step3Title || 'Set New Password'}
                   </h2>
                   <p className="text-xs text-[#64748B]">
-                    Create a new strong password for your account.
+                    {t.fp_step3Desc || 'Create a new strong password for your account.'}
                   </p>
                 </div>
 
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1E293B]">New Password (નવો પાસવર્ડ)</label>
+                    <label className="text-xs font-bold text-[#1E293B]">{t.fp_newPassLabel || 'New Password'}</label>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
@@ -365,7 +373,7 @@ export default function ForgotPasswordPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1E293B]">Confirm Password</label>
+                    <label className="text-xs font-bold text-[#1E293B]">{t.fp_confirmPassLabel || 'Confirm Password'}</label>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
@@ -382,11 +390,11 @@ export default function ForgotPasswordPage() {
                   <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-1 text-2xs text-[#64748B]">
                     <div className="flex items-center gap-1.5 text-[#1E293B] font-bold mb-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#0099B8]" />
-                      <span>Password Requirements</span>
+                      <span>{t.fp_passReqs || 'Password Requirements'}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <CheckCircle2 className={`w-3 h-3 ${newPassword.length >= 6 ? 'text-emerald-600' : 'text-slate-300'}`} />
-                      <span>At least 6 characters long</span>
+                      <span>{t.fp_passMinLength || 'At least 6 characters long'}</span>
                     </div>
                   </div>
 
@@ -395,7 +403,7 @@ export default function ForgotPasswordPage() {
                     disabled={submitting}
                     className="w-full py-3.5 bg-[#0099B8] hover:bg-[#0E7090] active:scale-[0.99] text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
                   >
-                    <span>{submitting ? 'Updating...' : 'Reset Password (પાસવર્ડ બદલો)'}</span>
+                    <span>{submitting ? (t.fp_updating || 'Updating...') : (t.fp_resetBtn || 'Reset Password')}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -411,10 +419,10 @@ export default function ForgotPasswordPage() {
 
                 <div className="space-y-2">
                   <h2 className="text-2xl font-extrabold text-[#1E293B] tracking-tight">
-                    Password Reset Successful!
+                    {t.fp_successTitle || 'Password Reset Successful!'}
                   </h2>
                   <p className="text-xs text-[#64748B]">
-                    Your account password has been updated. You can now sign in with your new credentials.
+                    {t.fp_successDesc || 'Your account password has been updated. You can now sign in with your new credentials.'}
                   </p>
                 </div>
 
@@ -422,7 +430,7 @@ export default function ForgotPasswordPage() {
                   href="/login"
                   className="w-full py-3.5 bg-[#0099B8] hover:bg-[#0E7090] text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2"
                 >
-                  <span>Proceed to Sign In (પ્રવેશ કરો)</span>
+                  <span>{t.fp_proceedToSignIn || 'Proceed to Sign In'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

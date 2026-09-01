@@ -83,10 +83,10 @@ export default function FactoryDashboard() {
               <span>{t.factoryOverview || 'Factory Overview'}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {activeCompany?.name || 'Surat Embroidery Unit'}
+              {activeCompany?.name || t.dash_defaultCompany || 'Surat Embroidery Unit'}
             </h1>
             <p className="text-xs text-slate-500 font-mono">
-              GSTIN: {activeCompany?.gstin || '24AAAAA1111A1Z5'} • Role: {activeCompany?.role || 'COMPANY_ADMIN'}
+              {t.dash_gstinLabel || 'GSTIN'}: {activeCompany?.gstin || '24AAAAA1111A1Z5'} • {t.dash_roleLabel || 'Role'}: {activeCompany?.role || 'COMPANY_ADMIN'}
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export default function FactoryDashboard() {
               className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
             >
               <Truck className="w-3.5 h-3.5 text-slate-500" />
-              <span>{t.saveChallan || 'Inward Lot'}</span>
+              <span>{t.dash_inwardLot || t.saveChallan || 'Inward Lot'}</span>
             </button>
 
             <button
@@ -116,7 +116,7 @@ export default function FactoryDashboard() {
               className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
             >
               <FileText className="w-3.5 h-3.5 text-slate-500" />
-              <span>{t.navInvoices || 'SAC 9988 Bill'}</span>
+              <span>{t.dash_sac9988Bill || t.navInvoices || 'SAC 9988 Bill'}</span>
             </button>
           </div>
         </div>
@@ -125,12 +125,12 @@ export default function FactoryDashboard() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <Wrench className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.activeFleet || 'Active Fleet'}: <strong className="font-bold text-slate-900">{activeMachinesCount} / {machines.length} Online</strong></span>
+            <span>{t.activeFleet || 'Active Fleet'}: <strong className="font-bold text-slate-900">{activeMachinesCount} / {machines.length} {t.dash_online || 'Online'}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-blue-800">
             <TrendingUp className="w-3.5 h-3.5 text-[#1D4ED8]" />
-            <span>{t.totalOutput || 'Total Output'}: <strong className="font-bold text-slate-900">{formatNumber(totalMeters)} m</strong> <span className="text-2xs">({formatNumber(totalStitches)} st.)</span></span>
+            <span>{t.totalOutput || 'Total Output'}: <strong className="font-bold text-slate-900">{formatNumber(totalMeters)} {t.dash_metersUnit || 'm'}</strong> <span className="text-2xs">({formatNumber(totalStitches)} {t.dash_stitchesUnit || 'st.'})</span></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
@@ -140,7 +140,7 @@ export default function FactoryDashboard() {
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-900">
             <Truck className="w-3.5 h-3.5 text-[#D97706]" />
-            <span>{t.navChallans || 'Inward Lots'}: <strong className="font-bold text-amber-800">{challans.length} Lots</strong></span>
+            <span>{t.navChallans || 'Inward Lots'}: <strong className="font-bold text-amber-800">{challans.length} {t.dash_lotsUnit || 'Lots'}</strong></span>
           </span>
         </div>
       </div>
@@ -177,8 +177,10 @@ export default function FactoryDashboard() {
                         #{m.machine_no}
                       </div>
                       <div>
-                        <div className="font-semibold text-xs text-slate-900">Machine {m.machine_no}</div>
-                        <div className="text-2xs text-slate-500 font-mono">{m.make_model || 'Tajima Type'}</div>
+                        <div className="font-semibold text-xs text-slate-900">
+                          {t.dash_machinePrefix || 'Machine'} {m.machine_no}
+                        </div>
+                        <div className="text-2xs text-slate-500 font-mono">{m.make_model || t.dash_tajimaType || 'Tajima Type'}</div>
                       </div>
                     </div>
 
@@ -199,7 +201,7 @@ export default function FactoryDashboard() {
 
               {machines.length === 0 && !loading && (
                 <div className="sm:col-span-2 p-8 text-center text-slate-400 text-xs">
-                  No machines configured.
+                  {t.dash_noMachines || 'No machines configured.'}
                 </div>
               )}
             </div>
@@ -212,7 +214,7 @@ export default function FactoryDashboard() {
                 <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {t.recentInvoices || 'Recent Invoices'}
                 </h2>
-                <span className="text-2xs text-slate-400 font-mono">GST SAC 9988</span>
+                <span className="text-2xs text-slate-400 font-mono">{t.sac9988Tag || 'GST SAC 9988'}</span>
               </div>
               <Link href="/invoices" className="text-2xs text-slate-600 hover:text-slate-900 font-medium">
                 {t.viewAll || 'View All'} ➔
@@ -236,10 +238,10 @@ export default function FactoryDashboard() {
                     <span>{inv.invoice_date}</span>
                     <button
                       onClick={() => OutwardInvoicesApi.downloadPdf(inv.id, inv.invoice_no)}
-                      className="text-slate-700 hover:text-slate-900 font-medium flex items-center gap-1"
+                      className="text-slate-700 hover:text-slate-900 font-medium flex items-center gap-1 cursor-pointer"
                     >
                       <Download className="w-3 h-3" />
-                      <span>PDF</span>
+                      <span>{t.dash_downloadPdf || 'PDF'}</span>
                     </button>
                   </div>
                 </div>
@@ -247,7 +249,7 @@ export default function FactoryDashboard() {
 
               {invoices.length === 0 && !loading && (
                 <div className="p-8 text-center text-slate-400 text-xs">
-                  No invoices issued yet.
+                  {t.dash_noInvoices || 'No invoices issued yet.'}
                 </div>
               )}
             </div>

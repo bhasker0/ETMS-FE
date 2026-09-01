@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
+import { LanguageSwitcher } from '@/components/molecules/LanguageSwitcher';
 import {
   Layers,
   ArrowRight,
@@ -24,6 +26,7 @@ import { toast } from 'sonner';
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useI18n();
 
   const [mobile, setMobile] = useState('9825012345');
   const [password, setPassword] = useState('Password@123');
@@ -33,28 +36,28 @@ export default function LoginPage() {
 
   const testPersonas = [
     {
-      role: 'Company Owner (માલિક)',
+      role: t.auth_roleOwner || 'Company Owner',
       name: 'Bhavesh Patel',
       firm: 'Radhe Krishna Embroidery',
       mobile: '9825012345',
       badge: 'Full Admin',
     },
     {
-      role: 'Supervisor (સુપરવાઇઝર)',
+      role: t.auth_roleSupervisor || 'Supervisor',
       name: 'Sanjay Mehta',
       firm: 'Radhe Krishna Embroidery',
       mobile: '9825099001',
       badge: 'Shift & Challan',
     },
     {
-      role: 'Munim / CA (મુનીમ એકાઉન્ટન્ટ)',
+      role: t.auth_roleMunim || 'Munim / CA',
       name: 'Kantibhai Accountant',
       firm: 'Multi-Firm Client Access',
       mobile: '9825099999',
       badge: 'Tally & GSTR-1',
     },
     {
-      role: 'Owner 2 (બીજો ટેનન્ટ)',
+      role: t.auth_roleOwner2 || 'Tenant Owner',
       name: 'Ghanshyam Shah',
       firm: 'Shree Ram Textiles',
       mobile: '9825054321',
@@ -67,7 +70,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(mobile, password);
-      toast.success('Login successful! Welcome to ETMS Surat');
+      toast.success(t.appName ? `${t.appName} - Sign in successful` : 'Login successful! Welcome to ETMS Surat');
       router.push('/');
     } catch (err: any) {
       toast.error('Login failed: ' + err.message);
@@ -99,7 +102,7 @@ export default function LoginPage() {
         <div className="absolute top-0 left-0 w-96 h-96 bg-[#0099B8]/20 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#0E7090]/30 rounded-full blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
 
-        {/* Top Header Logo */}
+        {/* Top Header Logo & Pre-Auth Language Switcher */}
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#0099B8] text-white flex items-center justify-center font-bold shadow-lg shadow-[#0099B8]/30">
@@ -107,20 +110,25 @@ export default function LoginPage() {
             </div>
             <div>
               <div className="text-xl font-black tracking-tight flex items-center gap-2">
-                ETMS Surat
+                {t.brandTitle || 'ETMS Surat'}
                 <span className="px-2 py-0.5 bg-[#0099B8]/30 border border-[#0099B8]/50 text-cyan-200 text-2xs font-mono font-semibold rounded-md">
-                  SAC 9988
+                  {t.sac9988Tag || 'SAC 9988'}
                 </span>
               </div>
               <p className="text-2xs text-cyan-200/80 font-medium">
-                Surat Embroidery SaaS Micro-ERP • સુરત એમ્બ્રોઇડરી યુનિટ સોફ્ટવેર
+                {t.auth_subTitleTag || 'Surat Embroidery SaaS Micro-ERP'}
               </p>
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-cyan-100 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-            <span>v2.5 Production Ready</span>
+          <div className="flex items-center gap-2">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-0.5">
+              <LanguageSwitcher />
+            </div>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-cyan-100 font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+              <span>{t.auth_versionTag || 'v2.5 Production Ready'}</span>
+            </div>
           </div>
         </div>
 
@@ -129,15 +137,15 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 rounded-full text-xs font-semibold">
               <Building2 className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Built Specially for Surat Textile & Embroidery Hub</span>
+              <span>{t.auth_heroTag || 'Built Specially for Surat Textile & Embroidery Hub'}</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Complete Factory Telemetry & Job-Work Accounting
+              {t.auth_heroTitle || 'Complete Factory Telemetry & Job-Work Accounting'}
             </h1>
 
             <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-normal">
-              Empower your embroidery unit with real-time shift production tracking, SAC 9988 tax invoicing, Karigar advance salary (ઉપાડ/હિસાબ) management, and 1-click Munim Tally integration.
+              {t.auth_heroDesc || 'Empower your embroidery unit with real-time shift production tracking, SAC 9988 tax invoicing, Karigar advance salary management, and 1-click Munim Tally integration.'}
             </p>
           </div>
 
@@ -147,9 +155,9 @@ export default function LoginPage() {
               <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
                 <Wrench className="w-4 h-4" />
               </div>
-              <h2 className="text-sm font-bold text-white">Machine Shift Output</h2>
+              <h2 className="text-sm font-bold text-white">{t.auth_feat1Title || 'Machine Shift Output'}</h2>
               <p className="text-xs text-slate-300">
-                Track Head count, RPM speed, shift meters & total stitches live on floor.
+                {t.auth_feat1Desc || 'Track Head count, RPM speed, shift meters & total stitches live on floor.'}
               </p>
             </div>
 
@@ -157,9 +165,9 @@ export default function LoginPage() {
               <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
                 <FileText className="w-4 h-4" />
               </div>
-              <h2 className="text-sm font-bold text-white">SAC 9988 GST Invoicing</h2>
+              <h2 className="text-sm font-bold text-white">{t.auth_feat2Title || 'SAC 9988 GST Invoicing'}</h2>
               <p className="text-xs text-slate-300">
-                Generate compliant job-work invoices with automatic CGST/SGST taxes.
+                {t.auth_feat2Desc || 'Generate compliant job-work invoices with automatic CGST/SGST taxes.'}
               </p>
             </div>
 
@@ -167,9 +175,9 @@ export default function LoginPage() {
               <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
                 <Wallet className="w-4 h-4" />
               </div>
-              <h2 className="text-sm font-bold text-white">Karigar Uchapat & Hisab</h2>
+              <h2 className="text-sm font-bold text-white">{t.auth_feat3Title || 'Karigar Uchapat & Hisab'}</h2>
               <p className="text-xs text-slate-300">
-                Record wage advances, piece-rate payouts, and end-of-month wage balance.
+                {t.auth_feat3Desc || 'Record wage advances, piece-rate payouts, and end-of-month wage balance.'}
               </p>
             </div>
 
@@ -177,9 +185,9 @@ export default function LoginPage() {
               <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
                 <ShieldCheck className="w-4 h-4" />
               </div>
-              <h2 className="text-sm font-bold text-white">Munim & Tally Integration</h2>
+              <h2 className="text-sm font-bold text-white">{t.auth_feat4Title || 'Munim & Tally Integration'}</h2>
               <p className="text-xs text-slate-300">
-                Direct export to Tally Prime XML & GSTR-1 JSON for seamless CA filing.
+                {t.auth_feat4Desc || 'Direct export to Tally Prime XML & GSTR-1 JSON for seamless CA filing.'}
               </p>
             </div>
           </div>
@@ -190,22 +198,22 @@ export default function LoginPage() {
           <div className="flex items-center gap-6">
             <div>
               <div className="text-base font-extrabold text-white">500+ Units</div>
-              <div className="text-2xs text-cyan-200">Surat Factories</div>
+              <div className="text-2xs text-cyan-200">{t.auth_statUnits || 'Surat Factories'}</div>
             </div>
             <div className="h-6 w-px bg-white/20" />
             <div>
               <div className="text-base font-extrabold text-white">12,000+</div>
-              <div className="text-2xs text-cyan-200">Heads Monitored</div>
+              <div className="text-2xs text-cyan-200">{t.auth_statHeads || 'Heads Monitored'}</div>
             </div>
             <div className="h-6 w-px bg-white/20" />
             <div>
               <div className="text-base font-extrabold text-white">99.9%</div>
-              <div className="text-2xs text-cyan-200">System Uptime</div>
+              <div className="text-2xs text-cyan-200">{t.auth_statUptime || 'System Uptime'}</div>
             </div>
           </div>
 
           <div className="text-2xs text-cyan-200/80 font-mono">
-            Encrypted & Multitenant • GST SAC 9988
+            {t.auth_footerBadge || 'Encrypted & Multitenant • GST SAC 9988'}
           </div>
         </div>
       </div>
@@ -219,14 +227,14 @@ export default function LoginPage() {
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#0099B8]" />
                 <span className="text-xs font-bold text-[#0099B8] uppercase tracking-wider">
-                  Account Sign In (પ્રવેશ કરો)
+                  {t.auth_signInTitle || 'Account Sign In'}
                 </span>
               </div>
               <h2 className="text-2xl font-extrabold text-[#1E293B] tracking-tight">
-                Welcome Back
+                {t.auth_welcomeBack || 'Welcome Back'}
               </h2>
               <p className="text-xs text-[#64748B]">
-                Enter your registered mobile number and password to access your unit dashboard.
+                {t.auth_loginSubtitle || 'Enter your registered mobile number and password to access your unit dashboard.'}
               </p>
             </div>
 
@@ -234,8 +242,8 @@ export default function LoginPage() {
               {/* Mobile Input */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#1E293B] flex items-center justify-between">
-                  <span>Registered Mobile (મોબાઈલ નંબર)</span>
-                  <span className="text-2xs text-[#64748B]">10 Digits</span>
+                  <span>{t.auth_mobileLabel || 'Registered Mobile'}</span>
+                  <span className="text-2xs text-[#64748B]">{t.auth_digitsHint || '10 Digits'}</span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[#64748B] text-xs font-semibold pr-2 border-r border-[#E2E8F0]">
@@ -256,7 +264,9 @@ export default function LoginPage() {
 
               {/* Password Input */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#1E293B]">Password (પાસવર્ડ)</label>
+                <label className="text-xs font-bold text-[#1E293B]">
+                  {t.auth_passwordLabel || 'Password'}
+                </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -286,14 +296,14 @@ export default function LoginPage() {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="w-4 h-4 rounded border-[#E2E8F0] text-[#0099B8] focus:ring-[#0099B8]/20 cursor-pointer"
                   />
-                  <span>Remember Me</span>
+                  <span>{t.auth_rememberMe || 'Remember Me'}</span>
                 </label>
 
                 <Link
                   href="/forgot-password"
                   className="font-bold text-[#0099B8] hover:text-[#0E7090] hover:underline transition"
                 >
-                  Forgot Password? (પાસવર્ડ ભૂલી ગયા?)
+                  {t.auth_forgotPassword || 'Forgot Password?'}
                 </Link>
               </div>
 
@@ -303,7 +313,7 @@ export default function LoginPage() {
                 disabled={submitting}
                 className="w-full py-3.5 bg-[#0099B8] hover:bg-[#0E7090] active:scale-[0.99] text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <span>{submitting ? 'Authenticating...' : 'Sign In (પ્રવેશ કરો)'}</span>
+                <span>{submitting ? (t.auth_authenticating || 'Authenticating...') : (t.auth_signInBtn || 'Sign In')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -314,9 +324,9 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-xs font-bold text-[#1E293B] border-b border-[#E2E8F0] pb-2">
               <div className="flex items-center gap-1.5 text-[#0099B8]">
                 <UserCheck className="w-4 h-4" />
-                <span>1-Click Demo Accounts (ટેસ્ટ એકાઉન્ટ્સ)</span>
+                <span>{t.auth_demoAccounts || '1-Click Demo Accounts'}</span>
               </div>
-              <span className="text-2xs text-[#64748B] font-mono">Instant Login</span>
+              <span className="text-2xs text-[#64748B] font-mono">{t.auth_instantLogin || 'Instant Login'}</span>
             </div>
 
             <div className="grid grid-cols-1 gap-2">
@@ -341,7 +351,7 @@ export default function LoginPage() {
                   </div>
 
                   <div className="px-2.5 py-1 bg-[#0099B8]/10 group-hover:bg-[#0099B8] text-[#0099B8] group-hover:text-white rounded-lg text-2xs font-bold transition flex items-center gap-1 shrink-0">
-                    <span>Select</span>
+                    <span>{t.auth_selectBtn || 'Select'}</span>
                     <ArrowRight className="w-3 h-3" />
                   </div>
                 </button>

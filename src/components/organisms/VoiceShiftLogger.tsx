@@ -210,8 +210,8 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
       {/* Floating Microphone Trigger Button */}
       <button
         onClick={startListening}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-[#0099B8] to-[#0E7090] hover:from-[#0E7090] hover:to-[#0099B8] text-white p-4 rounded-full shadow-2xl border-4 border-white active:scale-95 transition-all flex items-center justify-center group"
-        title="બોલીને શિફ્ટ નોંધો (Voice Shift Logger)"
+        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-[#0099B8] to-[#0E7090] hover:from-[#0E7090] hover:to-[#0E7090] text-white p-4 rounded-full shadow-2xl border-4 border-white active:scale-95 transition-all flex items-center justify-center group cursor-pointer"
+        title={t.voice_triggerTooltip || 'Voice Shift Logger'}
       >
         <div className="relative">
           <Mic className="w-7 h-7" />
@@ -233,8 +233,8 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-white">{t.voiceLoggerTitle}</h3>
-                  <p className="text-2xs text-amber-400">ગુજરાતી / हिंदी / English Voice AI</p>
+                  <h3 className="font-extrabold text-lg text-white">{t.voiceLoggerTitle || 'Voice AI Shift Entry'}</h3>
+                  <p className="text-2xs text-amber-400">{t.voice_languageBadge || 'Voice AI'}</p>
                 </div>
               </div>
               <button
@@ -242,7 +242,7 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
                   stopListening();
                   setIsOpen(false);
                 }}
-                className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800"
+                className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -259,7 +259,7 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
                 )}
                 <button
                   onClick={isListening ? stopListening : startListening}
-                  className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-transform active:scale-95 ${
+                  className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-transform active:scale-95 cursor-pointer ${
                     isListening
                       ? 'bg-red-500 text-white animate-pulse'
                       : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
@@ -271,17 +271,17 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
 
               <div className="space-y-1">
                 <div className="text-sm font-bold text-slate-200">
-                  {isListening ? t.listeningVoice : 'બોલવા માટે માઇક દબાવો'}
+                  {isListening ? (t.listeningVoice || 'Listening to microphone...') : (t.voice_tapToSpeak || 'Tap microphone to speak')}
                 </div>
                 <div className="text-xs text-amber-400 font-mono bg-slate-900/80 px-3 py-1.5 rounded-lg inline-block border border-slate-800">
-                  {t.voiceHint}
+                  {t.voiceHint || 'e.g. Machine 2, Night shift, Design 108, 450 meters, Karigar Mahesh'}
                 </div>
               </div>
 
               {/* Live Transcript Bubble */}
               {transcript && (
                 <div className="bg-slate-900 p-3 rounded-xl border border-slate-700 text-sm text-slate-200 text-left font-medium">
-                  <span className="text-2xs text-slate-400 block mb-0.5">લાઈવ બોલાયેલ શબ્દો:</span>
+                  <span className="text-2xs text-slate-400 block mb-0.5">{t.voice_liveTranscriptLabel || 'Live Speech Transcript:'}</span>
                   &ldquo;{transcript}&rdquo;
                 </div>
               )}
@@ -292,60 +292,60 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
               <div className="bg-emerald-950/40 border-2 border-emerald-500/50 rounded-2xl p-4 space-y-3">
                 <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Check className="w-4 h-4" />
-                  {t.voiceParsedResult}
+                  {t.voiceParsedResult || 'Voice AI Output Recognized:'}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">મશીન:</span>
+                    <span className="text-slate-400 block text-2xs">{t.voice_machineLabel || 'Machine:'}</span>
                     <span className="font-bold text-white text-sm">{parsedData.machineName}</span>
                   </div>
 
                   <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">શિફ્ટ:</span>
+                    <span className="text-slate-400 block text-2xs">{t.voice_shiftLabel || 'Shift:'}</span>
                     <span className="font-bold text-amber-400 text-sm">
-                      {parsedData.shiftType === 'night' ? '🌙 રાત (Night)' : '☀️ દિવસ (Day)'}
+                      {parsedData.shiftType === 'night' ? (t.voice_nightShift || '🌙 Night') : (t.voice_dayShift || '☀️ Day')}
                     </span>
                   </div>
 
                   <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">લોટ / ડિઝાઇન:</span>
+                    <span className="text-slate-400 block text-2xs">{t.voice_lotDesignLabel || 'Lot / Design:'}</span>
                     <span className="font-bold text-white text-sm">{parsedData.lotNumber}</span>
                   </div>
 
                   <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">ઉત્પાદન મીટર:</span>
-                    <span className="font-bold text-emerald-400 text-sm">{parsedData.meters} મીટર</span>
+                    <span className="text-slate-400 block text-2xs">{t.voice_metersLabel || 'Meters Output:'}</span>
+                    <span className="font-bold text-emerald-400 text-sm">{parsedData.meters} {t.dash_metersUnit || 'm'}</span>
                   </div>
 
                   <div className="col-span-2 bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">કારીગરનું નામ:</span>
+                    <span className="text-slate-400 block text-2xs">{t.voice_karigarLabel || 'Karigar Name:'}</span>
                     <span className="font-bold text-white text-sm">{parsedData.karigarName}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={handleApply}
-                  className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-base shadow-lg active:scale-95 transition flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-base shadow-lg active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Check className="w-5 h-5" />
-                  {t.confirmAndApply}
+                  {t.confirmAndApply || 'Confirm & Save Counter'}
                 </button>
               </div>
             )}
 
             {/* Quick Demo Test Buttons */}
             <div className="pt-1 flex justify-between items-center text-xs text-slate-400">
-              <span>અથવા નમૂનો ચકાસો:</span>
+              <span>{t.voice_orTestSample || 'Or test sample:'}</span>
               <button
                 onClick={() => {
                   const sample = 'મશીન ૨, દિવસ શિફ્ટ, ડિઝાઇન ૧૧૨, ૫૨૦ મીટર, કારીગર દિનેશભાઈ ચૌધરી';
                   setTranscript(sample);
                   parseVoiceTranscript(sample);
                 }}
-                className="text-amber-400 hover:underline font-bold"
+                className="text-amber-400 hover:underline font-bold cursor-pointer"
               >
-                ટેસ્ટ વોઇસ સેમ્પલ ➔
+                {t.voice_testSampleBtn || 'Test Voice Sample ➔'}
               </button>
             </div>
           </div>

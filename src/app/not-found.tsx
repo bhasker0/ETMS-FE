@@ -1,17 +1,22 @@
+'use client';
+
 import Link from 'next/link';
 import { Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n';
 
 export default function NotFound() {
+  const { t } = useI18n();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
       <h1 className="text-6xl font-bold text-slate-800">404</h1>
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold text-slate-700">પેજ મળ્યું નથી / Page Not Found</h2>
+        <h2 className="text-2xl font-semibold text-slate-700">
+          {t.notFoundTitle || 'Page Not Found'}
+        </h2>
         <p className="text-slate-500 max-w-md">
-          તમે જે પેજ શોધી રહ્યા છો તે કદાચ દૂર કરવામાં આવ્યું છે અથવા અસ્થાયી રૂપે અનુપલબ્ધ છે.
-          <br />
-          The page you are looking for might have been removed or is temporarily unavailable.
+          {t.notFoundDesc || 'The page you are looking for might have been removed or is temporarily unavailable.'}
         </p>
       </div>
       <Link
@@ -21,8 +26,9 @@ export default function NotFound() {
         )}
       >
         <Home className="mr-2 h-5 w-5" />
-        ડેશબોર્ડ પર પાછા જાઓ / Back to Dashboard
+        <span>{t.notFoundBackHome || 'Back to Dashboard'}</span>
       </Link>
     </div>
   );
 }
+

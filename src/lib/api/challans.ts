@@ -53,11 +53,41 @@ export interface CreateInwardChallanDto {
   notes?: string;
 }
 
+export interface PendingDesignItem {
+  design_no: string;
+  stitch_count: number;
+  commission_type: 'PER_1K_STITCHES' | 'PER_PIECE' | 'PER_METER';
+  commission_rate: number;
+  jobwork_price_per_1k: number;
+  allocated_meters: number;
+  produced_meters: number;
+  remaining_meters: number;
+  is_completed: boolean;
+  than_count?: number;
+}
+
+export interface ActivePendingLotItem {
+  id: string;
+  challan_no: string;
+  challan_date: string;
+  lot_no: string;
+  trader_name: string;
+  fabric_quality: string;
+  inward_meters: number;
+  status: ChallanStatus;
+  pending_designs: PendingDesignItem[];
+}
+
 export const InwardChallansApi = {
   getAll: async (status?: ChallanStatus): Promise<InwardChallanApiItem[]> => {
     const res: any = await apiClient.get('/api/v1/inward-challans', {
       params: status ? { status } : undefined,
     });
+    return res?.data || [];
+  },
+
+  getActivePendingLots: async (): Promise<ActivePendingLotItem[]> => {
+    const res: any = await apiClient.get('/api/v1/inward-challans/active-designs');
     return res?.data || [];
   },
 
@@ -71,12 +101,13 @@ export const InwardChallansApi = {
     return res?.data;
   },
 
-  update: async (id: string, dto: Partial<CreateInwardChallanDto & { status: ChallanStatus }>): Promise<InwardChallanApiItem> => {
+  update: async (id: string, dto: Partial<CreateInwardChallanDto>): Promise<InwardChallanApiItem> => {
     const res: any = await apiClient.put(`/api/v1/inward-challans/${id}`, dto);
     return res?.data;
   },
 
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/v1/inward-challans/${id}`);
+  delete: async (id: string): Promise<{ message: string }> => {
+    const res: any = await apiClient.delete(`/api/v1/inward-challans/${id}`);
+    return res?.data;
   },
 };

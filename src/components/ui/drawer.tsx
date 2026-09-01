@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n';
 
 export interface DrawerProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   className,
   closeOnBackdropClick = true,
 }) => {
+  const { t } = useI18n();
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (isOpen && level === 0) {
@@ -123,7 +125,8 @@ export const Drawer: React.FC<DrawerProps> = ({
               onClick={onClose}
               type="button"
               className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition shrink-0"
-              title="Close Drawer (Esc)"
+              title={t.drawerClose || 'Close'}
+              aria-label={t.drawerClose || 'Close'}
             >
               <X className="w-5 h-5" />
             </button>
