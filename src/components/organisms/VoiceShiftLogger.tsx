@@ -5,6 +5,7 @@ import { Mic, Check, X, Sparkles } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { feedback } from '@/lib/audio-haptic';
 import { MOCK_MACHINES, MOCK_KARIGARS } from '@/lib/mock-data';
+import { Drawer } from '@/components/ui/drawer';
 
 interface ParsedShiftVoiceData {
   rawTranscript: string;
@@ -222,135 +223,151 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
         </div>
       </button>
 
-      {/* Voice Logger Modal Sheet */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-amber-500/20 text-amber-400 rounded-xl">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-white">{t.voiceLoggerTitle || 'Voice AI Shift Entry'}</h3>
-                  <p className="text-2xs text-amber-400">{t.voice_languageBadge || 'Voice AI'}</p>
-                </div>
-              </div>
+      {/* Voice Logger Right-Side Drawer */}
+      <Drawer
+        isOpen={isOpen}
+        onClose={() => {
+          stopListening();
+          setIsOpen(false);
+        }}
+        title={t.voiceLoggerTitle || 'Voice AI Shift Entry'}
+        subtitle={t.voice_languageBadge || 'Voice AI'}
+        icon={<Sparkles className="w-5 h-5 text-amber-500" />}
+        footer={
+          parsedData ? (
+            <div className="flex items-center gap-2 w-full">
               <button
+                type="button"
                 onClick={() => {
                   stopListening();
                   setIsOpen(false);
                 }}
-                className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800 cursor-pointer"
+                className="w-1/3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
               >
-                <X className="w-6 h-6" />
+                {t.cancel || 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleApply}
+                className="w-2/3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>{t.confirmAndApply || 'Confirm & Save Counter'}</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-end w-full">
+              <button
+                type="button"
+                onClick={() => {
+                  stopListening();
+                  setIsOpen(false);
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+              >
+                {t.close || 'Close'}
+              </button>
+            </div>
+          )
+        }
+      >
+        <div className="space-y-4">
+          {/* Listening Wave Area */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center space-y-4">
+            <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
+              {isListening && (
+                <>
+                  <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
+                  <div className="absolute -inset-2 rounded-full border-2 border-amber-400/40 animate-pulse"></div>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={isListening ? stopListening : startListening}
+                className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer ${
+                  isListening
+                    ? 'bg-red-500 text-white animate-pulse'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                }`}
+              >
+                <Mic className="w-8 h-8" />
               </button>
             </div>
 
-            {/* Listening Wave Area */}
-            <div className="bg-slate-950 border-2 border-slate-800 rounded-2xl p-6 text-center space-y-4">
-              <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-                {isListening && (
-                  <>
-                    <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
-                    <div className="absolute -inset-3 rounded-full border-2 border-amber-400/40 animate-pulse"></div>
-                  </>
-                )}
-                <button
-                  onClick={isListening ? stopListening : startListening}
-                  className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-transform active:scale-95 cursor-pointer ${
-                    isListening
-                      ? 'bg-red-500 text-white animate-pulse'
-                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                  }`}
-                >
-                  <Mic className="w-10 h-10" />
-                </button>
+            <div className="space-y-1">
+              <div className="text-xs font-bold text-slate-800">
+                {isListening ? (t.listeningVoice || 'Listening to microphone...') : (t.voice_tapToSpeak || 'Tap microphone to speak')}
               </div>
-
-              <div className="space-y-1">
-                <div className="text-sm font-bold text-slate-200">
-                  {isListening ? (t.listeningVoice || 'Listening to microphone...') : (t.voice_tapToSpeak || 'Tap microphone to speak')}
-                </div>
-                <div className="text-xs text-amber-400 font-mono bg-slate-900/80 px-3 py-1.5 rounded-lg inline-block border border-slate-800">
-                  {t.voiceHint || 'e.g. Machine 2, Night shift, Design 108, 450 meters, Karigar Mahesh'}
-                </div>
+              <div className="text-2xs text-amber-700 font-mono bg-amber-50 px-2.5 py-1 rounded-lg inline-block border border-amber-200">
+                {t.voiceHint || 'e.g. Machine 2, Night shift, Design 108, 450 meters, Karigar Mahesh'}
               </div>
-
-              {/* Live Transcript Bubble */}
-              {transcript && (
-                <div className="bg-slate-900 p-3 rounded-xl border border-slate-700 text-sm text-slate-200 text-left font-medium">
-                  <span className="text-2xs text-slate-400 block mb-0.5">{t.voice_liveTranscriptLabel || 'Live Speech Transcript:'}</span>
-                  &ldquo;{transcript}&rdquo;
-                </div>
-              )}
             </div>
 
-            {/* Parsed Result Card */}
-            {parsedData && (
-              <div className="bg-emerald-950/40 border-2 border-emerald-500/50 rounded-2xl p-4 space-y-3">
-                <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Check className="w-4 h-4" />
-                  {t.voiceParsedResult || 'Voice AI Output Recognized:'}
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">{t.voice_machineLabel || 'Machine:'}</span>
-                    <span className="font-bold text-white text-sm">{parsedData.machineName}</span>
-                  </div>
-
-                  <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">{t.voice_shiftLabel || 'Shift:'}</span>
-                    <span className="font-bold text-amber-400 text-sm">
-                      {parsedData.shiftType === 'night' ? (t.voice_nightShift || '🌙 Night') : (t.voice_dayShift || '☀️ Day')}
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">{t.voice_lotDesignLabel || 'Lot / Design:'}</span>
-                    <span className="font-bold text-white text-sm">{parsedData.lotNumber}</span>
-                  </div>
-
-                  <div className="bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">{t.voice_metersLabel || 'Meters Output:'}</span>
-                    <span className="font-bold text-emerald-400 text-sm">{parsedData.meters} {t.dash_metersUnit || 'm'}</span>
-                  </div>
-
-                  <div className="col-span-2 bg-slate-900/90 p-2.5 rounded-xl border border-emerald-900/50">
-                    <span className="text-slate-400 block text-2xs">{t.voice_karigarLabel || 'Karigar Name:'}</span>
-                    <span className="font-bold text-white text-sm">{parsedData.karigarName}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleApply}
-                  className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-base shadow-lg active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Check className="w-5 h-5" />
-                  {t.confirmAndApply || 'Confirm & Save Counter'}
-                </button>
+            {/* Live Transcript Bubble */}
+            {transcript && (
+              <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-700 text-left font-medium">
+                <span className="text-2xs text-slate-400 block mb-0.5">{t.voice_liveTranscriptLabel || 'Live Speech Transcript:'}</span>
+                &ldquo;{transcript}&rdquo;
               </div>
             )}
+          </div>
 
-            {/* Quick Demo Test Buttons */}
-            <div className="pt-1 flex justify-between items-center text-xs text-slate-400">
-              <span>{t.voice_orTestSample || 'Or test sample:'}</span>
-              <button
-                onClick={() => {
-                  const sample = 'મશીન ૨, દિવસ શિફ્ટ, ડિઝાઇન ૧૧૨, ૫૨૦ મીટર, કારીગર દિનેશભાઈ ચૌધરી';
-                  setTranscript(sample);
-                  parseVoiceTranscript(sample);
-                }}
-                className="text-amber-400 hover:underline font-bold cursor-pointer"
-              >
-                {t.voice_testSampleBtn || 'Test Voice Sample ➔'}
-              </button>
+          {/* Parsed Result Card */}
+          {parsedData && (
+            <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
+              <div className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-600" />
+                {t.voiceParsedResult || 'Voice AI Output Recognized:'}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                  <span className="text-slate-500 block text-2xs">{t.voice_machineLabel || 'Machine:'}</span>
+                  <span className="font-bold text-slate-800 text-xs">{parsedData.machineName}</span>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                  <span className="text-slate-500 block text-2xs">{t.voice_shiftLabel || 'Shift:'}</span>
+                  <span className="font-bold text-amber-700 text-xs">
+                    {parsedData.shiftType === 'night' ? (t.voice_nightShift || '🌙 Night') : (t.voice_dayShift || '☀️ Day')}
+                  </span>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                  <span className="text-slate-500 block text-2xs">{t.voice_lotDesignLabel || 'Lot / Design:'}</span>
+                  <span className="font-bold text-slate-800 text-xs">{parsedData.lotNumber}</span>
+                </div>
+
+                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                  <span className="text-slate-500 block text-2xs">{t.voice_metersLabel || 'Meters Output:'}</span>
+                  <span className="font-bold text-emerald-700 text-xs">{parsedData.meters} {t.dash_metersUnit || 'm'}</span>
+                </div>
+
+                <div className="col-span-2 bg-white p-2.5 rounded-xl border border-emerald-100">
+                  <span className="text-slate-500 block text-2xs">{t.voice_karigarLabel || 'Karigar Name:'}</span>
+                  <span className="font-bold text-slate-800 text-xs">{parsedData.karigarName}</span>
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Quick Demo Test Buttons */}
+          <div className="pt-2 flex justify-between items-center text-xs text-slate-500">
+            <span>{t.voice_orTestSample || 'Or test sample:'}</span>
+            <button
+              type="button"
+              onClick={() => {
+                const sample = 'મશીન ૨, દિવસ શિફ્ટ, ડિઝાઇન ૧૧૨, ૫૨૦ મીટર, કારીગર દિનેશભાઈ ચૌધરી';
+                setTranscript(sample);
+                parseVoiceTranscript(sample);
+              }}
+              className="text-amber-700 hover:underline font-bold cursor-pointer text-xs"
+            >
+              {t.voice_testSampleBtn || 'Test Voice Sample ➔'}
+            </button>
           </div>
         </div>
-      )}
+      </Drawer>
     </>
   );
 };

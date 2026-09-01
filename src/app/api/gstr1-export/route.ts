@@ -3,6 +3,8 @@ import { generateGSTR1SAC9988CSV } from '@/lib/tally-xml-generator';
 import { apiClient } from '@/lib/api-client';
 import { MOCK_INVOICES } from '@/lib/mock-data';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GSTR-1 SAC 9988 CSV Export endpoint.
  * Fetches invoices from the backend for the active tenant,

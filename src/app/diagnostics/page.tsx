@@ -29,6 +29,7 @@ export default function DiagnosticsPage() {
   const [shouldCrash, setShouldCrash] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<'ALL' | 'info' | 'warn' | 'error'>('ALL');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [confirmPurge, setConfirmPurge] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -81,12 +82,11 @@ export default function DiagnosticsPage() {
     toast.success(t.diag_syncCompleted);
   };
 
-  const handlePurgeCache = () => {
-    if (window.confirm(t.diag_confirmPurge)) {
-      offlineStore.purgeLocalCache();
-      setPendingSyncCount(0);
-      toast.success(t.diag_cachePurged);
-    }
+  const handleExecutePurge = () => {
+    offlineStore.purgeLocalCache();
+    setPendingSyncCount(0);
+    setConfirmPurge(false);
+    toast.success(t.diag_cachePurged);
   };
 
   const handleExportDump = () => {
@@ -236,13 +236,31 @@ export default function DiagnosticsPage() {
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                 <span>{t.diag_btnForceSync}</span>
               </button>
-              <button
-                onClick={handlePurgeCache}
-                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
-              >
-                <Flame className="w-3.5 h-3.5 text-rose-600" />
-                <span>{t.diag_btnPurgeCache}</span>
-              </button>
+              {confirmPurge ? (
+                <div className="flex items-center gap-1.5 bg-rose-100 p-1 rounded-lg border border-rose-300">
+                  <span className="text-2xs font-bold text-rose-800 px-1">Are you sure?</span>
+                  <button
+                    onClick={handleExecutePurge}
+                    className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded text-2xs cursor-pointer"
+                  >
+                    Yes, Purge
+                  </button>
+                  <button
+                    onClick={() => setConfirmPurge(false)}
+                    className="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded text-2xs cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmPurge(true)}
+                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Flame className="w-3.5 h-3.5 text-rose-600" />
+                  <span>{t.diag_btnPurgeCache}</span>
+                </button>
+              )}
             </div>
           </div>
 

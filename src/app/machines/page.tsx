@@ -18,7 +18,6 @@ import {
   Radio,
   Wifi,
   Zap,
-  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -29,7 +28,6 @@ export default function MachinesMasterPage() {
   const [machines, setMachines] = useState<MachineApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isIotModalOpen, setIsIotModalOpen] = useState(false);
 
   const fetchMachines = async () => {
     setLoading(true);
@@ -86,8 +84,8 @@ export default function MachinesMasterPage() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsIotModalOpen(true)}
-              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition border border-slate-300 shrink-0"
+              onClick={() => openDrawer('IOT_GATEWAY_CONFIG', {}, fetchMachines)}
+              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition border border-slate-300 shrink-0 cursor-pointer"
               title="IoT Edge Counters & MQTT Webhook Integration"
             >
               <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
@@ -220,59 +218,6 @@ export default function MachinesMasterPage() {
           </table>
         </div>
       </div>
-
-      {/* IOT GATEWAY MODAL (SCRUM-139) */}
-      {isIotModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white text-slate-900 rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm">
-                <Radio className="w-5 h-5 animate-pulse" />
-                <span>{t.machine_iotModalTitle}</span>
-              </div>
-              <button
-                onClick={() => setIsIotModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-600 leading-relaxed">
-              {t.machine_iotModalDesc}
-            </p>
-
-            <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 font-mono text-2xs">
-                <div className="text-slate-500 font-bold">{t.machine_iotBrokerTopic}</div>
-                <div className="p-2 bg-white rounded border border-slate-300 text-indigo-700 font-bold select-all">
-                  machines/{activeCompany?.id || 'default'}/telemetry
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 font-mono text-2xs">
-                <div className="text-slate-500 font-bold">{t.machine_iotWebhookEndpoint}</div>
-                <div className="p-2 bg-white rounded border border-slate-300 text-emerald-700 font-bold select-all">
-                  POST http://localhost:4000/api/v1/machines/telemetry
-                </div>
-                <div className="text-slate-500 text-3xs">
-                  Payload: &#123; &quot;machine_no&quot;: &quot;01&quot;, &quot;rpm&quot;: 850, &quot;stitches_delta&quot;: 1200 &#125;
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setIsIotModalOpen(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold"
-              >
-                {t.machine_iotCloseBtn}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -14,7 +14,12 @@ export type DrawerType =
   | 'ADD_CHALLAN'
   | 'CREATE_INVOICE'
   | 'ADD_PARTY'
-  | 'EDIT_PARTY';
+  | 'EDIT_PARTY'
+  | 'LOG_DEFECT'
+  | 'GENERATE_EWB'
+  | 'IOT_GATEWAY_CONFIG'
+  | 'OFFLINE_CONFLICTS'
+  | 'VOICE_SHIFT_LOGGER';
 
 export interface DrawerInstance {
   id: string;

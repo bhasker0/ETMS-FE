@@ -300,7 +300,7 @@ export default function FactoryDashboard() {
                 </div>
 
                 <Link href="/shift" className="text-2xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-0.5 pl-1">
-                  <span>{t.shiftLogsTitle || 'Shift Logs'}</span>
+                  <span>{t.navShiftList || 'Shift Logs'}</span>
                   <ArrowUpRight className="w-3 h-3" />
                 </Link>
               </div>

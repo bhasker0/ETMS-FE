@@ -11,13 +11,8 @@ import {
   Plus,
   Search,
   ArrowRight,
-  AlertTriangle,
   Scissors,
-  X,
-  CheckCircle2,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Drawer } from '@/components/ui/drawer';
 import { useAppDrawer } from '@/lib/app-drawer-context';
 
 export default function ChallansListPage() {
@@ -29,54 +24,20 @@ export default function ChallansListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  // Quality Defect & Deduction Modal State (SCRUM-141)
-  const [defectLot, setDefectLot] = useState<InwardChallanApiItem | null>(null);
-  const [defectType, setDefectType] = useState('Weft Cut / Needle Hole');
-  const [defectMeters, setDefectMeters] = useState<number>(3.5);
-  const [deductionRate, setDeductionRate] = useState<number>(45);
-  const [defectNotes, setDefectNotes] = useState('Oil stains on 2 than borders');
+  // Track inspected defect meters for badge display
   const [inspectedLots, setInspectedLots] = useState<Record<string, { meters: number; deduction: number }>>({
     'LOT-8892': { meters: 2.5, deduction: 112.5 },
   });
 
-  // Inward Lot Drawer Form State
-  const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
-  const [traderName, setTraderName] = useState('Ambaji Fashion Surat');
-  const [traderGstin, setTraderGstin] = useState('24BBCDE5678G1Z3');
-  const [lotNo, setLotNo] = useState(`LOT-2026-${Math.floor(100 + Math.random() * 900)}`);
-  const [thanCount, setThanCount] = useState<number>(24);
-  const [inwardMeters, setInwardMeters] = useState<number>(1200);
-  const [fabricQuality, setFabricQuality] = useState('Georgette 60g / Heavy Foil');
-  const [designNo, setDesignNo] = useState('DSG-108-ZARI');
-  const [notes, setNotes] = useState('Delivered via Sachin GIDC tempo transport');
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleCreateChallan = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!traderName.trim() || !lotNo.trim()) {
-      toast.error('Trader Name and Lot Number are required');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await InwardChallansApi.create({
-        trader_name: traderName,
-        trader_gstin: traderGstin,
-        lot_no: lotNo,
-        than_count: Number(thanCount),
-        inward_meters: Number(inwardMeters),
-        fabric_quality: fabricQuality,
-        design_no: designNo,
-        notes,
-      });
-      toast.success(`Inward Lot ${lotNo} registered successfully`);
-      setIsAddDrawerOpen(false);
-      fetchChallans();
-    } catch (err: any) {
-      toast.error('Failed to create challan: ' + err.message);
-    } finally {
-      setSubmitting(false);
-    }
+  const handleOpenDefect = (c: InwardChallanApiItem) => {
+    openDrawer('LOG_DEFECT', { lot: c }, (result: any) => {
+      if (result?.lot_no && result?.meters) {
+        setInspectedLots((prev) => ({
+          ...prev,
+          [result.lot_no]: { meters: result.meters, deduction: result.deduction },
+        }));
+      }
+    });
   };
 
   const fetchChallans = async () => {
@@ -231,8 +192,8 @@ export default function ChallansListPage() {
                   <td className="p-3.5 text-right space-x-1.5">
                     <button
                       type="button"
-                      onClick={() => setDefectLot(c)}
-                      className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-md text-2xs font-medium inline-flex items-center gap-1 transition"
+                      onClick={() => handleOpenDefect(c)}
+                      className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-md text-2xs font-medium inline-flex items-center gap-1 transition cursor-pointer"
                       title="Log Fabric Flaws, Defective Meters & Yarn Wastage"
                     >
                       <Scissors className="w-3 h-3 text-amber-600" />
@@ -261,258 +222,6 @@ export default function ChallansListPage() {
           </table>
         </div>
       </div>
-
-      {/* Add Inward Fabric Lot Drawer */}
-      <Drawer
-        isOpen={isAddDrawerOpen}
-        onClose={() => setIsAddDrawerOpen(false)}
-        title={t.challan_drawerTitle}
-        subtitle={t.challan_drawerSubtitle}
-        icon={<Truck className="w-5 h-5 text-slate-700" />}
-        size="lg"
-        footer={
-          <div className="flex items-center gap-2 w-full">
-            <button
-              type="button"
-              onClick={() => setIsAddDrawerOpen(false)}
-              className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
-            >
-              {t.cancel}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const form = document.getElementById('challan-drawer-form') as HTMLFormElement;
-                if (form) form.requestSubmit();
-              }}
-              disabled={submitting}
-              className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
-            >
-              {submitting ? t.saving : t.challan_saveBtn}
-            </button>
-          </div>
-        }
-      >
-        <form id="challan-drawer-form" onSubmit={handleCreateChallan} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelTrader}</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Ambaji Fashion Surat"
-              value={traderName}
-              onChange={(e) => setTraderName(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900 font-medium"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.challan_labelGstin}</label>
-              <input
-                type="text"
-                placeholder="24BBCDE5678G1Z3"
-                value={traderGstin}
-                onChange={(e) => setTraderGstin(e.target.value.toUpperCase())}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 uppercase"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.challan_labelLotNo}</label>
-              <input
-                type="text"
-                required
-                value={lotNo}
-                onChange={(e) => setLotNo(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.challan_labelThanCount}</label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={thanCount}
-                onChange={(e) => setThanCount(parseInt(e.target.value, 10) || 0)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardMeters}</label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={inwardMeters}
-                onChange={(e) => setInwardMeters(parseFloat(e.target.value) || 0)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.challan_labelQuality}</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Georgette 60g / Heavy Foil"
-                value={fabricQuality}
-                onChange={(e) => setFabricQuality(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.challan_labelDesignNo}</label>
-              <input
-                type="text"
-                placeholder="DSG-108-ZARI"
-                value={designNo}
-                onChange={(e) => setDesignNo(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_notes}</label>
-            <textarea
-              rows={2}
-              placeholder="e.g. Delivered via Sachin GIDC tempo transport"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900"
-            />
-          </div>
-        </form>
-      </Drawer>
-
-      {/* FABRIC QUALITY DEFECT & DEDUCTION MODAL (SCRUM-141) */}
-      {defectLot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white text-slate-900 rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
-                <Scissors className="w-5 h-5 text-amber-600" />
-                <span>{t.challan_defectModalTitle} • {defectLot.lot_no}</span>
-              </div>
-              <button
-                onClick={() => setDefectLot(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
-              <div className="flex justify-between">
-                <span className="text-slate-500">{t.challan_defectTrader}</span>
-                <span className="font-semibold text-slate-800">{defectLot.trader_name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">{t.challan_defectFabricQuality}</span>
-                <span className="font-semibold text-slate-800">{defectLot.fabric_quality}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">{t.challan_defectLotVolume}</span>
-                <span className="font-mono font-bold text-slate-900">{defectLot.inward_meters} m ({defectLot.than_count} {t.challan_thThans})</span>
-              </div>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="text-slate-700 font-medium">{t.challan_defectClassification}</label>
-                <select
-                  value={defectType}
-                  onChange={(e) => setDefectType(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-amber-600"
-                >
-                  <option value="Weft Cut / Needle Hole">{t.challan_defectOptWeftCut}</option>
-                  <option value="Oil & Grease Stains">{t.challan_defectOptOilStains}</option>
-                  <option value="Metallic Yarn Breakage">{t.challan_defectOptYarnBreak}</option>
-                  <option value="Shade & Color Variation">{t.challan_defectOptShadeVar}</option>
-                  <option value="Shrinkage & Width Shortage">{t.challan_defectOptShrinkage}</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-slate-700 font-medium">{t.challan_defectMeters}</label>
-                  <input
-                    type="number"
-                    min="0.5"
-                    step="0.5"
-                    value={defectMeters}
-                    onChange={(e) => setDefectMeters(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-700 font-medium">{t.challan_defectDebitRate}</label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={deductionRate}
-                    onChange={(e) => setDeductionRate(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between font-mono">
-                <span className="text-xs font-medium text-rose-800">{t.challan_defectRecommendedDeduction}</span>
-                <span className="text-sm font-bold text-rose-700">₹{(defectMeters * deductionRate).toFixed(2)}</span>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-slate-700 font-medium">{t.challan_defectNotes}</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Sent 2 thans for manual mending before embroidery"
-                  value={defectNotes}
-                  onChange={(e) => setDefectNotes(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setDefectLot(null)}
-                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
-              >
-                {t.cancel}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const ded = Number((defectMeters * deductionRate).toFixed(2));
-                  setInspectedLots((prev) => ({
-                    ...prev,
-                    [defectLot.lot_no]: { meters: defectMeters, deduction: ded },
-                  }));
-                  toast.success(`Logged ${defectMeters}m defects for ${defectLot.lot_no}. Deduction: ₹${ded}`);
-                  setDefectLot(null);
-                }}
-                className="flex-2 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{t.challan_defectApplyBtn}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

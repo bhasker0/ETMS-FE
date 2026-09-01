@@ -46,6 +46,12 @@ Usage notes:
 <location>.agent/skills/etms-fe-pwa-guide/SKILL.md</location>
 </skill>
 
+<skill>
+<name>industrial-brutalist-ui</name>
+<description>Raw mechanical interfaces fusing Swiss typographic print with military terminal aesthetics. Rigid grids, extreme type scale contrast, utilitarian color, analog degradation effects. For factory floor terminals, machine telemetry, production dispatch, and embroidery job cards.</description>
+<location>.agent/skills/brutalist-skill/SKILL.md</location>
+</skill>
+
 </available_skills>
 <!-- SKILLS_TABLE_END -->
 

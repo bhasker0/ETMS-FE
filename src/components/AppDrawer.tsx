@@ -14,6 +14,7 @@ import { OutwardInvoicesApi } from '@/lib/api/invoices';
 import { PartiesApi, PartyApiItem, CreatePartyDto } from '@/lib/api/parties';
 import { formatNumber, formatINR } from '@/lib/utils';
 import { PartyPicker } from '@/components/molecules/PartyPicker';
+import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n';
 import { toast } from 'sonner';
 import {
@@ -31,6 +32,9 @@ import {
   Briefcase,
   X,
   Trash2,
+  Scissors,
+  Radio,
+  AlertTriangle,
 } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
@@ -2393,6 +2397,463 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 };
 
 /* -------------------------------------------------------------------------- */
+/* 10. Defect & Quality Deduction Drawer Form (SCRUM-185)                     */
+/* -------------------------------------------------------------------------- */
+const DefectDeductionDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
+  const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
+  const lot = instance.payload?.lot || instance.payload?.challan;
+
+  const [defectType, setDefectType] = useState('Weft Cut / Needle Hole');
+  const [defectMeters, setDefectMeters] = useState<number>(3.5);
+  const [deductionRate, setDeductionRate] = useState<number>(45);
+  const [defectNotes, setDefectNotes] = useState('Oil stains on 2 than borders');
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    const ded = Number((defectMeters * deductionRate).toFixed(2));
+    instance.onSuccess?.({
+      meters: defectMeters,
+      deduction: ded,
+      lot_no: lot?.lot_no,
+      defectType,
+      notes: defectNotes,
+    });
+    toast.success(`Fabric defect recorded: ₹${ded} deduction assigned to ${lot?.lot_no || 'lot'}`);
+    closeDrawer();
+  };
+
+  return (
+    <Drawer
+      isOpen={true}
+      onClose={closeDrawer}
+      title={`${t.challan_defectModalTitle || 'Defect & Deduction'} • ${lot?.lot_no || ''}`}
+      icon={<Scissors className="w-5 h-5 text-amber-600" />}
+      level={level}
+      footer={
+        <div className="flex items-center justify-end gap-2 w-full">
+          <button
+            type="button"
+            onClick={closeDrawer}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+          >
+            {t.cancel || 'Cancel'}
+          </button>
+          <button
+            type="submit"
+            form={`defect-drawer-form-${instance.id}`}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-xs"
+          >
+            {t.save || 'Save Defect & Deduction'}
+          </button>
+        </div>
+      }
+    >
+      <form id={`defect-drawer-form-${instance.id}`} onSubmit={handleSave} className="space-y-4">
+        {lot && (
+          <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t.challan_defectTrader || 'Party / Trader'}</span>
+              <span className="font-semibold text-slate-800">{lot.trader_name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t.challan_defectFabricQuality || 'Fabric Quality'}</span>
+              <span className="font-semibold text-slate-800">{lot.fabric_quality}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t.challan_defectLotVolume || 'Lot Volume'}</span>
+              <span className="font-mono font-bold text-slate-900">{lot.inward_meters} m ({lot.than_count} {t.challan_thThans || 'Thans'})</span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-1">
+          <label className="text-xs text-slate-700 font-medium">{t.challan_defectClassification || 'Defect Classification'}</label>
+          <select
+            value={defectType}
+            onChange={(e) => setDefectType(e.target.value)}
+            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-amber-600"
+          >
+            <option value="Weft Cut / Needle Hole">{t.challan_defectOptWeftCut || 'Weft Cut / Needle Hole'}</option>
+            <option value="Oil & Grease Stains">{t.challan_defectOptOilStains || 'Oil & Grease Stains'}</option>
+            <option value="Metallic Yarn Breakage">{t.challan_defectOptYarnBreak || 'Metallic Yarn Breakage'}</option>
+            <option value="Shade & Color Variation">{t.challan_defectOptShadeVar || 'Shade & Color Variation'}</option>
+            <option value="Shrinkage & Width Shortage">{t.challan_defectOptShrinkage || 'Shrinkage & Width Shortage'}</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">{t.challan_defectMeters || 'Defective Meters (m)'}</label>
+            <input
+              type="number"
+              min="0.5"
+              step="0.5"
+              value={defectMeters}
+              onChange={(e) => setDefectMeters(parseFloat(e.target.value) || 0)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">{t.challan_defectDebitRate || 'Debit Rate (₹ / m)'}</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={deductionRate}
+              onChange={(e) => setDeductionRate(parseFloat(e.target.value) || 0)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900"
+            />
+          </div>
+        </div>
+
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between font-mono">
+          <span className="text-xs font-medium text-rose-800">{t.challan_defectRecommendedDeduction || 'Calculated Deduction'}</span>
+          <span className="text-sm font-bold text-rose-700">₹{(defectMeters * deductionRate).toFixed(2)}</span>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs text-slate-700 font-medium">{t.challan_defectNotes || 'Inspection Notes / Reasons'}</label>
+          <input
+            type="text"
+            placeholder="e.g. Sent 2 thans for manual mending before embroidery"
+            value={defectNotes}
+            onChange={(e) => setDefectNotes(e.target.value)}
+            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+          />
+        </div>
+      </form>
+    </Drawer>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* 11. GST E-Way Bill Drawer Form (SCRUM-188)                                 */
+/* -------------------------------------------------------------------------- */
+const EwbGenerationDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
+  const { closeDrawer } = useAppDrawer();
+  const { activeCompany } = useAuth();
+  const { t } = useI18n();
+  const invoice = instance.payload?.invoice;
+
+  const [vehicleNo, setVehicleNo] = useState('GJ05AB1234');
+  const [transporterId, setTransporterId] = useState('24AAACT1234A1Z1');
+  const [distanceKm, setDistanceKm] = useState<number>(45);
+
+  const handleGenerate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invoice) return;
+
+    const ewbData = {
+      supplyType: 'O',
+      subSupplyType: '1',
+      docType: 'INV',
+      docNo: invoice.invoice_no,
+      docDate: new Date(invoice.invoice_date).toLocaleDateString('en-GB'),
+      fromGstin: activeCompany?.gstin || '24AAAAA0000A1Z5',
+      fromTrdName: activeCompany?.name || 'Surat Embroidery Unit',
+      toGstin: invoice.trader_gstin || 'URP',
+      toTrdName: invoice.trader_name,
+      totalValue: Number(invoice.taxable_amount),
+      cgstValue: Number(invoice.cgst_amount),
+      sgstValue: Number(invoice.sgst_amount),
+      igstValue: Number(invoice.igst_amount),
+      totInvValue: Number(invoice.net_amount),
+      transDistance: distanceKm.toString(),
+      transporterId: transporterId || undefined,
+      transporterName: 'Surat Fast Logistics',
+      transDocNo: `TRN-${Math.floor(1000 + Math.random() * 9000)}`,
+      vehNo: vehicleNo,
+      vehType: 'R',
+    };
+
+    const blob = new Blob([JSON.stringify(ewbData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `EWB-${invoice.invoice_no}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success(`E-Way Bill JSON generated for ${invoice.invoice_no}`);
+    instance.onSuccess?.(ewbData);
+    closeDrawer();
+  };
+
+  return (
+    <Drawer
+      isOpen={true}
+      onClose={closeDrawer}
+      title={`${t.invoice_ewbModalTitle || 'Generate GST E-Way Bill'} • ${invoice?.invoice_no || ''}`}
+      icon={<Truck className="w-5 h-5 text-amber-600" />}
+      level={level}
+      footer={
+        <div className="flex items-center justify-end gap-2 w-full">
+          <button
+            type="button"
+            onClick={closeDrawer}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+          >
+            {t.cancel || 'Cancel'}
+          </button>
+          <button
+            type="submit"
+            form={`ewb-drawer-form-${instance.id}`}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-xs"
+          >
+            {t.invoice_ewbDownloadBtn || 'Download Official EWB JSON'}
+          </button>
+        </div>
+      }
+    >
+      <form id={`ewb-drawer-form-${instance.id}`} onSubmit={handleGenerate} className="space-y-4">
+        {invoice && (
+          <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t.invoice_ewbConsignor || 'Consignor (Supplier)'}</span>
+              <span className="font-mono font-bold text-slate-800">{activeCompany?.gstin || '24AAAAA0000A1Z5'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t.invoice_ewbConsignee || 'Consignee (Recipient)'}</span>
+              <span className="font-semibold text-slate-800">{invoice.trader_name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t.invoice_ewbNet || 'Invoice Net Value'}</span>
+              <span className="font-mono font-bold text-amber-900">{formatINR(invoice.net_amount)}</span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-1">
+          <label className="text-xs text-slate-700 font-medium">{t.invoice_ewbVehicleNo || 'Vehicle Number (Part B)'}</label>
+          <input
+            type="text"
+            required
+            placeholder="e.g. GJ05AB1234"
+            value={vehicleNo}
+            onChange={(e) => setVehicleNo(e.target.value.toUpperCase())}
+            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-amber-600 uppercase"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">{t.invoice_ewbTransporterId || 'Transporter GSTIN'}</label>
+            <input
+              type="text"
+              placeholder="24AAACT1234A1Z1"
+              value={transporterId}
+              onChange={(e) => setTransporterId(e.target.value.toUpperCase())}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 uppercase"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">{t.invoice_ewbDistance || 'Distance (km)'}</label>
+            <input
+              type="number"
+              min="1"
+              value={distanceKm}
+              onChange={(e) => setDistanceKm(parseInt(e.target.value) || 0)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+            />
+          </div>
+        </div>
+      </form>
+    </Drawer>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* 12. IoT Gateway Config Drawer Form (SCRUM-191)                             */
+/* -------------------------------------------------------------------------- */
+const IotGatewayConfigDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
+  const { closeDrawer } = useAppDrawer();
+  const { activeCompany } = useAuth();
+  const { t } = useI18n();
+
+  const [brokerUrl, setBrokerUrl] = useState('mqtt://broker.emqx.io:1883');
+  const [pulseThreshold, setPulseThreshold] = useState<number>(1000);
+  const [heartbeatSeconds, setHeartbeatSeconds] = useState<number>(10);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success('IoT Gateway configuration updated successfully');
+    instance.onSuccess?.();
+    closeDrawer();
+  };
+
+  return (
+    <Drawer
+      isOpen={true}
+      onClose={closeDrawer}
+      title={t.machine_iotModalTitle || 'IoT Gateway Telemetry & Broker Config'}
+      icon={<Radio className="w-5 h-5 text-emerald-600 animate-pulse" />}
+      level={level}
+      footer={
+        <div className="flex items-center justify-end gap-2 w-full">
+          <button
+            type="button"
+            onClick={closeDrawer}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+          >
+            {t.cancel || 'Cancel'}
+          </button>
+          <button
+            type="submit"
+            form={`iot-drawer-form-${instance.id}`}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow-xs"
+          >
+            {t.save || 'Save IoT Config'}
+          </button>
+        </div>
+      }
+    >
+      <form id={`iot-drawer-form-${instance.id}`} onSubmit={handleSave} className="space-y-4">
+        <p className="text-xs text-slate-600 leading-relaxed">
+          {t.machine_iotModalDesc || 'Connect optical rotation and stitch pulse sensors via ESP32/MQTT broker for automated live shift logging.'}
+        </p>
+
+        <div className="space-y-1">
+          <label className="text-xs text-slate-700 font-medium">MQTT Broker URL</label>
+          <input
+            type="text"
+            value={brokerUrl}
+            onChange={(e) => setBrokerUrl(e.target.value)}
+            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Heartbeat Interval (s)</label>
+            <input
+              type="number"
+              min="1"
+              value={heartbeatSeconds}
+              onChange={(e) => setHeartbeatSeconds(Number(e.target.value))}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Pulse Threshold (Stitches)</label>
+            <input
+              type="number"
+              min="100"
+              step="100"
+              value={pulseThreshold}
+              onChange={(e) => setPulseThreshold(Number(e.target.value))}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+            />
+          </div>
+        </div>
+
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 font-mono text-2xs">
+          <div className="text-slate-500 font-bold">{t.machine_iotBrokerTopic || 'Telemetry Ingest Topic'}</div>
+          <div className="p-2 bg-white rounded border border-slate-300 text-indigo-700 font-bold select-all">
+            machines/{activeCompany?.id || 'default'}/telemetry
+          </div>
+        </div>
+
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 font-mono text-2xs">
+          <div className="text-slate-500 font-bold">{t.machine_iotWebhookEndpoint || 'HTTP Webhook Endpoint'}</div>
+          <div className="p-2 bg-white rounded border border-slate-300 text-emerald-700 font-bold select-all">
+            POST http://localhost:4000/api/v1/machines/telemetry
+          </div>
+        </div>
+      </form>
+    </Drawer>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* 13. Offline Shift Conflicts Drawer Form (SCRUM-194)                        */
+/* -------------------------------------------------------------------------- */
+const OfflineConflictDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
+  const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
+  const conflicts = (instance.payload?.conflicts || []) as any[];
+
+  const handleResolve = (conflictId: string, resolution: 'OVERWRITE' | 'DISCARD') => {
+    instance.payload?.onResolve?.(conflictId, resolution);
+    toast.success(`Conflict resolved (${resolution})`);
+  };
+
+  return (
+    <Drawer
+      isOpen={true}
+      onClose={closeDrawer}
+      title={`${t.offlineSyncConflicts || 'Sync Conflicts'} (${conflicts.length})`}
+      icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
+      level={level}
+      footer={
+        <div className="flex items-center justify-end w-full">
+          <button
+            type="button"
+            onClick={closeDrawer}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold"
+          >
+            {t.close || 'Done'}
+          </button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-xs text-slate-600 leading-relaxed">
+          {t.offlineSyncConflictsDesc || 'The following offline records were modified concurrently on another device while this terminal was offline.'}
+        </p>
+
+        <div className="space-y-3">
+          {conflicts.map((c: any) => (
+            <div key={c.id} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-slate-800 uppercase tracking-wide">
+                  {c.item?.type} • {c.item?.action}
+                </span>
+                <span className="text-2xs text-slate-400 font-mono">
+                  {c.detectedAt ? new Date(c.detectedAt).toLocaleTimeString() : ''}
+                </span>
+              </div>
+
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200 text-2xs font-mono text-slate-700 max-h-28 overflow-y-auto">
+                {JSON.stringify(c.item?.data, null, 2)}
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleResolve(c.id, 'OVERWRITE')}
+                  className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold text-2xs transition shadow-2xs cursor-pointer"
+                >
+                  {t.offlineOverwriteRemote || 'Overwrite Remote'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleResolve(c.id, 'DISCARD')}
+                  className="flex-1 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-semibold text-2xs transition cursor-pointer"
+                >
+                  {t.offlineDiscardLocal || 'Discard Local'}
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {conflicts.length === 0 && (
+            <div className="text-center py-8 text-xs text-slate-400">
+              No pending conflicts to resolve.
+            </div>
+          )}
+        </div>
+      </div>
+    </Drawer>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
 /* Master AppDrawer Renderer Component                                        */
 /* -------------------------------------------------------------------------- */
 export const AppDrawer: React.FC = () => {
@@ -2433,6 +2894,18 @@ export const AppDrawer: React.FC = () => {
           case 'ADD_PARTY':
           case 'EDIT_PARTY':
             return <PartyDrawerForm key={instance.id} instance={instance} level={index} />;
+
+          case 'LOG_DEFECT':
+            return <DefectDeductionDrawerForm key={instance.id} instance={instance} level={index} />;
+
+          case 'GENERATE_EWB':
+            return <EwbGenerationDrawerForm key={instance.id} instance={instance} level={index} />;
+
+          case 'IOT_GATEWAY_CONFIG':
+            return <IotGatewayConfigDrawerForm key={instance.id} instance={instance} level={index} />;
+
+          case 'OFFLINE_CONFLICTS':
+            return <OfflineConflictDrawerForm key={instance.id} instance={instance} level={index} />;
 
           default:
             return null;
