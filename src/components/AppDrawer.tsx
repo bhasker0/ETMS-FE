@@ -1212,6 +1212,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
   const [selectedPartyId, setSelectedPartyId] = useState('');
   const [traderName, setTraderName] = useState('');
   const [traderGstin, setTraderGstin] = useState('');
+  const [challanDate, setChallanDate] = useState(new Date().toISOString().split('T')[0]);
   const [lotNo, setLotNo] = useState(`LOT-${Math.floor(1000 + Math.random() * 9000)}`);
   const [thanCount, setThanCount] = useState<number>(10);
   const [inwardMeters, setInwardMeters] = useState<number>(1000);
@@ -1312,6 +1313,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       const calculatedThans = isMultiDesign ? designItems.reduce((acc, item) => acc + Number(item.than_count || 0), 0) : Number(thanCount);
 
       const payload: CreateInwardChallanDto = {
+        challan_date: challanDate,
         trader_name: traderName,
         trader_gstin: traderGstin,
         lot_no: lotNo,
@@ -1382,7 +1384,18 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           }}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Inward Date *</label>
+            <input
+              type="date"
+              required
+              value={challanDate}
+              onChange={(e) => setChallanDate(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+            />
+          </div>
+
           <div className="space-y-1">
             <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
             <input

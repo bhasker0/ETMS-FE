@@ -46,6 +46,8 @@ export interface OutwardInvoiceApiItem {
   net_amount: number;
   is_interstate: boolean;
   shrinkage_percent: number;
+  is_tally_synced?: boolean;
+  tally_guid?: string;
   lot_items?: Array<{
     inward_challan_id: string;
     lot_no: string;

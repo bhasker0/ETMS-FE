@@ -26,6 +26,7 @@ export interface InwardChallanApiItem {
   karigar_commission_type?: 'PER_1K_STITCHES' | 'PER_PIECE' | 'PER_METER';
   jobwork_price_per_1k?: number;
   items?: InwardChallanDesignItem[];
+  challan_date?: string;
   status: ChallanStatus;
   notes?: string;
   company_id: string;
@@ -35,6 +36,8 @@ export interface InwardChallanApiItem {
 }
 
 export interface CreateInwardChallanDto {
+  challan_no?: string;
+  challan_date?: string;
   trader_name: string;
   trader_gstin?: string;
   lot_no: string;

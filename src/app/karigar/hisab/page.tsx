@@ -223,6 +223,49 @@ export default function WageHisabPage() {
               </div>
             </div>
 
+            {/* Wage Model & Calculation Basis Banner */}
+            <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-1">
+                <span className="text-slate-500 font-semibold uppercase text-2xs">Wage Model & Calculation Basis</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 text-sm">
+                    {calculationResult.wage_type === 'FIXED_PLUS_INCENTIVE'
+                      ? 'Fixed Salary + Incentive Commission (હાઇબ્રિડ મોડલ)'
+                      : calculationResult.wage_type === 'FIXED_MONTHLY'
+                      ? 'Fixed Monthly Salary (માસિક ફિક્સ પગાર)'
+                      : 'Piece Rate / Design Commission (ટાંકા/મીટર મજૂરી)'}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-2xs font-semibold bg-cyan-100 text-cyan-800">
+                    {calculationResult.wage_type}
+                  </span>
+                </div>
+                <p className="text-slate-600 text-xs">
+                  {calculationResult.wage_type === 'FIXED_PLUS_INCENTIVE'
+                    ? `Fortnight Base: ₹${formatNumber(calculationResult.base_salary || 0)} + Incentive above threshold: ₹${formatNumber(calculationResult.incentive_commission || 0)}`
+                    : calculationResult.wage_type === 'FIXED_MONTHLY'
+                    ? `Monthly: ₹${formatNumber((calculationResult.base_salary || 0) * 2)} / mo → 15-Day Fortnight Base: ₹${formatNumber(calculationResult.base_salary || 0)}`
+                    : `Calculated per shift from Inward Lot Design specs / Karigar rate`}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 shrink-0">
+                <div className="text-center">
+                  <div className="text-2xs text-slate-500">Meters</div>
+                  <div className="font-mono font-bold text-slate-900">{formatNumber(calculationResult.total_meters)} m</div>
+                </div>
+                <div className="w-px h-6 bg-slate-200" />
+                <div className="text-center">
+                  <div className="text-2xs text-slate-500">Total Stitches</div>
+                  <div className="font-mono font-bold text-slate-900">{formatNumber(calculationResult.total_stitches || 0)}</div>
+                </div>
+                <div className="w-px h-6 bg-slate-200" />
+                <div className="text-center">
+                  <div className="text-2xs text-slate-500">Shifts</div>
+                  <div className="font-mono font-bold text-slate-900">{calculationResult.total_shifts}</div>
+                </div>
+              </div>
+            </div>
+
             {/* Wage Calculation Summary Table */}
             <div className="bg-white border border-slate-200 rounded-lg overflow-hidden text-xs">
               <table className="w-full text-left">
@@ -230,21 +273,35 @@ export default function WageHisabPage() {
                   <tr className="hover:bg-slate-50/80">
                     <td className="p-3 text-slate-600 font-medium">Total Production Output</td>
                     <td className="p-3 text-right font-mono font-semibold text-slate-900">
-                      {formatNumber(calculationResult.total_meters)} meters
+                      {formatNumber(calculationResult.total_meters)} meters ({formatNumber(calculationResult.total_stitches || 0)} stitches)
                     </td>
                   </tr>
-                  <tr className="hover:bg-slate-50/80">
-                    <td className="p-3 text-slate-600 font-medium">Applied Rate / Salary Unit</td>
-                    <td className="p-3 text-right font-mono text-slate-700">
-                      ₹{calculationResult.rate_per_meter} / meter
-                    </td>
-                  </tr>
+
+                  {calculationResult.base_salary !== undefined && calculationResult.base_salary > 0 && (
+                    <tr className="hover:bg-slate-50/80">
+                      <td className="p-3 text-slate-600 font-medium">Fortnight Base Salary (૧૫ દિવસ મૂળ પગાર)</td>
+                      <td className="p-3 text-right font-mono text-slate-900 font-semibold">
+                        {formatINR(calculationResult.base_salary)}
+                      </td>
+                    </tr>
+                  )}
+
+                  {calculationResult.incentive_commission !== undefined && calculationResult.incentive_commission > 0 && (
+                    <tr className="hover:bg-slate-50/80">
+                      <td className="p-3 text-cyan-700 font-medium">Incentive Commission Above Threshold (વધારાનું કમિશન)</td>
+                      <td className="p-3 text-right font-mono text-cyan-800 font-bold">
+                        + {formatINR(calculationResult.incentive_commission)}
+                      </td>
+                    </tr>
+                  )}
+
                   <tr className="bg-slate-50/80 font-semibold">
                     <td className="p-3 text-slate-900">Gross Wages Earned (કુલ મજૂરી)</td>
                     <td className="p-3 text-right font-mono font-bold text-emerald-700 text-sm">
                       {formatINR(calculationResult.gross_earnings)}
                     </td>
                   </tr>
+
                   <tr className="hover:bg-slate-50/80">
                     <td className="p-3 text-rose-600 font-medium">
                       Less: Total Uchapat Advances (બાદ: ઉપાડ)
@@ -253,6 +310,7 @@ export default function WageHisabPage() {
                       - {formatINR(calculationResult.total_uchapat_advances)}
                     </td>
                   </tr>
+
                   {calculationResult.deductions > 0 && (
                     <tr className="hover:bg-slate-50/80">
                       <td className="p-3 text-slate-600 font-medium">
@@ -263,6 +321,7 @@ export default function WageHisabPage() {
                       </td>
                     </tr>
                   )}
+
                   <tr className="bg-slate-100 border-t-2 border-slate-300 font-bold">
                     <td className="p-4 text-xs text-slate-900 uppercase">
                       NET PAYABLE AMOUNT (ચૂકવવાપાત્ર ચોખ્ખો પગાર ₹)
@@ -274,6 +333,54 @@ export default function WageHisabPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Shift & Design Production Breakdown */}
+            {calculationResult.shifts && calculationResult.shifts.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden text-xs space-y-2">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 font-bold text-slate-800 flex items-center justify-between">
+                  <span>Shift & Design Production Breakdown (શિફ્ટ અને ડિઝાઇન વાઇઝ વિગત)</span>
+                  <span className="text-2xs font-mono font-normal text-slate-500">{calculationResult.shifts.length} shifts recorded</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-100/75 text-slate-700 font-semibold border-b border-slate-200">
+                      <tr>
+                        <th className="p-2.5">Date</th>
+                        <th className="p-2.5">Shift / Machine</th>
+                        <th className="p-2.5">Design No</th>
+                        <th className="p-2.5 text-right">Stitches</th>
+                        <th className="p-2.5 text-right">Meters</th>
+                        <th className="p-2.5 text-right">Applied Rate / Basis</th>
+                        <th className="p-2.5 text-right">Shift Earned</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-mono">
+                      {calculationResult.shifts.map((s, idx) => (
+                        <tr key={s.id || idx} className="hover:bg-slate-50">
+                          <td className="p-2.5 text-slate-800 font-medium">{s.shift_date}</td>
+                          <td className="p-2.5 text-slate-600">
+                            <span className="font-sans font-semibold text-slate-800">{s.shift_type}</span> • {s.machine_no}
+                          </td>
+                          <td className="p-2.5">
+                            <span className="font-bold text-[#0099B8] bg-cyan-50 px-2 py-0.5 rounded text-2xs border border-cyan-200">
+                              {s.design_no || 'Standard'}
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-right text-slate-700">{formatNumber(s.total_stitches)}</td>
+                          <td className="p-2.5 text-right text-slate-900 font-semibold">{formatNumber(s.total_meters)} m</td>
+                          <td className="p-2.5 text-right text-slate-500 text-2xs font-sans">
+                            {s.applied_basis || 'Default Rate'}
+                          </td>
+                          <td className="p-2.5 text-right text-emerald-700 font-bold">
+                            {formatINR(s.shift_earnings || 0)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-slate-50/70 border border-slate-200 border-dashed rounded-xl p-12 text-center text-slate-400 space-y-3">

@@ -23,6 +23,7 @@ export default function InwardChallanFormPage() {
   const [parties, setParties] = useState<PartyApiItem[]>([]);
   const [traderName, setTraderName] = useState('');
   const [traderGstin, setTraderGstin] = useState('');
+  const [challanDate, setChallanDate] = useState(new Date().toISOString().split('T')[0]);
   const [lotNo, setLotNo] = useState(`LOT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`);
   const [thanCount, setThanCount] = useState<number>(24);
   const [inwardMeters, setInwardMeters] = useState<number>(1200);
@@ -67,6 +68,7 @@ export default function InwardChallanFormPage() {
     setSubmitting(true);
     try {
       const payload: CreateInwardChallanDto = {
+        challan_date: challanDate,
         trader_name: traderName,
         trader_gstin: traderGstin,
         lot_no: lotNo,
@@ -165,6 +167,18 @@ export default function InwardChallanFormPage() {
             />
           </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-700 font-medium">Inward Date *</label>
+            <input
+              type="date"
+              required
+              value={challanDate}
+              onChange={(e) => setChallanDate(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 focus:outline-none focus:border-slate-900"
+            />
+          </div>
+
           <div className="space-y-1">
             <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
             <input
@@ -174,9 +188,7 @@ export default function InwardChallanFormPage() {
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono uppercase focus:outline-none focus:border-slate-900"
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-xs text-slate-700 font-medium">Lot Number (લોટ નં.) *</label>
             <input
@@ -187,6 +199,7 @@ export default function InwardChallanFormPage() {
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
             />
           </div>
+        </div>
 
           <div className="space-y-1">
             <label className="text-xs text-slate-700 font-medium">Than / Taka Count (તાકા) *</label>

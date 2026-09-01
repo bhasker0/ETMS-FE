@@ -16,12 +16,38 @@ export interface WageHisabCalculationResult {
   endDate: string;
   total_shifts: number;
   total_meters: number;
+  total_stitches?: number;
   rate_per_meter: number;
+  base_salary?: number;
+  incentive_commission?: number;
   gross_earnings: number;
   total_uchapat_advances: number;
   deductions: number;
   deduction_reason?: string;
   net_payable: number;
+  shifts?: Array<{
+    id: string;
+    shift_date: string;
+    shift_type: string;
+    machine_no: string;
+    design_no?: string;
+    total_meters: number;
+    total_stitches: number;
+    stitch_count?: number;
+    commission_rate?: number;
+    commission_type?: string;
+    applied_basis?: string;
+    shift_earnings?: number;
+  }>;
+  uchapats?: Array<{
+    id: string;
+    date: string;
+    amount: number;
+    reason?: string;
+    payment_mode?: string;
+  }>;
+  karigar?: any;
+  summary?: any;
   included_advance_ids?: string[];
 }
 
@@ -48,6 +74,9 @@ export const WageHisabApi = {
     const summary = raw?.summary || {};
 
     const totalMeters = Number(raw?.total_meters ?? summary?.totalMeters ?? 0);
+    const totalStitches = Number(raw?.total_stitches ?? summary?.totalStitches ?? 0);
+    const baseSalary = Number(raw?.base_salary ?? summary?.baseSalary ?? 0);
+    const incentiveCommission = Number(raw?.incentive_commission ?? summary?.incentiveCommission ?? 0);
     const grossEarnings = Number(raw?.gross_earnings ?? summary?.grossEarnings ?? 0);
     const totalUchapat = Number(raw?.total_uchapat_advances ?? summary?.totalUchapatAdvances ?? 0);
     const deductions = Number(raw?.deductions ?? summary?.deductions ?? 0);
@@ -61,12 +90,19 @@ export const WageHisabApi = {
       endDate: raw?.endDate || period?.endDate || dto.endDate,
       total_shifts: Number(raw?.total_shifts ?? summary?.shiftsCount ?? 0),
       total_meters: totalMeters,
+      total_stitches: totalStitches,
       rate_per_meter: Number(raw?.rate_per_meter ?? karigar?.rate_per_meter ?? 1.2),
+      base_salary: baseSalary,
+      incentive_commission: incentiveCommission,
       gross_earnings: grossEarnings,
       total_uchapat_advances: totalUchapat,
       deductions: deductions,
       deduction_reason: raw?.deduction_reason || summary?.deduction_reason || dto.deduction_reason || '',
       net_payable: netPayable,
+      shifts: raw?.shifts || [],
+      uchapats: raw?.uchapats || [],
+      karigar,
+      summary,
       included_advance_ids: raw?.included_advance_ids || [],
     };
   },
