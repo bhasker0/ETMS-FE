@@ -8,7 +8,7 @@ import { useAppDrawer } from '@/lib/app-drawer-context';
 import { MachinesApi, MachineApiItem } from '@/lib/api/machines';
 import { ShiftLogsApi, ShiftLogApiItem } from '@/lib/api/shift-logs';
 import { OutwardInvoicesApi, OutwardInvoiceApiItem } from '@/lib/api/invoices';
-import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
+import { InwardChallansApi, InwardChallanApiItem, ActivePendingLotItem } from '@/lib/api/challans';
 import { formatINR, formatNumber } from '@/lib/utils';
 import {
   Wrench,
@@ -39,21 +39,24 @@ export default function FactoryDashboard() {
   const [shifts, setShifts] = useState<ShiftLogApiItem[]>([]);
   const [invoices, setInvoices] = useState<OutwardInvoiceApiItem[]>([]);
   const [challans, setChallans] = useState<InwardChallanApiItem[]>([]);
+  const [activeLots, setActiveLots] = useState<ActivePendingLotItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [mList, sList, iList, cList] = await Promise.all([
+      const [mList, sList, iList, cList, aLots] = await Promise.all([
         MachinesApi.getAll().catch(() => []),
         ShiftLogsApi.getAll().catch(() => []),
         OutwardInvoicesApi.getAll().catch(() => []),
         InwardChallansApi.getAll().catch(() => []),
+        InwardChallansApi.getActivePendingLots().catch(() => []),
       ]);
       setMachines(mList);
       setShifts(sList);
       setInvoices(iList);
       setChallans(cList);
+      setActiveLots(aLots);
     } catch (e) {
       console.warn('Dashboard fetch error:', e);
     } finally {
@@ -254,12 +257,12 @@ export default function FactoryDashboard() {
         </div>
       </div>
 
-      {/* Chip Section 4: Inward Lots Inventory Chips */}
-      <div className="space-y-2">
+      {/* Chip Section 4: Inward Lots & Design Progress */}
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
             <Truck className="w-3 h-3 text-amber-600" />
-            <span>Inward Lots Inventory</span>
+            <span>Inward Lots & Design Progress</span>
           </span>
           <Link href="/challans" className="text-2xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-0.5">
             <span>{t.viewAll || 'View All'}</span>
@@ -267,32 +270,87 @@ export default function FactoryDashboard() {
           </Link>
         </div>
 
+        {/* Active Lots Summary Chip */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Active Lots Summary Chip */}
           <Link
             href="/challans"
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100/70 border border-amber-200 text-xs text-amber-900 transition shadow-2xs cursor-pointer"
           >
             <span className="text-slate-600">Inward Lots:</span>
-            <strong className="font-mono font-bold text-amber-900">{challans.length} Active Lots</strong>
+            <strong className="font-mono font-bold text-amber-900">
+              {activeLots.length || challans.length} Active Lots
+            </strong>
           </Link>
+        </div>
 
-          {/* Individual Lot Chips */}
-          {challans.slice(0, 6).map((c) => (
-            <Link
-              key={c.id}
-              href="/challans"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs text-slate-700 transition shadow-2xs cursor-pointer"
-            >
-              <span className="font-mono font-bold text-slate-900">{c.lot_no || (c as any).lot_number || 'Lot'}</span>
-              <span className="text-slate-400">•</span>
-              <span className="text-2xs text-slate-500 truncate max-w-[120px]">{c.trader_name || (c as any).party_name}</span>
-            </Link>
+        {/* Per-Lot Design Progress Clusters */}
+        <div className="space-y-2.5 pt-1">
+          {activeLots.map((lot) => (
+            <div key={lot.id} className="flex flex-wrap items-center gap-2">
+              {/* Lot Identifier Chip */}
+              <Link
+                href="/challans"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 border border-slate-300 text-xs text-slate-900 font-semibold transition shadow-2xs cursor-pointer"
+              >
+                <span className="font-mono">{lot.lot_no || lot.challan_no}</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-2xs text-slate-600 font-normal truncate max-w-[140px]">{lot.trader_name}</span>
+              </Link>
+
+              {/* Individual Design Progress Chips */}
+              {lot.pending_designs && lot.pending_designs.length > 0 ? (
+                lot.pending_designs.map((d) => {
+                  const alloc = Number(d.allocated_meters) || 1;
+                  const prod = Number(d.produced_meters) || 0;
+                  const pct = Math.min(100, Math.round((prod / alloc) * 100));
+                  const isDone = d.is_completed || d.remaining_meters <= 0;
+
+                  return (
+                    <span
+                      key={d.design_no}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-2xs font-mono transition shadow-2xs ${
+                        isDone
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                          : pct > 70
+                          ? 'bg-sky-50 border-sky-200 text-sky-900'
+                          : 'bg-white border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          isDone ? 'bg-emerald-500' : pct > 0 ? 'bg-[#0099B8]' : 'bg-slate-300'
+                        }`}
+                      />
+                      <strong className="font-bold">{d.design_no}</strong>
+                      <span className="text-slate-400">•</span>
+                      <span>
+                        {formatNumber(prod)}/{formatNumber(alloc)}m
+                      </span>
+                      <span
+                        className={`px-1.5 py-0.2 rounded font-sans font-bold text-[10px] ${
+                          isDone
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : pct > 70
+                            ? 'bg-sky-100 text-sky-800'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {isDone ? 'DONE' : `${pct}%`}
+                      </span>
+                    </span>
+                  );
+                })
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-2xs font-mono text-slate-500">
+                  {lot.inward_meters}m total
+                </span>
+              )}
+            </div>
           ))}
 
-          {challans.length === 0 && !loading && (
+          {activeLots.length === 0 && !loading && (
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-400">
-              No inward lots available
+              No active inward lots available
             </span>
           )}
         </div>
