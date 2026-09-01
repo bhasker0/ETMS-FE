@@ -33,7 +33,7 @@ export function generateTallyPrimeSalesXML(
     const igstAmt = (inv.igstAmount || 0).toFixed(2);
     const totalAmt = inv.totalAmount.toFixed(2);
     const narration = sanitize(
-      `Job Work SAC 9988 - Lot ${inv.lotNumber}, ${inv.totalStitches.toLocaleString('en-IN')} Stitches on ${inv.fabricQuality}`
+      `Job Work SAC 9988 - Lot ${inv.lotNumber}, ${(inv.totalStitches || 0).toLocaleString('en-IN')} Stitches on ${inv.fabricQuality}`
     );
 
     return `

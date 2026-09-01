@@ -226,8 +226,41 @@ export const en = {
   catBillingParams: "Job Work Billing & Tax Parameters",
   catProductionParams: "Shift & Machine Production Parameters",
   catIntegrationParams: "Tally & External Accounting Sync",
-  catGeneralParams: "General & Trader Notifications",
   switchCompanyDropdownTitle: "Switch Active Company",
   fastPersonaSwitchTitle: "Fast Persona Switch",
   selectLanguageHeader: "Select Language",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":4000 Connected",
+  backendDisconnected: ":4000 Disconnected",
+  selectCompany: "Select Company",
+  account: "Account",
+  logShiftAction: "+ Log Shift",
+  brandTitle: "ETMS Surat",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "Company Configuration & Settings",
+
+  // Error Page & 404
+  errorTitle: "Something went wrong",
+  errorDefaultMessage: "An unexpected error occurred.",
+  errorTryAgain: "Try Again",
+  errorGoToDashboard: "Go to Dashboard",
+  notFoundTitle: "Page Not Found",
+  notFoundDesc: "The page you are looking for might have been removed or is temporarily unavailable.",
+  notFoundBackHome: "Back to Dashboard",
+
+  // Offline & Sync
+  offlineSyncConflicts: "Sync Conflict Resolution",
+  offlineSyncConflictsDesc: "The following offline records were modified concurrently on another device while this terminal was offline.",
+  offlineOverwriteRemote: "Overwrite Remote",
+  offlineDiscardLocal: "Discard Local",
+  offlineSyncNow: "Sync Now",
+  offlineSyncing: "Syncing...",
+  conflictSingular: "Conflict",
+  conflictPlural: "Conflicts",
+
+  // UI Drawer
+  drawerClose: "Close Drawer",
+  drawerLevel: "Level",
 };
+

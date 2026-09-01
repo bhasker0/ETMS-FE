@@ -96,7 +96,9 @@ export const OfflineSyncBanner: React.FC = () => {
               className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-0.5 rounded-full text-2xs font-extrabold ml-1 flex items-center gap-1 cursor-pointer transition shadow-xs"
             >
               <AlertTriangle className="w-3 h-3" />
-              {conflicts.length} Conflict{conflicts.length > 1 ? 's' : ''}
+              <span>
+                {conflicts.length} {conflicts.length > 1 ? (t.conflictPlural || 'Conflicts') : (t.conflictSingular || 'Conflict')}
+              </span>
             </button>
           )}
         </div>
@@ -106,10 +108,10 @@ export const OfflineSyncBanner: React.FC = () => {
             onClick={triggerSync}
             disabled={isSyncing}
             className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1 shadow transition"
-            title="Sync Now"
+            title={t.offlineSyncNow || 'Sync Now'}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span className="hidden md:inline">Sync</span>
+            <span className="hidden md:inline">{isSyncing ? (t.offlineSyncing || 'Syncing...') : (t.offlineSyncNow || 'Sync')}</span>
           </button>
         )}
       </div>
@@ -121,18 +123,21 @@ export const OfflineSyncBanner: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
                 <AlertTriangle className="w-5 h-5" />
-                Sync Conflict Resolution ({conflicts.length})
+                <span>
+                  {t.offlineSyncConflicts || 'Sync Conflict Resolution'} ({conflicts.length})
+                </span>
               </div>
               <button
                 onClick={() => setShowConflictModal(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                aria-label={t.close || 'Close'}
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <p className="text-xs text-slate-600 mb-3">
-              The following offline records were modified concurrently on another device while this terminal was offline.
+              {t.offlineSyncConflictsDesc || 'The following offline records were modified concurrently on another device while this terminal was offline.'}
             </p>
 
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
@@ -156,13 +161,13 @@ export const OfflineSyncBanner: React.FC = () => {
                       onClick={() => handleResolve(c.id, 'OVERWRITE')}
                       className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold text-2xs transition"
                     >
-                      Overwrite Remote
+                      {t.offlineOverwriteRemote || 'Overwrite Remote'}
                     </button>
                     <button
                       onClick={() => handleResolve(c.id, 'DISCARD')}
                       className="flex-1 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-semibold text-2xs transition"
                     >
-                      Discard Local
+                      {t.offlineDiscardLocal || 'Discard Local'}
                     </button>
                   </div>
                 </div>

@@ -226,4 +226,38 @@ export const gu: Partial<typeof en> = {
   switchCompanyDropdownTitle: "સક્રિય કંપની બદલો",
   fastPersonaSwitchTitle: "ઝડપી પ્રોફાઇલ સ્વિચ",
   selectLanguageHeader: "ભાષા પસંદ કરો",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":૪૦૦૦ કનેક્ટેડ",
+  backendDisconnected: ":૪૦૦૦ ડિસ્કનેક્ટેડ",
+  selectCompany: "કંપની પસંદ કરો",
+  account: "એકાઉન્ટ",
+  logShiftAction: "+ શિફ્ટ નોંધો",
+  brandTitle: "ETMS સુરત",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "કંપની રૂપરેખાંકન અને સેટિંગ્સ",
+
+  // Error Page & 404
+  errorTitle: "કંઈક ખોટું થયું",
+  errorDefaultMessage: "અણધારી ભૂલ આવી છે.",
+  errorTryAgain: "ફરી પ્રયાસ કરો",
+  errorGoToDashboard: "ડેશબોર્ડ પર જાઓ",
+  notFoundTitle: "પેજ મળ્યું નથી",
+  notFoundDesc: "તમે જે પેજ શોધી રહ્યા છો તે કદાચ દૂર કરવામાં આવ્યું છે અથવા અસ્થાયી રૂપે અનુપલબ્ધ છે.",
+  notFoundBackHome: "ડેશબોર્ડ પર પાછા જાઓ",
+
+  // Offline & Sync
+  offlineSyncConflicts: "સિંક વિવાદ નિવારણ",
+  offlineSyncConflictsDesc: "જ્યારે આ ટર્મિનલ ઑફલાઇન હતું ત્યારે નીચેના રેકોર્ડ્સ અન્ય ઉપકરણ પર બદલાયા હતા.",
+  offlineOverwriteRemote: "રિમોટ ઓવરરાઇટ કરો",
+  offlineDiscardLocal: "સ્થાનિક રદ કરો",
+  offlineSyncNow: "હમણાં સિંક કરો",
+  offlineSyncing: "સિંક થઈ રહ્યું છે...",
+  conflictSingular: "વિવાદ",
+  conflictPlural: "વિવાદો",
+
+  // UI Drawer
+  drawerClose: "ડ્રોઅર બંધ કરો",
+  drawerLevel: "લેવલ",
 };
+

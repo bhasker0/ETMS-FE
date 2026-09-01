@@ -134,4 +134,38 @@ export const mr: Partial<typeof en> = {
   exportTallyXml: "टॅली प्राइम XML डाउनलोड करा",
   exportGstr1: "GSTR-1 JSON निर्यात करा",
   connectedUnits: "जोडलेले युनिट्स",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":४००० कनेक्टेड",
+  backendDisconnected: ":४००० डिस्कनेक्टेड",
+  selectCompany: "कंपनी निवडा",
+  account: "खाते",
+  logShiftAction: "+ शिफ्ट नोंदवा",
+  brandTitle: "ETMS सुरत",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "कंपनी कॉन्फिगरेशन आणि सेटिंग्ज",
+
+  // Error Page & 404
+  errorTitle: "काहीतरी चूक झाली",
+  errorDefaultMessage: "एक अनपेक्षित त्रुटी आली.",
+  errorTryAgain: "पुन्हा प्रयत्न करा",
+  errorGoToDashboard: "डॅशबोर्डवर जा",
+  notFoundTitle: "पृष्ठ आढळले नाही",
+  notFoundDesc: "आपण शोधत असलेले पृष्ठ काढून टाकले असावे किंवा तात्पुरते अनुपलब्ध आहे.",
+  notFoundBackHome: "डॅशबोर्डवर परत जा",
+
+  // Offline & Sync
+  offlineSyncConflicts: "सिंक संघर्ष निराकरण",
+  offlineSyncConflictsDesc: "हा टर्मिनल ऑफलाइन असताना खालील रेकॉर्ड दुसऱ्या डिव्हाइसवर सुधारित केले गेले.",
+  offlineOverwriteRemote: "रिमोट अधिलेखित करा",
+  offlineDiscardLocal: "स्थानिक रद्द करा",
+  offlineSyncNow: "आता सिंक करा",
+  offlineSyncing: "सिंक होत आहे...",
+  conflictSingular: "संघर्ष",
+  conflictPlural: "संघर्ष",
+
+  // UI Drawer
+  drawerClose: "ड्रॉवर बंद करा",
+  drawerLevel: "स्तर",
 };
+

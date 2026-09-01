@@ -134,4 +134,38 @@ export const te: Partial<typeof en> = {
   exportTallyXml: "టాలీ ప్రైమ్ XML డౌన్‌లోడ్",
   exportGstr1: "GSTR-1 JSON ఎగుమతి",
   connectedUnits: "కనెక్ట్ చేయబడిన యూనిట్లు",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":4000 కనెక్ట్ చేయబడింది",
+  backendDisconnected: ":4000 డిస్‌కనెక్ట్ చేయబడింది",
+  selectCompany: "కంపెనీని ఎంచుకోండి",
+  account: "ఖాతా",
+  logShiftAction: "+ షిఫ్ట్ నమోదు చేయండి",
+  brandTitle: "ETMS సూరత్",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "కంపెనీ కాన్ఫిగరేషన్ మరియు సెట్టింగ్‌లు",
+
+  // Error Page & 404
+  errorTitle: "ఏదో తప్పు జరిగింది",
+  errorDefaultMessage: "అనుకోని లోపం ఏర్పడింది.",
+  errorTryAgain: "మళ్ళీ ప్రయత్నించండి",
+  errorGoToDashboard: "డ్యాష్‌బోర్డ్‌కు వెళ్లండి",
+  notFoundTitle: "పేజీ కనుగొనబడలేదు",
+  notFoundDesc: "మీరు వెతుకుతున్న పేజీ తీసివేయబడి ఉండవచ్చు లేదా తాత్కాలికంగా అందుబాటులో ఉండకపోవచ్చు.",
+  notFoundBackHome: "డ్యాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
+
+  // Offline & Sync
+  offlineSyncConflicts: "సింక్ వివాద పరిష్కారం",
+  offlineSyncConflictsDesc: "ఈ టెర్మినల్ ఆఫ్‌లైన్‌లో ఉన్నప్పుడు కింది రికార్డులు వేరే పరికరంలో సవరించబడ్డాయి.",
+  offlineOverwriteRemote: "రిమోట్‌ను భర్తీ చేయండి",
+  offlineDiscardLocal: "స్థానికమైనది విస్మరించండి",
+  offlineSyncNow: "ఇప్పుడే సింక్ చేయండి",
+  offlineSyncing: "సింక్ అవుతోంది...",
+  conflictSingular: "వివాదం",
+  conflictPlural: "వివాదాలు",
+
+  // UI Drawer
+  drawerClose: "మూసివేయండి",
+  drawerLevel: "స్థాయి",
 };
+

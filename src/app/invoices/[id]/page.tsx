@@ -62,8 +62,8 @@ export default function InvoiceDetailPage() {
 📄 *Invoice No:* ${invoice.invoiceNumber}
 📅 *Date:* ${invoice.invoiceDate}
 📦 *Lot No:* ${invoice.lotNumber}
-🧵 *Stitches:* ${invoice.totalStitches.toLocaleString('en-IN')} Stitches (${invoice.headCount} Heads)
-👗 *Fabric:* ${invoice.fabricQuality} (${invoice.numberOfTakas} Thans / ${invoice.meters}m)
+🧵 *Stitches:* ${(invoice.totalStitches || 0).toLocaleString('en-IN')} Stitches (${invoice.headCount || 0} Heads)
+👗 *Fabric:* ${invoice.fabricQuality} (${invoice.numberOfTakas || 0} Thans / ${invoice.meters || 0}m)
 --------------------------------
 💰 *Taxable Base:* ₹${invoice.baseAmount.toFixed(2)}
 📊 *GST (5%):* ₹${(invoice.cgstAmount + invoice.sgstAmount + (invoice.igstAmount || 0)).toFixed(2)}

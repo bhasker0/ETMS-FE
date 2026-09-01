@@ -134,4 +134,38 @@ export const bn: Partial<typeof en> = {
   exportTallyXml: "ট্যালি প্রাইম XML ডাউনলোড",
   exportGstr1: "GSTR-1 JSON রপ্তানি",
   connectedUnits: "সংযুক্ত ইউনিট",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":৪০০০ সংযুক্ত",
+  backendDisconnected: ":৪০০০ সংযোগ বিচ্ছিন্ন",
+  selectCompany: "কোম্পানি নির্বাচন করুন",
+  account: "অ্যাকাউন্ট",
+  logShiftAction: "+ শিফট রেকর্ড",
+  brandTitle: "ETMS সুরাট",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "কোম্পানি কনফিগারেশন এবং সেটিংস",
+
+  // Error Page & 404
+  errorTitle: "কিছু ভুল হয়েছে",
+  errorDefaultMessage: "একটি অপ্রত্যাশিত ত্রুটি ঘটেছে।",
+  errorTryAgain: "আবার চেষ্টা করুন",
+  errorGoToDashboard: "ড্যাশবোর্ডে যান",
+  notFoundTitle: "পৃষ্ঠা পাওয়া যায়নি",
+  notFoundDesc: "আপনি যে পৃষ্ঠাটি খুঁজছেন তা মুছে ফেলা হয়েছে বা সাময়িকভাবে অনুপলব্ধ।",
+  notFoundBackHome: "ড্যাশবোর্ডে ফিরে যান",
+
+  // Offline & Sync
+  offlineSyncConflicts: "সিঙ্ক দ্বন্দ্ব সমাধান",
+  offlineSyncConflictsDesc: "এই টার্মিনাল অফলাইনে থাকার সময় নিম্নলিখিত রেকর্ড অন্য ডিভাইসে পরিবর্তন করা হয়েছে।",
+  offlineOverwriteRemote: "রিমোট ওভাররাইট করুন",
+  offlineDiscardLocal: "স্থানীয় বাতিল করুন",
+  offlineSyncNow: "এখনই সিঙ্ক করুন",
+  offlineSyncing: "সিঙ্ক হচ্ছে...",
+  conflictSingular: "দ্বন্দ্ব",
+  conflictPlural: "দ্বন্দ্ব",
+
+  // UI Drawer
+  drawerClose: "বন্ধ করুন",
+  drawerLevel: "স্তর",
 };
+

@@ -101,10 +101,10 @@ export const Navbar: React.FC = () => {
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="font-bold text-sm tracking-tight text-slate-900">
-                ETMS Surat
+                {t.brandTitle || 'ETMS Surat'}
               </span>
               <span className="text-2xs font-semibold uppercase text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                SAC 9988
+                {t.sac9988Tag || 'SAC 9988'}
               </span>
             </div>
           </Link>
@@ -118,7 +118,7 @@ export const Navbar: React.FC = () => {
               <Building2 className="w-3.5 h-3.5 text-[#0099B8] shrink-0" />
               <div className="flex flex-col truncate max-w-[130px] sm:max-w-[180px]">
                 <span className="font-semibold text-slate-900 truncate">
-                  {activeCompany?.name || 'Select Company'}
+                  {activeCompany?.name || t.selectCompany || 'Select Company'}
                 </span>
                 {activeCompany?.role && (
                   <span className="text-2xs text-slate-500 font-mono">
@@ -168,7 +168,7 @@ export const Navbar: React.FC = () => {
           {/* Backend Status Pill */}
           <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-2xs font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-            <span>:4000 Connected</span>
+            <span>{t.backendConnected || ':4000 Connected'}</span>
           </div>
 
           {/* New Shift Action */}
@@ -177,7 +177,7 @@ export const Navbar: React.FC = () => {
             className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white rounded-lg text-xs font-semibold transition shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>+ Log Shift</span>
+            <span>{t.logShiftAction || t.navShiftNew || '+ Log Shift'}</span>
           </Link>
 
           {/* Language Switcher Dropdown */}
@@ -187,7 +187,7 @@ export const Navbar: React.FC = () => {
           <button
             onClick={openConfigDrawer}
             className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-[#0099B8] rounded-lg transition text-xs flex items-center justify-center shadow-2xs group"
-            title="Company Configuration & Settings"
+            title={t.configDrawerTooltip || t.settingsTitle || 'Company Configuration & Settings'}
           >
             <Settings className="w-4 h-4 transition-transform group-hover:rotate-45" />
           </button>
@@ -202,7 +202,7 @@ export const Navbar: React.FC = () => {
                 <User className="w-3 h-3" />
               </div>
               <span className="hidden md:inline font-medium text-slate-800 truncate max-w-[120px]">
-                {user?.fullName?.split(' ')[0] || 'Account'}
+                {user?.fullName?.split(' ')[0] || t.account || 'Account'}
               </span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
@@ -251,7 +251,7 @@ export const Navbar: React.FC = () => {
                     className="w-full px-2 py-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-left flex items-center gap-1.5 font-medium transition"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    <span>Logout</span>
+                    <span>{t.logout || 'Logout'}</span>
                   </button>
                 </div>
               </div>

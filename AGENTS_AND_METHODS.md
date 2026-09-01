@@ -53,8 +53,30 @@ graph TD
 
 ---
 
-## 3. UI/UX & Localization Standards
+## 3. Dynamic i18n & Single-Language Architecture Standard (MANDATORY)
 
-1. **Trilingual Support**: Every floor component must support Gujarati (`gu`), Hindi (`hi`), and English (`en`).
-2. **Industrial Tactile UX**: Floor forms must support high-contrast display modes, audio click feedback, haptic vibration, and large touch numeric keypads.
-3. **Receipt Printing**: Print output templates must support both standard A4 GST Tax Invoices and 58mm/80mm thermal POS slips.
+> [!IMPORTANT]
+> **Zero Static Strings & Single Active Language Policy**:
+> Whenever creating or modifying any **new feature, new module, new drawer, new modal, new page, new component, new toast alert, or new print slip**, the following standards are strictly mandatory:
+
+### Core Rules:
+1. **No Hardcoded Static Text**:
+   - Zero raw text strings in JSX/TSX elements.
+   - All text, titles, subtitles, placeholders, labels, table columns, chips, buttons, and toast alerts **must** be retrieved dynamically via `useI18n()` (`t.<key>` or `translate(key)`).
+2. **Single Active Language (Never Mix Languages)**:
+   - Only **one language active at a time** based on user settings.
+   - **Never combine multiple languages together** (e.g. ❌ `"Shift Log / શિફ્ટ લોગ"`, ❌ `"Edit Karigar (કારીગર સુધારો)"`).
+3. **Controlled Globally by Header Language Settings**:
+   - The active language is governed by the **Header Language Switcher** (`Navbar.tsx` -> `LanguageSwitcher.tsx`).
+   - `I18nProvider` syncs selection to `localStorage['etms_lang']` and `document.documentElement.lang`.
+   - All drawers and views must react dynamically without requiring page reloads.
+4. **Complete 8-Language Dictionary Coverage**:
+   - Every new key added to `src/lib/translations/en.ts` must also be translated in:
+     - `gu.ts` (Gujarati)
+     - `hi.ts` (Hindi)
+     - `mr.ts` (Marathi)
+     - `ta.ts` (Tamil)
+     - `te.ts` (Telugu)
+     - `kn.ts` (Kannada)
+     - `bn.ts` (Bengali)
+5. **Standardized Key Naming**: `<module>_<section>_<element>` (e.g. `karigar_drawer_addTitle`, `shift_stats_totalOutput`, `invoice_table_headerGst`).

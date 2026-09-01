@@ -226,4 +226,38 @@ export const hi: Partial<typeof en> = {
   switchCompanyDropdownTitle: "सक्रिय कंपनी बदलें",
   fastPersonaSwitchTitle: "त्वरित प्रोफ़ाइल स्विच",
   selectLanguageHeader: "भाषा चुनें",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":४००० कनेक्टेड",
+  backendDisconnected: ":४००० डिस्कनेक्टेड",
+  selectCompany: "कंपनी चुनें",
+  account: "खाता",
+  logShiftAction: "+ शिफ्ट दर्ज करें",
+  brandTitle: "ETMS सूरत",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "कंपनी कॉन्फ़िगरेशन और सेटिंग्स",
+
+  // Error Page & 404
+  errorTitle: "कुछ गलत हो गया",
+  errorDefaultMessage: "एक अप्रत्याशित त्रुटि उत्पन्न हुई।",
+  errorTryAgain: "पुनः प्रयास करें",
+  errorGoToDashboard: "डैशबोर्ड पर जाएं",
+  notFoundTitle: "पृष्ठ नहीं मिला",
+  notFoundDesc: "आप जो पृष्ठ खोज रहे हैं वह शायद हटा दिया गया है या अस्थायी रूप से अनुपलब्ध है।",
+  notFoundBackHome: "डैशबोर्ड पर वापस जाएं",
+
+  // Offline & Sync
+  offlineSyncConflicts: "सिंक विरोध समाधान",
+  offlineSyncConflictsDesc: "यह टर्मिनल ऑफ़लाइन होने पर निम्नलिखित रिकॉर्ड अन्य डिवाइस पर संशोधित किए गए थे।",
+  offlineOverwriteRemote: "रिमोट अधिलेखित करें",
+  offlineDiscardLocal: "स्थानीय त्यागें",
+  offlineSyncNow: "अभी सिंक करें",
+  offlineSyncing: "सिंक हो रहा है...",
+  conflictSingular: "विरोध",
+  conflictPlural: "विरोध",
+
+  // UI Drawer
+  drawerClose: "ड्रॉअर बंद करें",
+  drawerLevel: "स्तर",
 };
+

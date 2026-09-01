@@ -28,6 +28,8 @@ import {
   Moon,
   Plus,
   Briefcase,
+  X,
+  Trash2,
 } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
@@ -916,6 +918,62 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
       .catch((e) => console.warn('Failed to load masters in shift drawer:', e));
   }, []);
 
+  const [isMultiLot, setIsMultiLot] = useState(false);
+  const [lotAllocations, setLotAllocations] = useState<Array<{
+    inward_challan_id: string;
+    lot_no: string;
+    design_no: string;
+    meters: number;
+    stitch_count?: number;
+    commission_rate?: number;
+    commission_type?: string;
+  }>>([]);
+
+  const addLotAllocation = () => {
+    if (challans.length === 0) {
+      toast.error('No registered inward lots available');
+      return;
+    }
+    const defaultChallan = challans[0];
+    const defaultDesign = defaultChallan.items && defaultChallan.items.length > 0
+      ? defaultChallan.items[0].design_no
+      : (defaultChallan.design_no || 'DSG-108');
+    setLotAllocations((prev) => [
+      ...prev,
+      {
+        inward_challan_id: defaultChallan.id,
+        lot_no: defaultChallan.lot_no,
+        design_no: defaultDesign,
+        meters: 200,
+        stitch_count: defaultChallan.stitch_count || 24000,
+        commission_rate: defaultChallan.karigar_commission_rate || 0.25,
+        commission_type: defaultChallan.karigar_commission_type || 'PER_1K_STITCHES',
+      },
+    ]);
+  };
+
+  const removeLotAllocation = (idx: number) => {
+    setLotAllocations((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateLotAllocation = (idx: number, field: string, val: any) => {
+    setLotAllocations((prev) => {
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], [field]: val };
+      if (field === 'inward_challan_id') {
+        const found = challans.find((c) => c.id === val);
+        if (found) {
+          copy[idx].lot_no = found.lot_no;
+          copy[idx].design_no = found.items && found.items.length > 0 ? found.items[0].design_no : (found.design_no || 'DSG-108');
+          copy[idx].stitch_count = found.stitch_count || 24000;
+          copy[idx].commission_rate = found.karigar_commission_rate || 0.25;
+          copy[idx].commission_type = found.karigar_commission_type || 'PER_1K_STITCHES';
+        }
+      }
+      return copy;
+    });
+  };
+
   const handleCreateShift = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!machineId || !karigarId) {
@@ -929,22 +987,27 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 
     setSubmitting(true);
     try {
+      const calculatedMeters = isMultiLot && lotAllocations.length > 0
+        ? lotAllocations.reduce((acc, l) => acc + Number(l.meters || 0), 0)
+        : Number(totalMeters);
+
       const payload: CreateShiftLogDto = {
         machine_id: machineId,
         shift_type: shiftType,
         shift_date: shiftDate,
-        inward_challan_id: inwardChallanId || undefined,
-        design_no: designNo,
+        inward_challan_id: isMultiLot ? (lotAllocations[0]?.inward_challan_id || undefined) : (inwardChallanId || undefined),
+        design_no: isMultiLot ? (lotAllocations[0]?.design_no || designNo) : designNo,
         start_counter: Number(startCounter),
         end_counter: Number(endCounter),
-        total_meters: Number(totalMeters),
+        total_meters: calculatedMeters,
         karigar_id: karigarId,
         downtime_minutes: Number(downtimeMinutes),
         downtime_reason: downtimeMinutes > 0 ? downtimeReason : undefined,
+        lot_allocations: isMultiLot ? lotAllocations : undefined,
       };
 
       const result = await ShiftLogsApi.create(payload);
-      toast.success('Shift log registered');
+      toast.success('Shift log registered with cloth lot allocation');
       closeDrawer();
       if (instance.onSuccess) instance.onSuccess(result);
     } catch (err: any) {
@@ -959,10 +1022,10 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title="Log Production Shift (કાઉન્ટર નોંધ)"
-      subtitle="દૈનિક શિફ્ટ પ્રોડક્શન અને ડાઉનટાઇમ એન્ટ્રી"
+      title="Log Production Shift (કાઉન્ટર & લોટ ફાળવણી)"
+      subtitle="દૈનિક શિફ્ટ પ્રોડક્શન, મલ્ટીપલ લોટ કાપડ ફાળવણી અને ડાઉનટાઇમ એન્ટ્રી"
       icon={<Clock className="w-5 h-5 text-slate-700" />}
-      size="lg"
+      size="xl"
       footer={
         <div className="flex items-center gap-2 w-full">
           <button
@@ -1058,66 +1121,170 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
           </div>
         </div>
 
-        <div className="space-y-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Linked Fabric Inward Lot (સુરત આવક લોટ)</label>
-            <select
-              value={inwardChallanId}
-              onChange={(e) => {
-                const cId = e.target.value;
-                setInwardChallanId(cId);
-                const selectedChallan = challans.find((c) => c.id === cId);
-                if (selectedChallan) {
-                  if (selectedChallan.items && selectedChallan.items.length > 0) {
-                    setDesignNo(selectedChallan.items[0].design_no);
-                  } else if (selectedChallan.design_no) {
-                    setDesignNo(selectedChallan.design_no);
-                  }
+        {/* Cloth Lots Allocation Section */}
+        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+              Fabric Lots & Cloth Allocation (કાપડ લોટ અને ડિઝાઇન ફાળવણી)
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const nextVal = !isMultiLot;
+                setIsMultiLot(nextVal);
+                if (nextVal && lotAllocations.length === 0) {
+                  addLotAllocation();
                 }
               }}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
+              className="text-2xs font-semibold px-2.5 py-1 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-100"
             >
-              <option value="">-- Optional General Shift --</option>
-              {challans.map((c) => (
-                <option key={c.id} value={c.id}>
-                  Lot #{c.lot_no} • {c.trader_name} ({c.fabric_quality})
-                </option>
-              ))}
-            </select>
+              {isMultiLot ? 'Switch to Single Lot' : '+ Multiple Lots / Cloths in Shift'}
+            </button>
           </div>
 
-          {(() => {
-            const selectedChallan = challans.find((c) => c.id === inwardChallanId);
-            if (selectedChallan?.items && selectedChallan.items.length > 1) {
-              return (
-                <div className="space-y-1">
-                  <label className="text-xs text-cyan-900 font-semibold">Select Design from Multi-Design Lot</label>
-                  <select
-                    value={designNo}
-                    onChange={(e) => setDesignNo(e.target.value)}
-                    className="w-full bg-white border border-cyan-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-semibold"
-                  >
-                    {selectedChallan.items.map((item, idx) => (
-                      <option key={idx} value={item.design_no}>
-                        {item.design_no} ({item.stitch_count.toLocaleString()} stitches • ₹{item.commission_rate} comm • {item.meters}m)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              );
-            }
-            return (
+          {!isMultiLot ? (
+            <div className="space-y-3">
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Embroidery Design Code</label>
-                <input
-                  type="text"
-                  value={designNo}
-                  onChange={(e) => setDesignNo(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono"
-                />
+                <label className="text-xs text-slate-700 font-medium">Linked Fabric Inward Lot</label>
+                <select
+                  value={inwardChallanId}
+                  onChange={(e) => {
+                    const cId = e.target.value;
+                    setInwardChallanId(cId);
+                    const selectedChallan = challans.find((c) => c.id === cId);
+                    if (selectedChallan) {
+                      const validItems = Array.isArray(selectedChallan.items)
+                        ? selectedChallan.items.filter((it: any) => it && typeof it === 'object' && !Array.isArray(it) && it.design_no)
+                        : [];
+                      if (validItems.length > 0) {
+                        setDesignNo(validItems[0].design_no);
+                      } else if (selectedChallan.design_no) {
+                        setDesignNo(selectedChallan.design_no);
+                      }
+                    }
+                  }}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
+                >
+                  <option value="">-- Optional General Shift --</option>
+                  {challans.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      Lot #{c.lot_no} • {c.trader_name} ({c.fabric_quality})
+                    </option>
+                  ))}
+                </select>
               </div>
-            );
-          })()}
+
+              {(() => {
+                const selectedChallan = challans.find((c) => c.id === inwardChallanId);
+                const validItems = Array.isArray(selectedChallan?.items)
+                  ? selectedChallan.items.filter((it: any) => it && typeof it === 'object' && !Array.isArray(it) && it.design_no)
+                  : [];
+
+                if (validItems.length > 1) {
+                  return (
+                    <div className="space-y-1">
+                      <label className="text-xs text-cyan-900 font-semibold">Select Design from Multi-Design Lot</label>
+                      <select
+                        value={designNo}
+                        onChange={(e) => setDesignNo(e.target.value)}
+                        className="w-full bg-white border border-cyan-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-semibold"
+                      >
+                        {validItems.map((item: any, idx: number) => (
+                          <option key={idx} value={item.design_no}>
+                            {item.design_no} ({formatNumber(item.stitch_count || 0)} st. • ₹{Number(item.commission_rate || 0).toFixed(2)} comm • {formatNumber(item.meters || 0)}m)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-700 font-medium">Embroidery Design Code</label>
+                    <input
+                      type="text"
+                      value={designNo}
+                      onChange={(e) => setDesignNo(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono"
+                    />
+                  </div>
+                );
+              })()}
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-2xs text-slate-500 font-medium">
+                  Allocate multiple cloth lots worked by the Karigar on this machine:
+                </span>
+                <button
+                  type="button"
+                  onClick={addLotAllocation}
+                  className="px-2.5 py-1 bg-cyan-50 border border-cyan-200 text-cyan-800 rounded text-2xs font-semibold hover:bg-cyan-100 transition flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>+ Add Cloth Lot Row</span>
+                </button>
+              </div>
+
+              {lotAllocations.map((alloc, idx) => (
+                <div key={idx} className="p-2.5 bg-white border border-slate-200 rounded-lg grid grid-cols-1 sm:grid-cols-4 gap-2 items-end text-xs">
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-2xs text-slate-600 font-medium">Inward Lot *</label>
+                    <select
+                      value={alloc.inward_challan_id}
+                      onChange={(e) => updateLotAllocation(idx, 'inward_challan_id', e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-xs font-mono text-slate-900"
+                    >
+                      {challans.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          Lot #{c.lot_no} ({c.trader_name})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-2xs text-slate-600 font-medium">Design Code</label>
+                    <input
+                      type="text"
+                      value={alloc.design_no}
+                      onChange={(e) => updateLotAllocation(idx, 'design_no', e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-xs font-mono font-bold text-slate-900"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <div className="space-y-1 flex-1">
+                      <label className="text-2xs text-slate-600 font-medium">Meters (મીટર)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={alloc.meters}
+                        onChange={(e) => updateLotAllocation(idx, 'meters', parseFloat(e.target.value) || 0)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-xs font-mono font-bold text-slate-900"
+                      />
+                    </div>
+                    {lotAllocations.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeLotAllocation(idx)}
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded"
+                        title="Remove lot row"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div className="p-2 bg-cyan-50 border border-cyan-100 rounded text-2xs text-cyan-900 flex justify-between font-mono font-bold">
+                <span>Total Multi-Lot Meters:</span>
+                <span>{lotAllocations.reduce((acc, l) => acc + Number(l.meters || 0), 0)} meters</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-4 bg-slate-100 rounded-xl border border-slate-200 space-y-3">

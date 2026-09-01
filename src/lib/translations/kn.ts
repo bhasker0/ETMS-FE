@@ -134,4 +134,38 @@ export const kn: Partial<typeof en> = {
   exportTallyXml: "ಟ್ಯಾಲಿ ಪ್ರೈಮ್ XML ಡೌನ್‌ಲೋಡ್",
   exportGstr1: "GSTR-1 JSON ರಫ್ತು",
   connectedUnits: "ಸಂಪರ್ಕಿತ ಘಟಕಗಳು",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":4000 ಸಂಪರ್ಕಗೊಂಡಿದೆ",
+  backendDisconnected: ":4000 ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ",
+  selectCompany: "ಕಂಪನಿ ಆಯ್ಕೆಮಾಡಿ",
+  account: "ಖಾತೆ",
+  logShiftAction: "+ ಶಿಫ್ಟ್ ನಮೂದಿಸಿ",
+  brandTitle: "ETMS ಸೂರತ್",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "ಕಂಪನಿ ಸಂರಚನೆ ಮತ್ತು ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+
+  // Error Page & 404
+  errorTitle: "ಏನೋ ತಪ್ಪಾಗಿದೆ",
+  errorDefaultMessage: "ಅನಿರೀಕ್ಷಿತ ದೋಷ ಸಂಭವಿಸಿದೆ.",
+  errorTryAgain: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+  errorGoToDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ",
+  notFoundTitle: "ಪುಟ ಕಂಡುಬಂದಿಲ್ಲ",
+  notFoundDesc: "ನೀವು ಹುಡುಕುತ್ತಿರುವ ಪುಟವನ್ನು ತೆಗೆದುಹಾಕಿರಬಹುದು ಅಥವಾ ತಾತ್ಕಾಲಿಕವಾಗಿ ಲಭ್ಯವಿಲ್ಲದಿರಬಹುದು.",
+  notFoundBackHome: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+
+  // Offline & Sync
+  offlineSyncConflicts: "ಸಿಂಕ್ ಸಂಘರ್ಷ ಪರಿಹಾರ",
+  offlineSyncConflictsDesc: "ಈ ಟರ್ಮಿನಲ್ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದ್ದಾಗ ಕೆಳಗಿನ ದಾಖಲೆಗಳನ್ನು ಮತ್ತೊಂದು ಸಾಧನದಲ್ಲಿ ಮಾರ್ಪಡಿಸಲಾಗಿದೆ.",
+  offlineOverwriteRemote: "ರಿಮೋಟ್ ತಿದ್ದಿ ಬರೆಯಿರಿ",
+  offlineDiscardLocal: "ಸ್ಥಳೀಯ ತಿರಸ್ಕರಿಸಿ",
+  offlineSyncNow: "ಈಗ ಸಿಂಕ್ ಮಾಡಿ",
+  offlineSyncing: "ಸಿಂಕ್ ಆಗುತ್ತಿದೆ...",
+  conflictSingular: "ಸಂಘರ್ಷ",
+  conflictPlural: "ಸಂಘರ್ಷಗಳು",
+
+  // UI Drawer
+  drawerClose: "ಮುಚ್ಚಿ",
+  drawerLevel: "ಹಂತ",
 };
+

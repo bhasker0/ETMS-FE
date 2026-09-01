@@ -26,6 +26,15 @@ export interface ShiftLogApiItem {
   };
   downtime_minutes: number;
   downtime_reason?: string;
+  lot_allocations?: Array<{
+    inward_challan_id: string;
+    lot_no: string;
+    design_no: string;
+    meters: number;
+    stitch_count?: number;
+    commission_rate?: number;
+    commission_type?: string;
+  }>;
   company_id: string;
   created_at: string;
 }
@@ -42,6 +51,15 @@ export interface CreateShiftLogDto {
   karigar_id: string;
   downtime_minutes?: number;
   downtime_reason?: string;
+  lot_allocations?: Array<{
+    inward_challan_id: string;
+    lot_no: string;
+    design_no: string;
+    meters: number;
+    stitch_count?: number;
+    commission_rate?: number;
+    commission_type?: string;
+  }>;
 }
 
 export interface DowntimeAnalytics {

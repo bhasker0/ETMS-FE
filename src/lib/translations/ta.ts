@@ -134,4 +134,38 @@ export const ta: Partial<typeof en> = {
   exportTallyXml: "டேலி பிரைம் XML பதிவிறக்கு",
   exportGstr1: "GSTR-1 JSON ஏற்றுமதி",
   connectedUnits: "இணைக்கப்பட்ட பிரிவுகள்",
+
+  // Shell, Navbar & Global Dialogs
+  backendConnected: ":4000 இணைக்கப்பட்டது",
+  backendDisconnected: ":4000 துண்டிக்கப்பட்டது",
+  selectCompany: "நிறுவனத்தைத் தேர்ந்தெடுக்கவும்",
+  account: "கணக்கு",
+  logShiftAction: "+ ஷிப்ட் பதிவு",
+  brandTitle: "ETMS சூரத்",
+  sac9988Tag: "SAC 9988",
+  configDrawerTooltip: "நிறுவன கட்டமைப்பு மற்றும் அமைப்புகள்",
+
+  // Error Page & 404
+  errorTitle: "ஏதோ தவறு நடந்துவிட்டது",
+  errorDefaultMessage: "எதிர்பாராத பிழை ஏற்பட்டது.",
+  errorTryAgain: "மீண்டும் முயற்சிக்கவும்",
+  errorGoToDashboard: "டாஷ்போர்டுக்குச் செல்லவும்",
+  notFoundTitle: "பக்கம் கிடைக்கவில்லை",
+  notFoundDesc: "நீங்கள் தேடும் பக்கம் அகற்றப்பட்டிருக்கலாம் அல்லது தற்காலிகமாக கிடைக்காமல் இருக்கலாம்.",
+  notFoundBackHome: "டாஷ்போர்டுக்குத் திரும்பு",
+
+  // Offline & Sync
+  offlineSyncConflicts: "ஒத்திசைவு முரண்பாடு தீர்வு",
+  offlineSyncConflictsDesc: "இந்த முனையம் ஆஃப்லைனில் இருந்தபோது பின்வரும் பதிவுகள் மற்றொரு சாதனத்தில் மாற்றப்பட்டன.",
+  offlineOverwriteRemote: "ரிமோட்டை மாற்றியமைக்கவும்",
+  offlineDiscardLocal: "உள்ளூர் பதிவை நிராகரி",
+  offlineSyncNow: "இப்போது ஒத்திசைக்கவும்",
+  offlineSyncing: "ஒத்திசைக்கப்படுகிறது...",
+  conflictSingular: "முரண்பாடு",
+  conflictPlural: "முரண்பாடுகள்",
+
+  // UI Drawer
+  drawerClose: "மூடவும்",
+  drawerLevel: "நிலை",
 };
+
