@@ -263,6 +263,20 @@ export default function WageHisabPage() {
                   <div className="text-2xs text-slate-500">{t.shift_shifts}</div>
                   <div className="font-mono font-bold text-slate-900">{calculationResult.total_shifts}</div>
                 </div>
+                {calculationResult.attendance && (
+                  <>
+                    <div className="w-px h-6 bg-slate-200" />
+                    <div className="text-center">
+                      <div className="text-2xs text-emerald-600 font-semibold">Attended</div>
+                      <div className="font-mono font-bold text-emerald-700">{calculationResult.attendance.attended_days}d</div>
+                    </div>
+                    <div className="w-px h-6 bg-slate-200" />
+                    <div className="text-center">
+                      <div className="text-2xs text-rose-600 font-semibold">Absent</div>
+                      <div className="font-mono font-bold text-rose-700">{calculationResult.attendance.absent_days}d</div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -276,6 +290,17 @@ export default function WageHisabPage() {
                       {formatNumber(calculationResult.total_meters)} {t.karigar_unitMeters} ({formatNumber(calculationResult.total_stitches || 0)} {t.karigar_unitStitches})
                     </td>
                   </tr>
+
+                  {calculationResult.attendance && calculationResult.attendance.absent_days > 0 && calculationResult.attendance.daily_base_salary > 0 && (
+                    <tr className="hover:bg-slate-50/80 bg-rose-50/20">
+                      <td className="p-3 text-rose-700 font-medium">
+                        Attendance: <span className="font-bold">{calculationResult.attendance.attended_days} days attended</span>, <span className="font-bold text-rose-600">{calculationResult.attendance.absent_days} days absent</span> (@ ₹{calculationResult.attendance.daily_base_salary}/day)
+                      </td>
+                      <td className="p-3 text-right font-mono text-xs font-semibold text-rose-600">
+                        Absent: {calculationResult.attendance.absent_days}d ({formatINR(calculationResult.attendance.suggested_absent_deduction)})
+                      </td>
+                    </tr>
+                  )}
 
                   {calculationResult.base_salary !== undefined && calculationResult.base_salary > 0 && (
                     <tr className="hover:bg-slate-50/80">
@@ -370,19 +395,9 @@ export default function WageHisabPage() {
                           <td className="p-2.5 text-right text-slate-900 font-semibold">{formatNumber(s.total_meters)} m</td>
                           <td className="p-2.5 text-right text-slate-600 text-2xs font-sans">
                             <div className="font-medium text-slate-800">{s.applied_basis || 'Default Rate'}</div>
-                            {s.shift_base_salary !== undefined && s.shift_base_salary > 0 && (
-                              <div className="text-3xs text-slate-400 font-mono">
-                                Base: {formatINR(s.shift_base_salary)}
-                              </div>
-                            )}
                           </td>
                           <td className="p-2.5 text-right text-emerald-700 font-bold">
-                            <div>{formatINR(s.shift_earnings || 0)}</div>
-                            {s.shift_base_salary !== undefined && s.shift_base_salary > 0 && (
-                              <div className="text-3xs text-slate-500 font-normal font-sans">
-                                Total: {formatINR((s.shift_earnings || 0) + s.shift_base_salary)}
-                              </div>
-                            )}
+                            {formatINR(s.shift_earnings || 0)}
                           </td>
                         </tr>
                       ))}

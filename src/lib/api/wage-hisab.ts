@@ -25,6 +25,13 @@ export interface WageHisabCalculationResult {
   deductions: number;
   deduction_reason?: string;
   net_payable: number;
+  attendance?: {
+    total_period_days: number;
+    attended_days: number;
+    absent_days: number;
+    daily_base_salary: number;
+    suggested_absent_deduction: number;
+  };
   shifts?: Array<{
     id: string;
     shift_date: string;
@@ -101,6 +108,7 @@ export const WageHisabApi = {
       deductions: deductions,
       deduction_reason: raw?.deduction_reason || summary?.deduction_reason || dto.deduction_reason || '',
       net_payable: netPayable,
+      attendance: raw?.attendance,
       shifts: raw?.shifts || [],
       uchapats: raw?.uchapats || [],
       karigar,

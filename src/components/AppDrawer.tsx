@@ -750,6 +750,13 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
   const [deductions, setDeductions] = useState<number>(0);
   const [deductionReason, setDeductionReason] = useState('');
   const [calculating, setCalculating] = useState(false);
+  const [attendancePreview, setAttendancePreview] = useState<{
+    total_period_days: number;
+    attended_days: number;
+    absent_days: number;
+    daily_base_salary: number;
+    suggested_absent_deduction: number;
+  } | null>(null);
 
   useEffect(() => {
     KarigarsApi.getAll()
@@ -761,6 +768,27 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
       })
       .catch((e) => console.warn('Failed to load karigars in hisab drawer:', e));
   }, []);
+
+  // Fetch attendance preview when karigar or dates change
+  useEffect(() => {
+    if (!selectedKarigarId || !startDate || !endDate) return;
+    WageHisabApi.calculate({
+      karigar_id: selectedKarigarId,
+      startDate,
+      endDate,
+    })
+      .then((res) => {
+        if (res.attendance) {
+          setAttendancePreview(res.attendance);
+        } else {
+          setAttendancePreview(null);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch hisab attendance preview:', err);
+        setAttendancePreview(null);
+      });
+  }, [selectedKarigarId, startDate, endDate]);
 
   const handleCalculate = async () => {
     if (!selectedKarigarId) {
@@ -856,7 +884,27 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">{t.hisab_labelCustomDeductions}</label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-slate-700 font-medium">{t.hisab_labelCustomDeductions}</label>
+            {attendancePreview && attendancePreview.absent_days > 0 && attendancePreview.daily_base_salary > 0 && (
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
+                <span>
+                  Absent: {attendancePreview.absent_days} {attendancePreview.absent_days === 1 ? 'day' : 'days'} ({formatINR(attendancePreview.suggested_absent_deduction)} @ ₹{attendancePreview.daily_base_salary}/day)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeductions(attendancePreview.suggested_absent_deduction);
+                    setDeductionReason(`Absent: ${attendancePreview.absent_days} days (${startDate} to ${endDate})`);
+                  }}
+                  className="px-1.5 py-0.5 text-3xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition cursor-pointer"
+                  title="Auto-fill absent deduction"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+          </div>
           <input
             type="number"
             min="0"
