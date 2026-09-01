@@ -11,23 +11,21 @@ import { OutwardInvoicesApi, OutwardInvoiceApiItem } from '@/lib/api/invoices';
 import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
 import { formatINR, formatNumber } from '@/lib/utils';
 import {
-  Layers,
-  Clock,
   Wrench,
   Truck,
   FileText,
   Plus,
-  ArrowRight,
   TrendingUp,
   Activity,
   Download,
+  Layers,
+  ArrowUpRight,
 } from 'lucide-react';
-
 import { useRouter } from 'next/navigation';
 
 export default function FactoryDashboard() {
   const router = useRouter();
-  const { user, activeCompany, isAuthenticated, isLoading } = useAuth();
+  const { activeCompany, isAuthenticated, isLoading } = useAuth();
   const { t } = useI18n();
 
   useEffect(() => {
@@ -67,193 +65,236 @@ export default function FactoryDashboard() {
     fetchDashboardData();
   }, [activeCompany?.id]);
 
-  const totalMeters = shifts.reduce((acc, s) => acc + Number(s.total_meters), 0);
-  const totalStitches = shifts.reduce((acc, s) => acc + Number(s.total_stitches), 0);
-  const totalBilled = invoices.reduce((acc, i) => acc + Number(i.net_amount), 0);
+  const totalMeters = shifts.reduce((acc, s) => acc + Number(s.total_meters || 0), 0);
+  const totalStitches = shifts.reduce((acc, s) => acc + Number(s.total_stitches || 0), 0);
+  const totalBilled = invoices.reduce((acc, i) => acc + Number(i.net_amount || 0), 0);
   const activeMachinesCount = machines.filter((m) => m.is_active).length;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-      {/* Card Header / Page Header */}
-      <div className="p-5 sm:p-6 border-b border-slate-200 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
-              <Activity className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.factoryOverview || 'Factory Overview'}</span>
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {activeCompany?.name || t.dash_defaultCompany || 'Surat Embroidery Unit'}
-            </h1>
-            <p className="text-xs text-slate-500 font-mono">
-              {t.dash_gstinLabel || 'GSTIN'}: {activeCompany?.gstin || '24AAAAA1111A1Z5'} • {t.dash_roleLabel || 'Role'}: {activeCompany?.role || 'COMPANY_ADMIN'}
-            </p>
+    <div className="space-y-6 pb-8">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-1.5 text-slate-400 text-2xs font-semibold uppercase tracking-wider mb-0.5">
+            <Activity className="w-3.5 h-3.5 text-[#0099B8]" />
+            <span>{t.factoryOverview || 'Factory Overview'}</span>
           </div>
-
-          {/* Quick Action Drawer Buttons */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => openDrawer('LOG_SHIFT', {}, () => fetchDashboardData())}
-              className="px-3 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{t.navShiftNew || 'Log Shift'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openDrawer('ADD_CHALLAN', {}, () => fetchDashboardData())}
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <Truck className="w-3.5 h-3.5 text-slate-500" />
-              <span>{t.dash_inwardLot || t.saveChallan || 'Inward Lot'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openDrawer('CREATE_INVOICE', {}, () => fetchDashboardData())}
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <FileText className="w-3.5 h-3.5 text-slate-500" />
-              <span>{t.dash_sac9988Bill || t.navInvoices || 'SAC 9988 Bill'}</span>
-            </button>
-          </div>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            {activeCompany?.name || t.dash_defaultCompany || 'Surat Embroidery Unit'}
+          </h1>
+          <p className="text-xs text-slate-500 font-mono">
+            {t.dash_gstinLabel || 'GSTIN'}: {activeCompany?.gstin || '24AAAAA1111A1Z5'} • {t.dash_roleLabel || 'Role'}: {activeCompany?.role || 'COMPANY_ADMIN'}
+          </p>
         </div>
 
-        {/* Small State Chips in Header */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
-            <Wrench className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.activeFleet || 'Active Fleet'}: <strong className="font-bold text-slate-900">{activeMachinesCount} / {machines.length} {t.dash_online || 'Online'}</strong></span>
-          </span>
+        {/* Action Chips */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => openDrawer('LOG_SHIFT', {}, () => fetchDashboardData())}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-full text-xs transition shadow-xs cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{t.navShiftNew || 'Log Shift'}</span>
+          </button>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-blue-800">
-            <TrendingUp className="w-3.5 h-3.5 text-[#1D4ED8]" />
-            <span>{t.totalOutput || 'Total Output'}: <strong className="font-bold text-slate-900">{formatNumber(totalMeters)} {t.dash_metersUnit || 'm'}</strong> <span className="text-2xs">({formatNumber(totalStitches)} {t.dash_stitchesUnit || 'st.'})</span></span>
-          </span>
+          <button
+            type="button"
+            onClick={() => openDrawer('ADD_CHALLAN', {}, () => fetchDashboardData())}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-full text-xs transition shadow-xs cursor-pointer"
+          >
+            <Truck className="w-3.5 h-3.5 text-slate-500" />
+            <span>{t.dash_inwardLot || t.saveChallan || 'Inward Lot'}</span>
+          </button>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-            <FileText className="w-3.5 h-3.5 text-[#059669]" />
-            <span>{t.totalBilled || 'SAC 9988 Billed'}: <strong className="font-bold text-emerald-700">{formatINR(totalBilled)}</strong></span>
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-900">
-            <Truck className="w-3.5 h-3.5 text-[#D97706]" />
-            <span>{t.navChallans || 'Inward Lots'}: <strong className="font-bold text-amber-800">{challans.length} {t.dash_lotsUnit || 'Lots'}</strong></span>
-          </span>
+          <button
+            type="button"
+            onClick={() => openDrawer('CREATE_INVOICE', {}, () => fetchDashboardData())}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-full text-xs transition shadow-xs cursor-pointer"
+          >
+            <FileText className="w-3.5 h-3.5 text-slate-500" />
+            <span>{t.dash_sac9988Bill || t.navInvoices || 'SAC 9988 Bill'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="p-5 sm:p-6 space-y-6">
-        {/* Main 2-Column Split: Machine Telemetry & Recent Invoices */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* Machine Telemetry Grid (2 cols) */}
-          <div className="lg:col-span-2 bg-slate-50/70 border border-slate-200 rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-              <div>
-                <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  {t.machineFloorStatus || 'Machine Floor Status'}
-                </h2>
-                <span className="text-2xs text-slate-400 font-mono">
-                  {machines.length} {t.unitsConfigured || 'Units Configured'}
-                </span>
-              </div>
-              <Link href="/machines" className="text-2xs text-slate-600 hover:text-slate-900 font-medium">
-                {t.viewAll || 'View All'} ➔
+      {/* Chip Section 1: Fleet Status Chips (Replaces Machine Floor Status Cards) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <Wrench className="w-3 h-3 text-sky-600" />
+            <span>Fleet Status</span>
+          </span>
+          <Link href="/machines" className="text-2xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-0.5">
+            <span>{t.viewAll || 'View All'}</span>
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Fleet Summary Chip */}
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-900 font-semibold shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+            <span>Active Fleet: {activeMachinesCount} / {machines.length} Online</span>
+          </span>
+
+          {/* Individual Machine Status Chips */}
+          {machines.map((m) => (
+            <Link
+              key={m.id}
+              href="/machines"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs text-slate-800 transition shadow-2xs group cursor-pointer"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 group-hover:scale-110 transition-transform"></span>
+              <span className="font-mono font-bold text-slate-900">{m.machine_no.startsWith('M-') ? m.machine_no : 'M-' + m.machine_no}</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-600 font-mono text-2xs">{m.head_count}H</span>
+              <span className="text-emerald-700 font-medium text-2xs">Ready</span>
+            </Link>
+          ))}
+
+          {machines.length === 0 && !loading && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-400">
+              No machines configured
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Chip Section 2: Production Output Chips */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <TrendingUp className="w-3 h-3 text-blue-600" />
+            <span>Production Output</span>
+          </span>
+          <Link href="/shift" className="text-2xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-0.5">
+            <span>{t.shiftLogsTitle || 'Shift Logs'}</span>
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Total Meters Output Chip */}
+          <Link
+            href="/shift"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100/70 border border-blue-200 text-xs text-blue-900 transition shadow-2xs cursor-pointer"
+          >
+            <span className="text-slate-600">Total Meters:</span>
+            <strong className="font-mono font-bold text-blue-900">{formatNumber(totalMeters)} m</strong>
+          </Link>
+
+          {/* Stitches Count Chip */}
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 shadow-2xs">
+            <span className="text-slate-600">Total Stitches:</span>
+            <strong className="font-mono font-bold text-indigo-900">{formatNumber(totalStitches)} st.</strong>
+          </span>
+
+          {/* Total Shifts Count Chip */}
+          <Link
+            href="/shift"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs text-slate-800 transition shadow-2xs cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5 text-slate-400" />
+            <span>{shifts.length} Shifts Recorded</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Chip Section 3: Billing & Invoices Chips */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <FileText className="w-3 h-3 text-emerald-600" />
+            <span>SAC 9988 Billing & Invoices</span>
+          </span>
+          <Link href="/invoices" className="text-2xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-0.5">
+            <span>{t.viewAll || 'View All'}</span>
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Total SAC 9988 Billed Chip */}
+          <Link
+            href="/invoices"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200 text-xs text-emerald-900 transition shadow-2xs cursor-pointer"
+          >
+            <span className="text-slate-600">SAC 9988 Billed:</span>
+            <strong className="font-mono font-bold text-emerald-800">{formatINR(totalBilled)}</strong>
+          </Link>
+
+          {/* Recent Invoices as Chips */}
+          {invoices.slice(0, 5).map((inv) => (
+            <div
+              key={inv.id}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs text-slate-800 shadow-2xs hover:bg-slate-50 transition"
+            >
+              <Link href={`/invoices/${inv.id}`} className="font-mono font-bold text-slate-900 hover:underline">
+                {inv.invoice_no}
               </Link>
+              <span className="font-mono font-semibold text-emerald-700">{formatINR(inv.net_amount)}</span>
+              <span className="text-slate-400 text-2xs truncate max-w-[120px]">{inv.trader_name}</span>
+              <button
+                type="button"
+                onClick={() => OutwardInvoicesApi.downloadPdf(inv.id, inv.invoice_no)}
+                className="text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                title="Download PDF"
+              >
+                <Download className="w-3 h-3" />
+              </button>
             </div>
+          ))}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {machines.map((m) => (
-                <div
-                  key={m.id}
-                  className="bg-white border border-slate-200/80 rounded-lg p-3.5 space-y-2 hover:bg-slate-50 transition"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded bg-slate-100 border border-slate-200 flex items-center justify-center font-mono font-bold text-slate-700 text-xs">
-                        #{m.machine_no}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-xs text-slate-900">
-                          {t.dash_machinePrefix || 'Machine'} {m.machine_no}
-                        </div>
-                        <div className="text-2xs text-slate-500 font-mono">{m.make_model || t.dash_tajimaType || 'Tajima Type'}</div>
-                      </div>
-                    </div>
+          {invoices.length === 0 && !loading && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-400">
+              No invoices issued yet
+            </span>
+          )}
+        </div>
+      </div>
 
-                    <span className="px-2 py-0.5 rounded text-2xs font-mono font-semibold bg-slate-100 border border-slate-200 text-slate-700">
-                      {m.head_count} {t.heads || 'HEADS'}
-                    </span>
-                  </div>
+      {/* Chip Section 4: Inward Lots Inventory Chips */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <Truck className="w-3 h-3 text-amber-600" />
+            <span>Inward Lots Inventory</span>
+          </span>
+          <Link href="/challans" className="text-2xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-0.5">
+            <span>{t.viewAll || 'View All'}</span>
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
+        </div>
 
-                  <div className="flex items-center justify-between text-2xs pt-1 border-t border-slate-200/60 font-mono">
-                    <span className="text-slate-500">{m.rpm || 850} RPM</span>
-                    <span className="text-emerald-700 font-medium flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span>{t.ready || 'Ready'}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Active Lots Summary Chip */}
+          <Link
+            href="/challans"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100/70 border border-amber-200 text-xs text-amber-900 transition shadow-2xs cursor-pointer"
+          >
+            <span className="text-slate-600">Inward Lots:</span>
+            <strong className="font-mono font-bold text-amber-900">{challans.length} Active Lots</strong>
+          </Link>
 
-              {machines.length === 0 && !loading && (
-                <div className="sm:col-span-2 p-8 text-center text-slate-400 text-xs">
-                  {t.dash_noMachines || 'No machines configured.'}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Individual Lot Chips */}
+          {challans.slice(0, 6).map((c) => (
+            <Link
+              key={c.id}
+              href="/challans"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs text-slate-700 transition shadow-2xs cursor-pointer"
+            >
+              <span className="font-mono font-bold text-slate-900">{c.lot_no || (c as any).lot_number || 'Lot'}</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-2xs text-slate-500 truncate max-w-[120px]">{c.trader_name || (c as any).party_name}</span>
+            </Link>
+          ))}
 
-          {/* Recent Invoices (1 col) */}
-          <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-              <div>
-                <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  {t.recentInvoices || 'Recent Invoices'}
-                </h2>
-                <span className="text-2xs text-slate-400 font-mono">{t.sac9988Tag || 'GST SAC 9988'}</span>
-              </div>
-              <Link href="/invoices" className="text-2xs text-slate-600 hover:text-slate-900 font-medium">
-                {t.viewAll || 'View All'} ➔
-              </Link>
-            </div>
-
-            <div className="space-y-2">
-              {invoices.slice(0, 4).map((inv) => (
-                <div
-                  key={inv.id}
-                  className="bg-white border border-slate-200/80 rounded-lg p-3 space-y-1 text-xs hover:bg-slate-50 transition"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-slate-900">{inv.invoice_no}</span>
-                    <span className="font-mono font-bold text-slate-900">{formatINR(inv.net_amount)}</span>
-                  </div>
-
-                  <div className="text-slate-600 truncate">{inv.trader_name}</div>
-
-                  <div className="flex items-center justify-between text-2xs text-slate-400 pt-1 border-t border-slate-200/60 font-mono">
-                    <span>{inv.invoice_date}</span>
-                    <button
-                      onClick={() => OutwardInvoicesApi.downloadPdf(inv.id, inv.invoice_no)}
-                      className="text-slate-700 hover:text-slate-900 font-medium flex items-center gap-1 cursor-pointer"
-                    >
-                      <Download className="w-3 h-3" />
-                      <span>{t.dash_downloadPdf || 'PDF'}</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {invoices.length === 0 && !loading && (
-                <div className="p-8 text-center text-slate-400 text-xs">
-                  {t.dash_noInvoices || 'No invoices issued yet.'}
-                </div>
-              )}
-            </div>
-          </div>
+          {challans.length === 0 && !loading && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-400">
+              No inward lots available
+            </span>
+          )}
         </div>
       </div>
     </div>
