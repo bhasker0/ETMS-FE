@@ -3,6 +3,7 @@
 import React from 'react';
 import { FortnightHisab, Karigar } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import { Printer, Share2 } from 'lucide-react';
 
@@ -20,6 +21,7 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
   onShareWhatsApp,
 }) => {
   const { activeCompany } = useAuth();
+  const { t } = useI18n();
 
   const currentCompany = {
     name: activeCompany?.name || 'Company Name',
@@ -36,14 +38,14 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
           </h2>
           <p className="text-xs text-slate-600">{currentCompany.address}</p>
           <div className="inline-block bg-amber-500 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded mt-1">
-            કારીગર પખવાડિયા પગાર સ્લિપ (Fortnight Wage Voucher)
+            {t.slip_voucherTitle}
           </div>
         </div>
 
         <div className="text-right text-xs space-y-0.5 font-mono">
-          <div className="font-bold text-slate-800">હિસાબ નં: {hisab.id}</div>
+          <div className="font-bold text-slate-800">{t.slip_hisabNo} {hisab.id}</div>
           <div className="text-slate-600">
-            ગાળો: <strong>{hisab.periodStart}</strong> થી <strong>{hisab.periodEnd}</strong>
+            {t.slip_period} <strong>{hisab.periodStart}</strong> {t.slip_to} <strong>{hisab.periodEnd}</strong>
           </div>
         </div>
       </div>
@@ -60,9 +62,9 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
           </div>
         </div>
         <div className="text-right">
-          <span className="text-slate-500 block text-2xs">કુલ શિફ્ટ:</span>
+          <span className="text-slate-500 block text-2xs">{t.slip_shiftsWorked}</span>
           <span className="font-bold text-sm text-slate-900">
-            {hisab.totalShifts} શિફ્ટ ({hisab.dayShifts} દિવસ / {hisab.nightShifts} રાત)
+            {hisab.totalShifts} {t.shift_shifts} ({hisab.dayShifts} {t.slip_dayShift} / {hisab.nightShifts} {t.slip_nightShift})
           </span>
         </div>
       </div>
@@ -72,43 +74,43 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
         <table className="w-full text-left">
           <thead className="bg-slate-800 text-white font-bold">
             <tr>
-              <th className="p-2.5">વિગત / Parameter</th>
-              <th className="p-2.5 text-right">આંકડો / Details</th>
+              <th className="p-2.5">{t.slip_thParticulars}</th>
+              <th className="p-2.5 text-right">{t.slip_thAmount}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
             <tr>
-              <td className="p-2.5 font-medium text-slate-700">કુલ ઉત્પાદન ટાંકા (Total Stitches)</td>
+              <td className="p-2.5 font-medium text-slate-700">{t.hisab_stitchesCount}</td>
               <td className="p-2.5 text-right font-mono font-bold text-slate-900">
                 {formatNumber(hisab.totalStitches)}
               </td>
             </tr>
             <tr>
-              <td className="p-2.5 font-medium text-slate-700">કુલ કાપડ મીટર (Meters)</td>
+              <td className="p-2.5 font-medium text-slate-700">{t.hisab_metersCount}</td>
               <td className="p-2.5 text-right font-mono text-slate-900">
                 {formatNumber(hisab.totalMeters)} MTR
               </td>
             </tr>
             <tr>
-              <td className="p-2.5 font-medium text-slate-700">કારીગર ભાવ દર (Rate/1k St.)</td>
+              <td className="p-2.5 font-medium text-slate-700">{t.slip_ratePerThousand}</td>
               <td className="p-2.5 text-right font-mono text-slate-900">
                 ₹{Number(karigar.ratePerThousand || 0).toFixed(2)}
               </td>
             </tr>
             <tr className="bg-slate-50 font-bold">
-              <td className="p-2.5 text-slate-900">કુલ બનતી મજૂરી (Gross Wages Earned)</td>
+              <td className="p-2.5 text-slate-900">{t.hisab_grossEarnings}</td>
               <td className="p-2.5 text-right font-mono text-slate-900 text-sm">
                 {formatINR(hisab.grossEarnings)}
               </td>
             </tr>
             <tr className="text-red-700 bg-red-50/50">
-              <td className="p-2.5 font-bold">બાદ: લીધેલ ઉપાડ (Less: Cash Uchapat Advance)</td>
+              <td className="p-2.5 font-bold">{t.hisab_totalUchapatDeductions}</td>
               <td className="p-2.5 text-right font-mono font-bold text-sm">
                 - {formatINR(hisab.totalAdvanceDeducted)}
               </td>
             </tr>
             <tr className="bg-emerald-100 text-emerald-950 font-black text-sm">
-              <td className="p-3">ચૂકવવાપાત્ર ચોખ્ખી મજૂરી (Net Payable Wage ₹)</td>
+              <td className="p-3">{t.hisab_netPayable} (₹)</td>
               <td className="p-3 text-right font-mono text-base text-emerald-900">
                 {formatINR(hisab.netPayable)}
               </td>
@@ -120,11 +122,11 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
       {/* Signature Box */}
       <div className="pt-6 grid grid-cols-2 gap-8 text-xs text-slate-700">
         <div className="border-t-2 border-slate-400 pt-2 text-center">
-          <span className="font-bold block">કારીગરની સહી / અંગૂઠાનું નિશાન</span>
-          <span className="text-2xs text-slate-500">(નાણાં મળ્યાની પહોંચ)</span>
+          <span className="font-bold block">{t.slip_signatureKarigar}</span>
+          <span className="text-2xs text-slate-500">{t.slip_signatureReceipt}</span>
         </div>
         <div className="border-t-2 border-slate-400 pt-2 text-center">
-          <span className="font-bold block">શેઠ / મુનીમ અધિકૃત સહી</span>
+          <span className="font-bold block">{t.slip_signatureManager}</span>
           <span className="text-2xs text-slate-500">For {currentCompany.name.split('(')[0]}</span>
         </div>
       </div>
@@ -137,7 +139,7 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow"
           >
             <Share2 className="w-4 h-4" />
-            WhatsApp પર મોકલો
+            {t.slip_btnWhatsApp}
           </button>
         )}
         {onPrint && (
@@ -146,10 +148,11 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow"
           >
             <Printer className="w-4 h-4" />
-            સ્લિપ પ્રિન્ટ કરો
+            {t.slip_btnPrint}
           </button>
         )}
       </div>
     </div>
   );
 };
+

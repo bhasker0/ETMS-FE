@@ -1,8 +1,7 @@
-'use client';
-
 import React, { useState, useEffect, useRef } from 'react';
 import { PartiesApi, PartyApiItem } from '@/lib/api/parties';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { useI18n } from '@/lib/i18n';
 import { Plus, Building2, Check, X, ChevronDown } from 'lucide-react';
 
 interface PartyPickerProps {
@@ -20,11 +19,14 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
   partyName,
   partyGstin,
   onSelect,
-  label = 'Trader Firm / Party Name (વેપારીનું નામ)',
+  label,
   required = true,
-  placeholder = 'Search registered party or type trader name...',
+  placeholder,
 }) => {
   const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
+  const displayLabel = label || t.party_pickerLabel;
+  const displayPlaceholder = placeholder || t.party_pickerPlaceholder;
   const [parties, setParties] = useState<PartyApiItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState(partyName || '');
@@ -104,7 +106,7 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
     <div ref={wrapperRef} className="space-y-1 relative">
       <div className="flex items-center justify-between">
         <label className="text-xs text-slate-700 font-medium">
-          {label} {required && '*'}
+          {displayLabel} {required && '*'}
         </label>
         <button
           type="button"
@@ -112,7 +114,7 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
           className="text-2xs text-[#0099B8] hover:text-[#0E7090] font-semibold flex items-center gap-0.5 transition hover:underline"
         >
           <Plus className="w-3 h-3" />
-          <span>+ Add New Party</span>
+          <span>{t.party_addNew}</span>
         </button>
       </div>
 
@@ -125,7 +127,7 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
           type="text"
           required={required}
           value={query}
-          placeholder={placeholder}
+          placeholder={displayPlaceholder}
           onFocus={() => setIsOpen(true)}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -167,7 +169,7 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
         <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100">
           <div className="p-2 bg-slate-50 flex items-center justify-between border-b border-slate-100">
             <span className="text-3xs font-bold uppercase tracking-wider text-slate-500">
-              Registered Parties ({filteredParties.length})
+              {t.party_pickerRegisteredParties} ({filteredParties.length})
             </span>
             <button
               type="button"
@@ -175,7 +177,7 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
               className="text-2xs font-semibold text-[#0099B8] hover:text-[#0E7090] flex items-center gap-0.5"
             >
               <Plus className="w-3 h-3" />
-              <span>+ Create Master</span>
+              <span>{t.party_pickerCreateMaster}</span>
             </button>
           </div>
 
@@ -209,14 +211,14 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
 
           {filteredParties.length === 0 && (
             <div className="p-4 text-center space-y-2">
-              <p className="text-xs text-slate-500">No party matching &quot;{query}&quot;</p>
+              <p className="text-xs text-slate-500">{t.party_pickerNoMatch} &quot;{query}&quot;</p>
               <button
                 type="button"
                 onClick={handleOpenAddParty}
                 className="px-3 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white text-xs font-semibold rounded-lg shadow-xs inline-flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add &quot;{query || 'New Party'}&quot; to Master</span>
+                <span>{t.party_pickerAddToMaster}</span>
               </button>
             </div>
           )}

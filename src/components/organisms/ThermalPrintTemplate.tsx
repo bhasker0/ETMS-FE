@@ -3,6 +3,7 @@
 import React from 'react';
 import { InvoiceSAC9988 } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { formatNumber } from '@/lib/utils';
 
 interface ThermalPrintProps {
@@ -11,6 +12,7 @@ interface ThermalPrintProps {
 
 export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) => {
   const { activeCompany } = useAuth();
+  const { t } = useI18n();
 
   const currentCompany = {
     name: activeCompany?.name || 'Company Name',
@@ -50,29 +52,29 @@ export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) =
         </div>
         <div className="text-2xs">{currentCompany.address}</div>
         <div className="text-2xs font-bold">GSTIN: {currentCompany.gstin}</div>
-        <div className="text-2xs font-bold">SAC 9988 - જોબવર્ક કાપલી</div>
+        <div className="text-2xs font-bold">{t.print_jobworkSlip}</div>
       </div>
 
       {/* Invoice Meta */}
       <div className="border-b border-dashed border-black pb-1.5 mb-1.5 space-y-0.5 text-2xs">
         <div className="flex justify-between">
-          <span>બીલ નં (INV):</span>
+          <span>{t.invoice_thInvoiceNo}:</span>
           <span className="font-bold">{invoice.invoiceNumber}</span>
         </div>
         <div className="flex justify-between">
-          <span>તારીખ (Date):</span>
+          <span>{t.print_date}</span>
           <span>{invoice.invoiceDate}</span>
         </div>
         <div className="flex justify-between">
-          <span>લોટ નં (Lot):</span>
+          <span>{t.print_lotNo}</span>
           <span className="font-bold">{invoice.lotNumber}</span>
         </div>
         <div className="flex justify-between">
-          <span>વેપારી (Trader):</span>
+          <span>{t.invoice_thTrader}:</span>
           <span className="font-bold truncate max-w-[120px]">{invoice.traderName}</span>
         </div>
         <div className="flex justify-between">
-          <span>ફેબ્રિક (Fabric):</span>
+          <span>{t.print_fabric}</span>
           <span className="truncate max-w-[120px]">{invoice.fabricQuality}</span>
         </div>
       </div>
@@ -80,23 +82,23 @@ export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) =
       {/* Production Details */}
       <div className="border-b border-dashed border-black pb-1.5 mb-1.5 space-y-0.5 text-2xs">
         <div className="flex justify-between">
-          <span>તાકા સંખ્યા:</span>
-          <span>{invoice.numberOfTakas} Thans</span>
+          <span>{t.print_takas}</span>
+          <span>{invoice.numberOfTakas} {t.print_thansUnit}</span>
         </div>
         <div className="flex justify-between">
-          <span>તૈયાર મીટર:</span>
+          <span>{t.print_meters}</span>
           <span>{formatNumber(invoice.meters)} MTR</span>
         </div>
         <div className="flex justify-between">
-          <span>ટાંકા (Stitches):</span>
+          <span>{t.print_thStitches}:</span>
           <span>{formatNumber(invoice.totalStitches)}</span>
         </div>
         <div className="flex justify-between">
-          <span>ભાવ (Rate/1k):</span>
+          <span>{t.print_thRate}:</span>
           <span>₹{invoice.ratePerThousand.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
-          <span>હેડ (Heads):</span>
+          <span>{t.print_thHeads}:</span>
           <span>{invoice.headCount}</span>
         </div>
       </div>
@@ -104,7 +106,7 @@ export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) =
       {/* Amount Breakup */}
       <div className="border-b-2 border-black pb-1.5 mb-2 space-y-0.5 text-2xs">
         <div className="flex justify-between">
-          <span>ટેક્સેબલ રકમ:</span>
+          <span>{t.print_taxableAmount}</span>
           <span>₹{invoice.baseAmount.toFixed(2)}</span>
         </div>
         {invoice.cgstAmount > 0 && (
@@ -120,7 +122,7 @@ export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) =
           </div>
         )}
         <div className="flex justify-between text-xs font-black border-t border-black pt-1">
-          <span>કુલ રકમ (TOTAL):</span>
+          <span>{t.print_grandTotal}</span>
           <span>₹{invoice.totalAmount.toFixed(2)}</span>
         </div>
       </div>
@@ -131,11 +133,11 @@ export const ThermalPrintTemplate: React.FC<ThermalPrintProps> = ({ invoice }) =
           * {invoice.invoiceNumber} *
         </div>
         <div className="text-2xs text-slate-700">
-          સુરત જીઆઇડીસી ગેટ પાસ અને ડિસ્પેચ સ્લિપ
+          {t.print_dispatchSlipNote}
         </div>
         <div className="pt-4 flex justify-between text-2xs">
-          <span>માલ લેનાર સહી</span>
-          <span>ઓપરેટર સહી</span>
+          <span>{t.print_receiverSign}</span>
+          <span>{t.print_operatorSign}</span>
         </div>
       </div>
     </div>

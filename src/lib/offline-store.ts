@@ -388,6 +388,23 @@ class OfflineStore {
       return [];
     }
   }
+
+  purgeLocalCache(): void {
+    if (!this.isBrowser) return;
+    try {
+      localStorage.removeItem('etms_pending_sync_queue');
+      localStorage.removeItem('etms_sync_conflicts');
+      localStorage.removeItem('etms_shifts');
+      localStorage.removeItem('etms_challans');
+      localStorage.removeItem('etms_invoices');
+      localStorage.removeItem('etms_uchapat');
+      this.notifyListeners();
+      this.notifyConflictListeners();
+      logger.info('Purged local offline storage cache.');
+    } catch (e) {
+      logger.error('Failed to purge local cache', { error: String(e) });
+    }
+  }
 }
 
 export const offlineStore = new OfflineStore();

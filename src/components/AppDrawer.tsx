@@ -38,6 +38,7 @@ import {
 /* -------------------------------------------------------------------------- */
 const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const editingItem = instance.payload?.karigar as KarigarApiItem | undefined;
 
   const [name, setName] = useState(editingItem?.name || '');
@@ -112,8 +113,8 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title={editingItem ? 'Edit Karigar / Operator (કારીગર સુધારો)' : 'Add New Karigar / Operator (નવો કારીગર ઉમેરો)'}
-      subtitle={editingItem ? 'કારીગર વિગતો અને વેતન દરો અપડેટ કરો' : 'કારીગર મૂળભૂત માહિતી અને પગાર/મજૂરી દરો'}
+      title={editingItem ? t.karigar_drawerEditTitle : t.karigar_drawerAddTitle}
+      subtitle={editingItem ? t.karigar_drawerEditSubtitle : t.karigar_drawerAddSubtitle}
       icon={<Users className="w-5 h-5 text-slate-700" />}
       size="lg"
       footer={
@@ -123,7 +124,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -134,14 +135,14 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             disabled={submitting || !!mobileError}
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
           >
-            {submitting ? 'Saving...' : editingItem ? 'Save Changes' : 'Create Karigar'}
+            {submitting ? t.saving : editingItem ? t.karigar_btnSaveChanges : t.karigar_btnCreate}
           </button>
         </div>
       }
     >
       <form id={`karigar-form-${instance.id}`} onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Full Name (કારીગરનું નામ) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.karigar_labelFullName} *</label>
           <input
             type="text"
             required
@@ -154,7 +155,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className="text-xs text-slate-700 font-medium">Mobile Number (મોબાઇલ નંબર) *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.karigar_labelMobile} *</label>
             {mobileError && <span className="text-2xs text-rose-600 font-medium">{mobileError}</span>}
             {!mobileError && mobile.length === 10 && (
               <span className="text-2xs text-emerald-600 font-medium">✓ Valid Mobile</span>
@@ -178,7 +179,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Wage Model (મજૂરી પ્રકાર) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.karigar_labelWageStructure} *</label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
               type="button"
@@ -189,8 +190,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <div>Piece Rate</div>
-              <div className="text-3xs opacity-80">(ટાંકા/મીટર દીઠ)</div>
+              <div>{t.karigar_typePieceRate}</div>
             </button>
             <button
               type="button"
@@ -201,8 +201,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <div>Fixed Monthly</div>
-              <div className="text-3xs opacity-80">(માસિક પગાર)</div>
+              <div>{t.karigar_typeFixedMonthly}</div>
             </button>
             <button
               type="button"
@@ -213,15 +212,14 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <div>Fixed + Incentive</div>
-              <div className="text-3xs opacity-80">(ફિક્સ + કમિશન)</div>
+              <div>{t.karigar_typeFixedIncentive}</div>
             </button>
           </div>
         </div>
 
         {wageType === 'PIECE_RATE' && (
           <div className="space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <label className="text-xs text-slate-700 font-medium">Default Rate Per Meter (₹ / મીટર) *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.karigar_labelRatePerMeter} *</label>
             <input
               type="number"
               step="0.01"
@@ -230,13 +228,13 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               onChange={(e) => setDefaultRatePerMeter(parseFloat(e.target.value) || 0)}
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
             />
-            <p className="text-2xs text-slate-500">Wages calculated directly on total meters produced (₹{defaultRatePerMeter}/m).</p>
+            <p className="text-2xs text-slate-500">₹{defaultRatePerMeter} / {t.karigar_perMeter}</p>
           </div>
         )}
 
         {wageType === 'FIXED_MONTHLY' && (
           <div className="space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <label className="text-xs text-slate-700 font-medium">Monthly Salary (માસિક ફિક્સ પગાર ₹) *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.karigar_labelMonthlySalary} *</label>
             <input
               type="number"
               required
@@ -244,14 +242,14 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               onChange={(e) => setDefaultMonthlySalary(parseFloat(e.target.value) || 0)}
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
             />
-            <p className="text-2xs text-slate-500">Fixed fortnightly payout is ₹{Math.round(defaultMonthlySalary / 2)} (half month).</p>
+            <p className="text-2xs text-slate-500">15-day fortnight base: ₹{Math.round(defaultMonthlySalary / 2)}</p>
           </div>
         )}
 
         {wageType === 'FIXED_PLUS_INCENTIVE' && (
           <div className="space-y-3 bg-cyan-50/50 p-4 rounded-xl border border-cyan-200">
             <div className="space-y-1">
-              <label className="text-xs text-slate-800 font-semibold">Fixed Base Monthly Salary (માસિક મૂળ પગાર ₹) *</label>
+              <label className="text-xs text-slate-800 font-semibold">{t.karigar_labelMonthlySalary} *</label>
               <input
                 type="number"
                 required
@@ -259,12 +257,12 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                 onChange={(e) => setDefaultMonthlySalary(parseFloat(e.target.value) || 0)}
                 className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
               />
-              <span className="text-2xs text-slate-500">Guaranteed base wage: ₹{Math.round(defaultMonthlySalary / 2)} per fortnight.</span>
+              <span className="text-2xs text-slate-500">Base: ₹{Math.round(defaultMonthlySalary / 2)} / fortnight</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-cyan-200/60">
               <div className="space-y-1">
-                <label className="text-xs text-slate-800 font-medium">Production Threshold (કમિશન થ્રેશોલ્ડ)</label>
+                <label className="text-xs text-slate-800 font-medium">{t.karigar_labelIncentiveThreshold}</label>
                 <input
                   type="number"
                   required
@@ -275,22 +273,22 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-800 font-medium">Threshold Unit</label>
+                <label className="text-xs text-slate-800 font-medium">{t.karigar_labelThresholdType}</label>
                 <select
                   value={incentiveThresholdType}
                   onChange={(e) => setIncentiveThresholdType(e.target.value as any)}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900"
                 >
-                  <option value="STITCHES">Stitches (ટાંકા)</option>
-                  <option value="PIECES">Pieces / Sarees (સાડી / પીસ)</option>
-                  <option value="METERS">Meters (મીટર)</option>
+                  <option value="STITCHES">{t.karigar_unitStitches}</option>
+                  <option value="PIECES">{t.karigar_unitPieces}</option>
+                  <option value="METERS">{t.karigar_unitMeters}</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div className="space-y-1">
-                <label className="text-xs text-slate-800 font-medium">Commission Rate (કમિશન દર ₹)</label>
+                <label className="text-xs text-slate-800 font-medium">{t.karigar_labelIncentiveBonusRate}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -302,21 +300,17 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-800 font-medium">Commission Basis</label>
+                <label className="text-xs text-slate-800 font-medium">{t.karigar_labelBonusPer}</label>
                 <select
                   value={incentiveRateType}
                   onChange={(e) => setIncentiveRateType(e.target.value as any)}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900"
                 >
-                  <option value="PER_1K_STITCHES">₹ per 1,000 Stitches</option>
-                  <option value="PER_PIECE">₹ per Piece / Saree</option>
-                  <option value="PER_METER">₹ per Meter</option>
+                  <option value="PER_1K_STITCHES">{t.karigar_per1kStitches}</option>
+                  <option value="PER_PIECE">{t.karigar_perPiece}</option>
+                  <option value="PER_METER">{t.karigar_perMeterUnit}</option>
                 </select>
               </div>
-            </div>
-
-            <div className="p-2.5 rounded-lg bg-white border border-cyan-200 text-2xs text-cyan-900 font-mono">
-              Formula: ₹{defaultMonthlySalary} base + ₹{incentiveRate} / {incentiveRateType === 'PER_1K_STITCHES' ? '1k stitches' : incentiveRateType === 'PER_PIECE' ? 'piece' : 'meter'} for output above {incentiveThresholdValue.toLocaleString()} {incentiveThresholdType.toLowerCase()}.
             </div>
           </div>
         )}
@@ -343,6 +337,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 /* -------------------------------------------------------------------------- */
 const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const editingMachine = instance.payload?.machine as MachineApiItem | undefined;
 
   const [machineNo, setMachineNo] = useState(editingMachine?.machine_no || '');
@@ -387,8 +382,8 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title={editingMachine ? 'Edit Embroidery Machine' : 'Configure New Embroidery Machine'}
-      subtitle="મશીન નંબર, હેડ ક્ષમતા અને સ્પીડ કન્ફિગરેશન"
+      title={editingMachine ? t.machine_drawerEditTitle : t.machine_drawerAddTitle}
+      subtitle={t.machine_drawerSubtitle}
       icon={<Cpu className="w-5 h-5 text-slate-700" />}
       size="md"
       footer={
@@ -398,7 +393,7 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -409,14 +404,14 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             disabled={submitting}
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
-            {submitting ? 'Saving...' : editingMachine ? 'Save Changes' : 'Add Machine'}
+            {submitting ? t.saving : editingMachine ? t.machine_btnSave : t.machine_btnCreate}
           </button>
         </div>
       }
     >
       <form id={`machine-form-${instance.id}`} onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Machine Identifier / No (મશીન નંબર) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.machine_labelIdentifier}</label>
           <input
             type="text"
             required
@@ -428,21 +423,21 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Head Count (હેડ ક્ષમતા) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.machine_labelHeadCount}</label>
           <select
             value={headCount}
             onChange={(e) => setHeadCount(Number(e.target.value) as 24 | 32 | 44 | 66)}
             className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-medium"
           >
-            <option value={24}>24 Heads (નાનું મશીન)</option>
-            <option value={32}>32 Heads (સ્ટાન્ડર્ડ સુરત સાઈઝ)</option>
-            <option value={44}>44 Heads (મોટું મલ્ટી-હેડ)</option>
-            <option value={66}>66 Heads (જમ્બો હાઈ-સ્પીડ)</option>
+            <option value={24}>{t.machine_opt24Heads}</option>
+            <option value={32}>{t.machine_opt32Heads}</option>
+            <option value={44}>{t.machine_opt44Heads}</option>
+            <option value={66}>{t.machine_opt66Heads}</option>
           </select>
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Rated RPM (ઝડપ / ગતિ) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.machine_labelRpm}</label>
           <input
             type="number"
             required
@@ -455,7 +450,7 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Manufacturer / Model Make</label>
+          <label className="text-xs text-slate-700 font-medium">{t.machine_labelMakeModel}</label>
           <input
             type="text"
             value={makeModel}
@@ -473,7 +468,7 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             className="w-4 h-4 text-slate-900 border-slate-300 rounded"
           />
           <label htmlFor={`active-machine-${instance.id}`} className="text-xs text-slate-700 font-medium cursor-pointer">
-            Machine is operational (ચાલુ સ્થિતિમાં)
+            {t.machine_labelOperationalToggle}
           </label>
         </div>
       </form>
@@ -486,6 +481,7 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 /* -------------------------------------------------------------------------- */
 const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [selectedKarigarId, setSelectedKarigarId] = useState(instance.payload?.karigarId || '');
   const [amount, setAmount] = useState<number>(2000);
@@ -538,8 +534,8 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title="Log Cash / UPI Advance (ઉપાડ આપો)"
-      subtitle="કારીગરને રોકડ અથવા UPI દ્વારા આપેલ એડવાન્સ નોંધ"
+      title={t.uchapat_drawerTitle}
+      subtitle={t.uchapat_drawerSubtitle}
       icon={<CreditCard className="w-5 h-5 text-slate-700" />}
       size="md"
       footer={
@@ -549,7 +545,7 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -560,14 +556,14 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             disabled={submitting}
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
-            {submitting ? 'Recording...' : 'Record Advance'}
+            {submitting ? t.uchapat_recording : t.uchapat_btnRecord}
           </button>
         </div>
       }
     >
       <form id={`uchapat-form-${instance.id}`} onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Select Beneficiary Karigar (કારીગર) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.uchapat_labelBeneficiary} *</label>
           <select
             value={selectedKarigarId}
             onChange={(e) => setSelectedKarigarId(e.target.value)}
@@ -583,13 +579,13 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
         {selectedKarigar && (
           <div className="p-3 bg-slate-100 rounded-lg text-2xs text-slate-600 flex justify-between">
-            <span>Model: <strong>{selectedKarigar.wage_type}</strong></span>
-            <span>Mobile: <strong>{selectedKarigar.mobile}</strong></span>
+            <span>{t.karigar_thWageType}: <strong>{selectedKarigar.wage_type}</strong></span>
+            <span>{t.karigar_thMobile}: <strong>{selectedKarigar.mobile}</strong></span>
           </div>
         )}
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Advance Amount (ઉપાડ રકમ ₹) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.uchapat_labelAmount} *</label>
           <input
             type="number"
             min="100"
@@ -602,7 +598,7 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Date of Disbursal (તારીખ) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.uchapat_labelDisbursalDate} *</label>
           <input
             type="date"
             required
@@ -613,7 +609,7 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Payment Mode (ચુકવણી પદ્ધતિ)</label>
+          <label className="text-xs text-slate-700 font-medium">{t.uchapat_labelPaymentMode}</label>
           <div className="grid grid-cols-3 gap-2">
             {(['CASH', 'UPI', 'BANK_TRANSFER'] as PaymentMode[]).map((mode) => (
               <button
@@ -626,14 +622,14 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                     : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                {mode === 'CASH' ? 'Cash (રોકડ)' : mode === 'UPI' ? 'UPI / GPay' : 'Bank'}
+                {mode === 'CASH' ? t.uchapat_modeCash : mode === 'UPI' ? t.uchapat_modeUpi : t.uchapat_modeBank}
               </button>
             ))}
           </div>
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Remarks / Reason (કારણ)</label>
+          <label className="text-xs text-slate-700 font-medium">{t.uchapat_labelRemarks}</label>
           <input
             type="text"
             value={reason}
@@ -651,6 +647,7 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 /* -------------------------------------------------------------------------- */
 const InviteCompanyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [inviteGstin, setInviteGstin] = useState('');
   const [inviteMobile, setInviteMobile] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -682,8 +679,8 @@ const InviteCompanyDrawerForm: React.FC<{ instance: DrawerInstance; level: numbe
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title="Request Company Access (ટેનન્ટ જોડાણ)"
-      subtitle="અન્ય એમ્બ્રોઇડરી એકમનું જીએસટી નંબર અને ઓનર મોબાઇલ દાખલ કરો"
+      title={t.munim_drawerTitle}
+      subtitle={t.munim_drawerSubtitle}
       icon={<Building2 className="w-5 h-5 text-slate-700" />}
       size="md"
       footer={
@@ -693,7 +690,7 @@ const InviteCompanyDrawerForm: React.FC<{ instance: DrawerInstance; level: numbe
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -704,14 +701,14 @@ const InviteCompanyDrawerForm: React.FC<{ instance: DrawerInstance; level: numbe
             disabled={submitting}
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
-            {submitting ? 'Sending...' : 'Send Request'}
+            {submitting ? t.saving : t.munim_btnSendRequest}
           </button>
         </div>
       }
     >
       <form id={`invite-form-${instance.id}`} onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Embroidery Firm GSTIN *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.munim_labelGstin}</label>
           <input
             type="text"
             required
@@ -724,7 +721,7 @@ const InviteCompanyDrawerForm: React.FC<{ instance: DrawerInstance; level: numbe
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Registered Owner Mobile *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.munim_labelMobile}</label>
           <input
             type="tel"
             required
@@ -745,10 +742,11 @@ const InviteCompanyDrawerForm: React.FC<{ instance: DrawerInstance; level: numbe
 /* -------------------------------------------------------------------------- */
 const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [selectedKarigarId, setSelectedKarigarId] = useState(instance.payload?.karigarId || '');
-  const [startDate, setStartDate] = useState(instance.payload?.startDate || '2026-08-01');
-  const [endDate, setEndDate] = useState(instance.payload?.endDate || '2026-08-15');
+  const [startDate, setStartDate] = useState(instance.payload?.startDate || '2026-09-01');
+  const [endDate, setEndDate] = useState(instance.payload?.endDate || '2026-09-15');
   const [deductions, setDeductions] = useState<number>(0);
   const [deductionReason, setDeductionReason] = useState('');
   const [calculating, setCalculating] = useState(false);
@@ -794,8 +792,8 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title="Compute Fortnight Hisab (૧૫ દિવસનો હિસાબ)"
-      subtitle="કારીગર પગાર અને ઉપાડ ગણતરી"
+      title={t.hisab_drawerTitle}
+      subtitle={t.hisab_drawerSubtitle}
       icon={<Calculator className="w-5 h-5 text-slate-700" />}
       size="md"
       footer={
@@ -805,7 +803,7 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -814,14 +812,14 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-1.5"
           >
             <Calculator className="w-4 h-4" />
-            <span>{calculating ? 'Calculating...' : 'Compute Hisab'}</span>
+            <span>{calculating ? t.hisab_computing : t.hisab_btnCompute}</span>
           </button>
         </div>
       }
     >
       <div className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Select Karigar *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.uchapat_labelBeneficiary} *</label>
           <select
             value={selectedKarigarId}
             onChange={(e) => setSelectedKarigarId(e.target.value)}
@@ -829,7 +827,7 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
           >
             {karigars.map((k) => (
               <option key={k.id} value={k.id}>
-                {k.name} ({k.wage_type === 'PIECE_RATE' ? 'Piece Rate' : 'Fixed Monthly'})
+                {k.name} ({k.wage_type === 'PIECE_RATE' ? t.karigar_typePieceRate : t.karigar_typeFixedMonthly})
               </option>
             ))}
           </select>
@@ -837,7 +835,7 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Start Date</label>
+            <label className="text-xs text-slate-700 font-medium">{t.hisab_labelStartDate}</label>
             <input
               type="date"
               value={startDate}
@@ -847,7 +845,7 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">End Date</label>
+            <label className="text-xs text-slate-700 font-medium">{t.hisab_labelEndDate}</label>
             <input
               type="date"
               value={endDate}
@@ -858,7 +856,7 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Custom Deductions (દંડ / કાપ ₹)</label>
+          <label className="text-xs text-slate-700 font-medium">{t.hisab_labelCustomDeductions}</label>
           <input
             type="number"
             min="0"
@@ -870,7 +868,7 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 
         {deductions > 0 && (
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Deduction Reason</label>
+            <label className="text-xs text-slate-700 font-medium">{t.hisab_labelDeductionReason}</label>
             <input
               type="text"
               placeholder="e.g. Broken Needle Penalty, Cloth Damage"
@@ -1317,6 +1315,7 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 /* -------------------------------------------------------------------------- */
 const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer, openDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [parties, setParties] = useState<PartyApiItem[]>([]);
   const [selectedPartyId, setSelectedPartyId] = useState('');
   const [traderName, setTraderName] = useState('');
@@ -1454,8 +1453,8 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title="Register Inward Fabric Lot (આવક ચલણ & ડિઝાઇન)"
-      subtitle="સુરત વેપારી પાસેથી મળેલ કાપડ લોટ અને ડિઝાઇન દીઠ ટાંકા/કમિશન એન્ટ્રી"
+      title={t.challan_drawerTitle}
+      subtitle={t.challan_drawerSubtitle}
       icon={<Truck className="w-5 h-5 text-slate-700" />}
       size="xl"
       footer={
@@ -1465,7 +1464,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -1476,7 +1475,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             disabled={submitting}
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
-            {submitting ? 'Registering...' : 'Save Inward Lot'}
+            {submitting ? t.saving : t.challan_saveBtn}
           </button>
         </div>
       }
@@ -1495,7 +1494,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Inward Date *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardDate}</label>
             <input
               type="date"
               required
@@ -1506,7 +1505,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelGstin}</label>
             <input
               type="text"
               placeholder="24BBCDE5678G1Z3"
@@ -1517,7 +1516,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Lot Number / Batch ID *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelLotNo}</label>
             <input
               type="text"
               required
@@ -1530,7 +1529,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Fabric Quality Specification *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelQuality}</label>
             <input
               type="text"
               required
@@ -1542,7 +1541,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Multi-Design Structure</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelMultiDesignToggle}</label>
             <div className="flex items-center gap-2 pt-2">
               <input
                 type="checkbox"
@@ -1552,7 +1551,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                 className="w-4 h-4 text-[#0099B8] rounded border-slate-300"
               />
               <label htmlFor={`multi-design-${instance.id}`} className="text-xs font-medium text-slate-800 cursor-pointer">
-                Multiple Cloths / Designs in this Lot (એક લોટમાં વિવિધ ડિઝાઈન)
+                {t.challan_labelMultiDesignToggle}
               </label>
             </div>
           </div>
@@ -1561,12 +1560,12 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         {!isMultiDesign ? (
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
             <span className="text-2xs font-bold uppercase tracking-wider text-slate-700 block">
-              Design Specifications & Rates (ડિઝાઇન વિગત અને કમિશન દરો)
+              {t.challan_designSpecsTitle}
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Design / Pattern No *</label>
+                <label className="text-xs text-slate-700 font-medium">{t.challan_labelDesignNo}</label>
                 <input
                   type="text"
                   required
@@ -1578,7 +1577,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Stitches / Repeat (ટાંકા) *</label>
+                <label className="text-xs text-slate-700 font-medium">{t.challan_labelStitches}</label>
                 <input
                   type="number"
                   required
@@ -1590,7 +1589,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Jobwork Bill Price (₹ / 1k st)</label>
+                <label className="text-xs text-slate-700 font-medium">{t.challan_labelJobworkPrice}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1603,7 +1602,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Karigar Commission Rate (₹)</label>
+                <label className="text-xs text-slate-700 font-medium">{t.challan_labelKarigarCommission}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1614,22 +1613,22 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Commission Basis</label>
+                <label className="text-xs text-slate-700 font-medium">{t.challan_labelCommissionBasis}</label>
                 <select
                   value={karigarCommissionType}
                   onChange={(e) => setKarigarCommissionType(e.target.value as any)}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900"
                 >
-                  <option value="PER_1K_STITCHES">₹ per 1,000 Stitches</option>
-                  <option value="PER_PIECE">₹ per Piece / Saree</option>
-                  <option value="PER_METER">₹ per Meter</option>
+                  <option value="PER_1K_STITCHES">{t.challan_commPer1k}</option>
+                  <option value="PER_PIECE">{t.challan_commPerPiece}</option>
+                  <option value="PER_METER">{t.challan_commPerMeter}</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-200">
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Than Count (તાકા) *</label>
+                <label className="text-xs text-slate-700 font-medium">{t.challan_labelThanCount}</label>
                 <input
                   type="number"
                   required
@@ -1641,7 +1640,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Inward Meters Length (m) *</label>
+                <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardMeters}</label>
                 <input
                   type="number"
                   required
@@ -1657,7 +1656,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           <div className="p-4 bg-cyan-50/50 border border-cyan-200 rounded-xl space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-2xs font-bold uppercase tracking-wider text-cyan-900">
-                Multi-Design Cloth Breakdown (વિવિધ ડિઝાઈન મુજબ કાપડ)
+                {t.challan_multiDesignBreakdown}
               </span>
               <button
                 type="button"
@@ -1665,7 +1664,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                 className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] flex items-center gap-1 bg-white px-2.5 py-1 rounded-md border border-cyan-200 shadow-2xs"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Add Design Row</span>
+                <span>{t.challan_addDesignRow}</span>
               </button>
             </div>
 
@@ -1673,21 +1672,21 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               {designItems.map((item, idx) => (
                 <div key={idx} className="p-3 bg-white border border-cyan-200 rounded-lg space-y-2 relative">
                   <div className="flex items-center justify-between">
-                    <span className="text-2xs font-bold text-slate-700">Design #{idx + 1}</span>
+                    <span className="text-2xs font-bold text-slate-700">{t.challan_designNumber}{idx + 1}</span>
                     {designItems.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeDesignItem(idx)}
                         className="text-rose-500 hover:text-rose-700 text-2xs font-semibold"
                       >
-                        Remove
+                        {t.challan_remove}
                       </button>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <label className="text-3xs text-slate-500">Design No</label>
+                      <label className="text-3xs text-slate-500">{t.challan_labelDesignNo}</label>
                       <input
                         type="text"
                         value={item.design_no}
@@ -1696,7 +1695,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                       />
                     </div>
                     <div>
-                      <label className="text-3xs text-slate-500">Stitch Count</label>
+                      <label className="text-3xs text-slate-500">{t.challan_labelStitches}</label>
                       <input
                         type="number"
                         value={item.stitch_count}
@@ -1705,7 +1704,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                       />
                     </div>
                     <div>
-                      <label className="text-3xs text-slate-500">Than (તાકા)</label>
+                      <label className="text-3xs text-slate-500">{t.challan_thThans}</label>
                       <input
                         type="number"
                         value={item.than_count}
@@ -1714,7 +1713,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                       />
                     </div>
                     <div>
-                      <label className="text-3xs text-slate-500">Meters (મીટર)</label>
+                      <label className="text-3xs text-slate-500">{t.challan_thMeters}</label>
                       <input
                         type="number"
                         value={item.meters}
@@ -1726,7 +1725,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-100">
                     <div>
-                      <label className="text-3xs text-slate-500">Karigar Commission (₹)</label>
+                      <label className="text-3xs text-slate-500">{t.challan_labelKarigarCommission}</label>
                       <input
                         type="number"
                         step="0.01"
@@ -1736,19 +1735,19 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                       />
                     </div>
                     <div>
-                      <label className="text-3xs text-slate-500">Commission Basis</label>
+                      <label className="text-3xs text-slate-500">{t.challan_labelCommissionBasis}</label>
                       <select
                         value={item.commission_type}
                         onChange={(e) => updateDesignItem(idx, 'commission_type', e.target.value as any)}
                         className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-900"
                       >
-                        <option value="PER_1K_STITCHES">₹ / 1k Stitches</option>
-                        <option value="PER_PIECE">₹ / Saree</option>
-                        <option value="PER_METER">₹ / Meter</option>
+                        <option value="PER_1K_STITCHES">{t.challan_commPer1k}</option>
+                        <option value="PER_PIECE">{t.challan_commPerPiece}</option>
+                        <option value="PER_METER">{t.challan_commPerMeter}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-3xs text-slate-500">Bill Price / 1k (₹)</label>
+                      <label className="text-3xs text-slate-500">{t.challan_labelJobworkPrice}</label>
                       <input
                         type="number"
                         step="0.01"
@@ -1763,7 +1762,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             </div>
 
             <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-cyan-200 text-xs font-mono">
-              <span className="text-slate-600 font-sans font-medium">Lot Totals:</span>
+              <span className="text-slate-600 font-sans font-medium">{t.challan_lotTotals}</span>
               <span className="font-bold text-slate-900">
                 {designItems.reduce((acc, i) => acc + Number(i.than_count || 0), 0)} Than • {designItems.reduce((acc, i) => acc + Number(i.meters || 0), 0)} Meters
               </span>
@@ -1772,7 +1771,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         )}
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Transport / Delivery Notes</label>
+          <label className="text-xs text-slate-700 font-medium">{t.challan_notes}</label>
           <textarea
             rows={2}
             placeholder="e.g. Delivered via Sachin GIDC tempo transport"
@@ -1791,6 +1790,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 /* -------------------------------------------------------------------------- */
 const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [parties, setParties] = useState<PartyApiItem[]>([]);
   const [selectedPartyId, setSelectedPartyId] = useState('');
   const [challans, setChallans] = useState<InwardChallanApiItem[]>([]);
@@ -1913,8 +1913,8 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title="Create SAC 9988 Outward Bill (ઇનવોઇસ બનાવો)"
-      subtitle="સુરત એમ્બ્રોઇડરી જ્હોબવર્ક 5% GST ટેક્સ બિલ (બહુવિધ લોટ બિલિંગ)"
+      title={t.invoice_drawerTitle}
+      subtitle={t.invoice_drawerSubtitle}
       icon={<FileText className="w-5 h-5 text-slate-700" />}
       size="xl"
       footer={
@@ -1924,7 +1924,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -1935,7 +1935,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             disabled={submitting}
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
-            {submitting ? 'Generating...' : 'Generate Invoice'}
+            {submitting ? t.saving : t.invoice_btnGenerate}
           </button>
         </div>
       }
@@ -1945,7 +1945,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           selectedPartyId={selectedPartyId}
           partyName={traderName}
           partyGstin={traderGstin}
-          label="Billed Trader / Party Name (બિલ વેપારીનું નામ)"
+          label={t.invoice_labelTrader}
           onSelect={(p) => {
             setSelectedPartyId(p.id || '');
             setTraderName(p.name);
@@ -1955,7 +1955,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
+            <label className="text-xs text-slate-700 font-medium">{t.invoice_labelGstin}</label>
             <input
               type="text"
               placeholder="24BBCDE5678G1Z3"
@@ -1966,7 +1966,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Invoice Issue Date *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.invoice_labelDate}</label>
             <input
               type="date"
               required
@@ -1982,10 +1982,10 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <span className="text-2xs font-bold uppercase tracking-wider text-cyan-900 block">
-                Multi-Lot Consolidation (એક બિલમાં બહુવિધ લોટ જોડો)
+                {t.invoice_multiLotTitle}
               </span>
               <span className="text-3xs text-slate-500">
-                Found {partyLots.length} available lots for {traderName || 'Party'}
+                {t.invoice_availableLots}: {partyLots.length} • {traderName || 'Party'}
               </span>
             </div>
             {partyLots.length > 0 && (
@@ -1994,7 +1994,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                 onClick={handleSelectAllLots}
                 className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] bg-white px-2.5 py-1 rounded-md border border-cyan-200 shadow-2xs"
               >
-                {selectedLotIds.length === partyLots.length ? 'Deselect All' : 'Select All Lots'}
+                {selectedLotIds.length === partyLots.length ? t.invoice_deselectAllLots : t.invoice_selectAllLots}
               </button>
             )}
           </div>
@@ -2035,14 +2035,14 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             </div>
           ) : (
             <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs text-slate-500 text-center">
-              No active inward lots found for this party. Direct billing meters will apply.
+              {t.invoice_noActiveLots}
             </div>
           )}
 
           {selectedLotIds.length > 0 && (
             <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-cyan-200 text-xs font-mono">
               <span className="text-slate-600 font-sans font-medium">
-                Consolidated {selectedLotIds.length} Lots:
+                {t.invoice_consolidatedLots} {selectedLotIds.length}:
               </span>
               <span className="font-bold text-[#0099B8] text-sm">
                 {billedMeters} Meters Total
@@ -2053,12 +2053,12 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
         <div className="p-4 bg-slate-100 rounded-xl border border-slate-200 space-y-3">
           <span className="text-2xs font-bold uppercase tracking-wider text-slate-600 block">
-            SAC 9988 Jobwork Calculation Breakdown
+            {t.invoice_calcBreakdownTitle}
           </span>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Billed Quantity (Meters) *</label>
+              <label className="text-xs text-slate-700 font-medium">{t.invoice_billedQuantityMeters}</label>
               <input
                 type="number"
                 required
@@ -2070,7 +2070,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Stitch Rate (₹ / Meter) *</label>
+              <label className="text-xs text-slate-700 font-medium">{t.invoice_stitchRatePerMeter}</label>
               <input
                 type="number"
                 required
@@ -2085,15 +2085,15 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
           <div className="space-y-1 pt-2 border-t border-slate-200 text-xs">
             <div className="flex items-center justify-between text-slate-600">
-              <span>Taxable Value (SAC 9988):</span>
+              <span>{t.invoice_taxableValue}</span>
               <span className="font-mono font-semibold text-slate-900">{formatINR(taxableAmount)}</span>
             </div>
             <div className="flex items-center justify-between text-slate-600">
-              <span>GST (CGST 2.5% + SGST 2.5%):</span>
+              <span>{t.invoice_gstSplit}</span>
               <span className="font-mono font-semibold text-slate-900">{formatINR(gstAmount)}</span>
             </div>
             <div className="flex items-center justify-between font-bold text-slate-900 pt-1 border-t border-slate-300">
-              <span>NET PAYABLE INVOICE TOTAL:</span>
+              <span>{t.invoice_netPayable}</span>
               <span className="font-mono text-emerald-700 text-sm">{formatINR(netAmount)}</span>
             </div>
           </div>
@@ -2108,6 +2108,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 /* -------------------------------------------------------------------------- */
 const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = ({ instance, level }) => {
   const { closeDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const editingItem = instance.payload?.party as PartyApiItem | undefined;
 
   const [name, setName] = useState(editingItem?.name || '');
@@ -2182,8 +2183,8 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
       isOpen={true}
       onClose={closeDrawer}
       level={level}
-      title={editingItem ? 'Edit Trader / Party (વેપારી સુધારો)' : 'Add New Trader / Party (નવી પાર્ટી ઉમેરો)'}
-      subtitle="ટેક્સટાઇલ જોબવર્ક વેપારી, જીએસટી નંબર અને ક્રેડિટ દિવસો"
+      title={editingItem ? t.party_drawerEditTitle : t.party_drawerAddTitle}
+      subtitle={t.party_drawerSubtitle}
       icon={<Briefcase className="w-5 h-5 text-slate-700" />}
       size="md"
       footer={
@@ -2193,7 +2194,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             onClick={closeDrawer}
             className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -2204,7 +2205,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             disabled={submitting}
             className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
           >
-            {submitting ? 'Saving...' : editingItem ? 'Update Party' : 'Register Party'}
+            {submitting ? t.saving : editingItem ? t.party_btnUpdate : t.party_btnRegister}
           </button>
         </div>
       }
@@ -2213,19 +2214,19 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
         {transactionSummary && (
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
             <span className="text-2xs font-bold uppercase text-slate-500 tracking-wider block">
-              Trading Activity Summary (વેપાર હિસાબ સારાંશ)
+              {t.party_activitySummary}
             </span>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
-                <div className="text-2xs text-slate-500">Inward Lots</div>
+                <div className="text-2xs text-slate-500">{t.party_summaryInwardLots}</div>
                 <div className="text-sm font-bold text-slate-900">{transactionSummary.total_challans}</div>
               </div>
               <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
-                <div className="text-2xs text-slate-500">Invoices</div>
+                <div className="text-2xs text-slate-500">{t.party_summaryInvoices}</div>
                 <div className="text-sm font-bold text-slate-900">{transactionSummary.total_invoices}</div>
               </div>
               <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
-                <div className="text-2xs text-slate-500">Billed Total</div>
+                <div className="text-2xs text-slate-500">{t.party_summaryBilledTotal}</div>
                 <div className="text-xs font-bold font-mono text-emerald-700">{formatINR(transactionSummary.total_billed_amount)}</div>
               </div>
             </div>
@@ -2233,7 +2234,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
         )}
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Party / Trader Firm Name (પેઢીનું નામ) *</label>
+          <label className="text-xs text-slate-700 font-medium">{t.party_labelFirmName}</label>
           <input
             type="text"
             required
@@ -2246,7 +2247,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">GSTIN (15 Digits)</label>
+            <label className="text-xs text-slate-700 font-medium">{t.party_labelGstin}</label>
             <input
               type="text"
               maxLength={15}
@@ -2258,7 +2259,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Contact Phone / Mobile</label>
+            <label className="text-xs text-slate-700 font-medium">{t.party_labelPhone}</label>
             <input
               type="tel"
               placeholder="9825198251"
@@ -2271,7 +2272,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Email Address</label>
+            <label className="text-xs text-slate-700 font-medium">{t.party_labelEmail}</label>
             <input
               type="email"
               placeholder="trader@textile.com"
@@ -2282,7 +2283,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">City</label>
+            <label className="text-xs text-slate-700 font-medium">{t.party_labelCity}</label>
             <input
               type="text"
               value={city}
@@ -2293,7 +2294,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Market / Factory Address</label>
+          <label className="text-xs text-slate-700 font-medium">{t.party_labelAddress}</label>
           <textarea
             rows={2}
             placeholder="Plot / Mill / Ring Road Market Shop No..."
@@ -2305,7 +2306,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Payment Credit Terms (Days)</label>
+            <label className="text-xs text-slate-700 font-medium">{t.party_labelCreditTerms}</label>
             <input
               type="number"
               min={0}
@@ -2316,7 +2317,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Opening Balance (₹)</label>
+            <label className="text-xs text-slate-700 font-medium">{t.party_labelOpeningBalance}</label>
             <input
               type="number"
               value={openingBalance}
@@ -2335,7 +2336,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             className="rounded text-[#0099B8] focus:ring-[#0099B8]"
           />
           <label htmlFor={`party-active-${instance.id}`} className="text-xs text-slate-700 font-medium">
-            Active Trader Account (સક્રિય વેપારી)
+            {t.party_labelActiveToggle}
           </label>
         </div>
       </form>

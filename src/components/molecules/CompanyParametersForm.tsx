@@ -15,15 +15,15 @@ export const CompanyParametersForm: React.FC = () => {
   const hiddenSuperAdminCount = companyParameters.filter((p) => p.isSuperAdminOnly).length;
 
   const categories = [
-    { key: 'billing', label: t.catBillingParams || 'Job Work Billing & Tax Parameters', icon: <CreditCard className="w-4 h-4 text-[#0099B8]" /> },
-    { key: 'production', label: t.catProductionParams || 'Shift & Machine Production Parameters', icon: <Cpu className="w-4 h-4 text-emerald-600" /> },
-    { key: 'integration', label: t.catIntegrationParams || 'Tally & External Accounting Sync', icon: <Building className="w-4 h-4 text-purple-600" /> },
-    { key: 'general', label: t.catGeneralParams || 'General & Trader Notifications', icon: <MessageSquare className="w-4 h-4 text-amber-600" /> },
+    { key: 'billing', label: t.config_catBillingParams, icon: <CreditCard className="w-4 h-4 text-[#0099B8]" /> },
+    { key: 'production', label: t.config_catProductionParams, icon: <Cpu className="w-4 h-4 text-emerald-600" /> },
+    { key: 'integration', label: t.config_catIntegrationParams, icon: <Building className="w-4 h-4 text-purple-600" /> },
+    { key: 'general', label: t.config_catGeneralParams, icon: <MessageSquare className="w-4 h-4 text-amber-600" /> },
   ];
 
   const handleValueChange = (key: string, value: any) => {
     updateParameter(key, value);
-    toast.success('Company parameter updated');
+    toast.success(t.config_paramUpdated);
   };
 
   return (
@@ -33,10 +33,10 @@ export const CompanyParametersForm: React.FC = () => {
         <div>
           <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
             <Sliders className="w-5 h-5 text-[#0099B8]" />
-            {t.companyOperationalParams || 'Company Operational Parameters'}
+            {t.config_operationalParamsTitle}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            {t.companyParamsDesc || 'Configure company defaults, stitch rates, shrinkage thresholds, shift durations, and billing policies.'}
+            {t.config_operationalParamsDesc}
           </p>
         </div>
       </div>
@@ -45,9 +45,9 @@ export const CompanyParametersForm: React.FC = () => {
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
         <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
         <div className="text-xs text-amber-900 leading-relaxed">
-          <span className="font-bold">{t.superAdminNoticeTitle || 'SaaS Super Admin Parameters Excluded'}:</span>
+          <span className="font-bold">{t.config_superAdminNoticeTitle}:</span>
           <br />
-          {hiddenSuperAdminCount} {t.superAdminNoticeDesc || 'platform-level system parameters relate strictly to SaaS Super Admin Support and are intentionally hidden from this company configuration drawer.'}
+          {hiddenSuperAdminCount} {t.config_superAdminNoticeDesc}
         </div>
       </div>
 

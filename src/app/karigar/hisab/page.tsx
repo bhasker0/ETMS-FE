@@ -22,8 +22,8 @@ export default function WageHisabPage() {
   const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [selectedKarigarId, setSelectedKarigarId] = useState('');
-  const [startDate, setStartDate] = useState('2026-08-01');
-  const [endDate, setEndDate] = useState('2026-08-15');
+  const [startDate, setStartDate] = useState('2026-09-01');
+  const [endDate, setEndDate] = useState('2026-09-15');
   const [deductions, setDeductions] = useState(0);
   const [deductionReason, setDeductionReason] = useState('');
 
@@ -140,13 +140,13 @@ export default function WageHisabPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Calculator className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.generateFortnightHisab || 'Karigar Fortnightly Wage Settlement'}</span>
+              <span>{t.uchapat_btnFortnightHisab}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.settleHisab || 'Wage Hisab & Settlement'}
+              {t.settleHisab}
             </h1>
             <p className="text-xs text-slate-500">
-              Formula: Net Pay = (Shift Output × Rate) − Uchapat Advances − Deductions
+              {t.hisab_formulaSubtitle}
             </p>
           </div>
 
@@ -155,7 +155,7 @@ export default function WageHisabPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ {t.computeHisab || 'Compute Hisab'}</span>
+            <span>+ {t.hisab_btnCompute}</span>
           </button>
         </div>
 
@@ -163,11 +163,11 @@ export default function WageHisabPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <Calculator className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Karigars: <strong className="font-bold text-slate-900">{karigars.length}</strong></span>
+            <span>{t.navKarigars}: <strong className="font-bold text-slate-900">{karigars.length}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-            <span>{t.customFortnight || 'Settlement Cycle: 15-Day Fortnight'}</span>
+            <span>{t.customFortnight}</span>
           </span>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function WageHisabPage() {
                   {calculationResult.karigar_name}
                 </h2>
                 <div className="text-xs text-slate-500 font-mono">
-                  Period: {calculationResult.startDate} to {calculationResult.endDate} • {calculationResult.total_shifts} Shifts
+                  {t.slip_period} {calculationResult.startDate} {t.slip_to} {calculationResult.endDate} • {calculationResult.total_shifts} {t.shift_shifts}
                 </div>
               </div>
 
@@ -192,7 +192,7 @@ export default function WageHisabPage() {
                   className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
                 >
                   <Calculator className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Re-Calculate</span>
+                  <span>{t.hisab_btnCompute}</span>
                 </button>
 
                 <button
@@ -200,16 +200,16 @@ export default function WageHisabPage() {
                   className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
                 >
                   <Download className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Download PDF</span>
+                  <span>{t.hisab_btnDownloadPdf}</span>
                 </button>
 
                 <button
                   onClick={handleWhatsAppDispatch}
                   className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
-                  title="Send Fortnightly Pay Slip to Karigar on WhatsApp"
+                  title="Send WhatsApp Slip"
                 >
                   <Share2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>WhatsApp Slip</span>
+                  <span>{t.hisab_btnWhatsApp}</span>
                 </button>
 
                 <button
@@ -218,7 +218,7 @@ export default function WageHisabPage() {
                   className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Finalize & Settle</span>
+                  <span>{t.hisab_btnSettle}</span>
                 </button>
               </div>
             </div>
@@ -226,14 +226,14 @@ export default function WageHisabPage() {
             {/* Wage Model & Calculation Basis Banner */}
             <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
               <div className="space-y-1">
-                <span className="text-slate-500 font-semibold uppercase text-2xs">Wage Model & Calculation Basis</span>
+                <span className="text-slate-500 font-semibold uppercase text-2xs">{t.karigar_labelWageStructure}</span>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-slate-900 text-sm">
                     {calculationResult.wage_type === 'FIXED_PLUS_INCENTIVE'
-                      ? 'Fixed Salary + Incentive Commission (હાઇબ્રિડ મોડલ)'
+                      ? t.karigar_typeFixedIncentive
                       : calculationResult.wage_type === 'FIXED_MONTHLY'
-                      ? 'Fixed Monthly Salary (માસિક ફિક્સ પગાર)'
-                      : 'Piece Rate / Design Commission (ટાંકા/મીટર મજૂરી)'}
+                      ? t.karigar_typeFixedMonthly
+                      : t.karigar_typePieceRate}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-2xs font-semibold bg-cyan-100 text-cyan-800">
                     {calculationResult.wage_type}
@@ -241,26 +241,26 @@ export default function WageHisabPage() {
                 </div>
                 <p className="text-slate-600 text-xs">
                   {calculationResult.wage_type === 'FIXED_PLUS_INCENTIVE'
-                    ? `Fortnight Base: ₹${formatNumber(calculationResult.base_salary || 0)} + Incentive above threshold: ₹${formatNumber(calculationResult.incentive_commission || 0)}`
+                    ? `${t.customFortnight}: ₹${formatNumber(calculationResult.base_salary || 0)} + ${t.karigar_labelIncentiveBonusRate}: ₹${formatNumber(calculationResult.incentive_commission || 0)}`
                     : calculationResult.wage_type === 'FIXED_MONTHLY'
-                    ? `Monthly: ₹${formatNumber((calculationResult.base_salary || 0) * 2)} / mo → 15-Day Fortnight Base: ₹${formatNumber(calculationResult.base_salary || 0)}`
-                    : `Calculated per shift from Inward Lot Design specs / Karigar rate`}
+                    ? `${t.karigar_labelMonthlySalary}: ₹${formatNumber((calculationResult.base_salary || 0) * 2)} / ${t.karigar_perMonth}`
+                    : `${t.karigar_typePieceRate}`}
                 </p>
               </div>
 
               <div className="flex items-center gap-3 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 shrink-0">
                 <div className="text-center">
-                  <div className="text-2xs text-slate-500">Meters</div>
+                  <div className="text-2xs text-slate-500">{t.karigar_unitMeters}</div>
                   <div className="font-mono font-bold text-slate-900">{formatNumber(calculationResult.total_meters)} m</div>
                 </div>
                 <div className="w-px h-6 bg-slate-200" />
                 <div className="text-center">
-                  <div className="text-2xs text-slate-500">Total Stitches</div>
+                  <div className="text-2xs text-slate-500">{t.hisab_stitchesCount}</div>
                   <div className="font-mono font-bold text-slate-900">{formatNumber(calculationResult.total_stitches || 0)}</div>
                 </div>
                 <div className="w-px h-6 bg-slate-200" />
                 <div className="text-center">
-                  <div className="text-2xs text-slate-500">Shifts</div>
+                  <div className="text-2xs text-slate-500">{t.shift_shifts}</div>
                   <div className="font-mono font-bold text-slate-900">{calculationResult.total_shifts}</div>
                 </div>
               </div>
@@ -271,15 +271,15 @@ export default function WageHisabPage() {
               <table className="w-full text-left">
                 <tbody className="divide-y divide-slate-100">
                   <tr className="hover:bg-slate-50/80">
-                    <td className="p-3 text-slate-600 font-medium">Total Production Output</td>
+                    <td className="p-3 text-slate-600 font-medium">{t.hisab_metersCount}</td>
                     <td className="p-3 text-right font-mono font-semibold text-slate-900">
-                      {formatNumber(calculationResult.total_meters)} meters ({formatNumber(calculationResult.total_stitches || 0)} stitches)
+                      {formatNumber(calculationResult.total_meters)} {t.karigar_unitMeters} ({formatNumber(calculationResult.total_stitches || 0)} {t.karigar_unitStitches})
                     </td>
                   </tr>
 
                   {calculationResult.base_salary !== undefined && calculationResult.base_salary > 0 && (
                     <tr className="hover:bg-slate-50/80">
-                      <td className="p-3 text-slate-600 font-medium">Fortnight Base Salary (૧૫ દિવસ મૂળ પગાર)</td>
+                      <td className="p-3 text-slate-600 font-medium">{t.karigar_labelMonthlySalary}</td>
                       <td className="p-3 text-right font-mono text-slate-900 font-semibold">
                         {formatINR(calculationResult.base_salary)}
                       </td>
@@ -288,7 +288,7 @@ export default function WageHisabPage() {
 
                   {calculationResult.incentive_commission !== undefined && calculationResult.incentive_commission > 0 && (
                     <tr className="hover:bg-slate-50/80">
-                      <td className="p-3 text-cyan-700 font-medium">Incentive Commission Above Threshold (વધારાનું કમિશન)</td>
+                      <td className="p-3 text-cyan-700 font-medium">{t.karigar_labelIncentiveBonusRate}</td>
                       <td className="p-3 text-right font-mono text-cyan-800 font-bold">
                         + {formatINR(calculationResult.incentive_commission)}
                       </td>
@@ -296,7 +296,7 @@ export default function WageHisabPage() {
                   )}
 
                   <tr className="bg-slate-50/80 font-semibold">
-                    <td className="p-3 text-slate-900">Gross Wages Earned (કુલ મજૂરી)</td>
+                    <td className="p-3 text-slate-900">{t.hisab_grossEarnings}</td>
                     <td className="p-3 text-right font-mono font-bold text-emerald-700 text-sm">
                       {formatINR(calculationResult.gross_earnings)}
                     </td>
@@ -304,7 +304,7 @@ export default function WageHisabPage() {
 
                   <tr className="hover:bg-slate-50/80">
                     <td className="p-3 text-rose-600 font-medium">
-                      Less: Total Uchapat Advances (બાદ: ઉપાડ)
+                      {t.hisab_totalUchapatDeductions}
                     </td>
                     <td className="p-3 text-right font-mono font-bold text-rose-600 text-sm">
                       - {formatINR(calculationResult.total_uchapat_advances)}
@@ -314,7 +314,7 @@ export default function WageHisabPage() {
                   {calculationResult.deductions > 0 && (
                     <tr className="hover:bg-slate-50/80">
                       <td className="p-3 text-slate-600 font-medium">
-                        Less: Deductions ({calculationResult.deduction_reason || 'Damage/Penalty'})
+                        {t.hisab_customDeductions} ({calculationResult.deduction_reason || '-'})
                       </td>
                       <td className="p-3 text-right font-mono font-bold text-rose-600">
                         - {formatINR(calculationResult.deductions)}
@@ -324,7 +324,7 @@ export default function WageHisabPage() {
 
                   <tr className="bg-slate-100 border-t-2 border-slate-300 font-bold">
                     <td className="p-4 text-xs text-slate-900 uppercase">
-                      NET PAYABLE AMOUNT (ચૂકવવાપાત્ર ચોખ્ખો પગાર ₹)
+                      {t.hisab_netPayable} (₹)
                     </td>
                     <td className="p-4 text-right font-mono text-base text-slate-900 font-black">
                       {formatINR(calculationResult.net_payable)}
@@ -338,20 +338,20 @@ export default function WageHisabPage() {
             {calculationResult.shifts && calculationResult.shifts.length > 0 && (
               <div className="bg-white border border-slate-200 rounded-xl overflow-hidden text-xs space-y-2">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 font-bold text-slate-800 flex items-center justify-between">
-                  <span>Shift & Design Production Breakdown (શિફ્ટ અને ડિઝાઇન વાઇઝ વિગત)</span>
-                  <span className="text-2xs font-mono font-normal text-slate-500">{calculationResult.shifts.length} shifts recorded</span>
+                  <span>{t.shift_shiftRecords}</span>
+                  <span className="text-2xs font-mono font-normal text-slate-500">{calculationResult.shifts.length} {t.shift_shifts}</span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead className="bg-slate-100/75 text-slate-700 font-semibold border-b border-slate-200">
                       <tr>
-                        <th className="p-2.5">Date</th>
-                        <th className="p-2.5">Shift / Machine</th>
-                        <th className="p-2.5">Design No</th>
-                        <th className="p-2.5 text-right">Stitches</th>
-                        <th className="p-2.5 text-right">Meters</th>
-                        <th className="p-2.5 text-right">Applied Rate / Basis</th>
-                        <th className="p-2.5 text-right">Shift Earned</th>
+                        <th className="p-2.5">{t.uchapat_thDate}</th>
+                        <th className="p-2.5">{t.shift_thShiftMachine}</th>
+                        <th className="p-2.5">{t.shift_thDesign}</th>
+                        <th className="p-2.5 text-right">{t.shift_thStitches}</th>
+                        <th className="p-2.5 text-right">{t.shift_thMeters}</th>
+                        <th className="p-2.5 text-right">{t.karigar_thRateSalary}</th>
+                        <th className="p-2.5 text-right">{t.shift_thWageEarned}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-mono">
@@ -368,11 +368,21 @@ export default function WageHisabPage() {
                           </td>
                           <td className="p-2.5 text-right text-slate-700">{formatNumber(s.total_stitches)}</td>
                           <td className="p-2.5 text-right text-slate-900 font-semibold">{formatNumber(s.total_meters)} m</td>
-                          <td className="p-2.5 text-right text-slate-500 text-2xs font-sans">
-                            {s.applied_basis || 'Default Rate'}
+                          <td className="p-2.5 text-right text-slate-600 text-2xs font-sans">
+                            <div className="font-medium text-slate-800">{s.applied_basis || 'Default Rate'}</div>
+                            {s.shift_base_salary !== undefined && s.shift_base_salary > 0 && (
+                              <div className="text-3xs text-slate-400 font-mono">
+                                Base: {formatINR(s.shift_base_salary)}
+                              </div>
+                            )}
                           </td>
                           <td className="p-2.5 text-right text-emerald-700 font-bold">
-                            {formatINR(s.shift_earnings || 0)}
+                            <div>{formatINR(s.shift_earnings || 0)}</div>
+                            {s.shift_base_salary !== undefined && s.shift_base_salary > 0 && (
+                              <div className="text-3xs text-slate-500 font-normal font-sans">
+                                Total: {formatINR((s.shift_earnings || 0) + s.shift_base_salary)}
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -386,17 +396,17 @@ export default function WageHisabPage() {
           <div className="bg-slate-50/70 border border-slate-200 border-dashed rounded-xl p-12 text-center text-slate-400 space-y-3">
             <Calculator className="w-8 h-8 text-slate-300 mx-auto" />
             <div className="text-sm font-medium text-slate-600">
-              No active settlement calculated yet.
+              {t.hisab_noCalculationYet}
             </div>
             <p className="text-2xs text-slate-400 max-w-sm mx-auto">
-              Aggregates shift logs, deducts active cash advances, and calculates net payable wages for 15-day fortnight.
+              {t.hisab_formulaSubtitle}
             </p>
             <button
               onClick={handleOpenComputeDrawer}
               className="px-4 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs inline-flex items-center gap-1.5 transition shadow-xs mt-2"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Compute Wage Settlement (નવો હિસાબ)</span>
+              <span>+ {t.hisab_btnCompute}</span>
             </button>
           </div>
         )}

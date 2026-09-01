@@ -116,13 +116,13 @@ export default function ChallansListPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Truck className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.inwardChallanTitle || 'Inward Fabric Delivery Challans'}</span>
+              <span>{t.challan_headerBadge}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.navChallans || 'Inward Lots'} ({challans.length})
+              {t.challan_title} ({challans.length})
             </h1>
             <p className="text-xs text-slate-500">
-              Raw grey fabric lots from Surat traders with shrinkage tracking
+              {t.challan_subtitle}
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export default function ChallansListPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ {t.saveChallan || 'Add Inward Lot'}</span>
+            <span>{t.challan_addNew}</span>
           </button>
         </div>
 
@@ -139,15 +139,15 @@ export default function ChallansListPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <Truck className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Active Lots: <strong className="font-bold text-slate-900">{challans.length} Lots</strong></span>
+            <span>{t.challan_activeChip} <strong className="font-bold text-slate-900">{challans.length}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-900">
-            <span>Total Thans: <strong className="font-bold text-amber-800">{totalTakas} Thans</strong></span>
+            <span>{t.challan_thansChip} <strong className="font-bold text-amber-800">{totalTakas}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-blue-800">
-            <span>Inward Length: <strong className="font-bold text-slate-900">{formatNumber(totalMeters)} m</strong></span>
+            <span>{t.challan_inwardLengthChip} <strong className="font-bold text-slate-900">{formatNumber(totalMeters)} m</strong></span>
           </span>
         </div>
       </div>
@@ -160,7 +160,7 @@ export default function ChallansListPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search by lot number, trader name or fabric quality..."
+              placeholder={t.challan_searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-slate-900"
@@ -189,13 +189,13 @@ export default function ChallansListPage() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
-                <th className="p-3.5">Lot No</th>
-                <th className="p-3.5">Trader (વેપારી)</th>
-                <th className="p-3.5">Fabric Quality</th>
-                <th className="p-3.5 text-right">Thans (તાકા)</th>
-                <th className="p-3.5 text-right">Inward Meters</th>
-                <th className="p-3.5 text-center">Status</th>
-                <th className="p-3.5 text-right">Action</th>
+                <th className="p-3.5">{t.challan_thLotNo}</th>
+                <th className="p-3.5">{t.challan_thTrader}</th>
+                <th className="p-3.5">{t.challan_thQuality}</th>
+                <th className="p-3.5 text-right">{t.challan_thThans}</th>
+                <th className="p-3.5 text-right">{t.challan_thMeters}</th>
+                <th className="p-3.5 text-center">{t.challan_thStatus}</th>
+                <th className="p-3.5 text-right">{t.challan_thAction}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-sans">
@@ -206,7 +206,7 @@ export default function ChallansListPage() {
                   </td>
                   <td className="p-3.5">
                     <div className="font-semibold text-slate-900">{c.trader_name}</div>
-                    <div className="text-2xs text-slate-400 font-mono">{c.trader_gstin || 'Unregistered'}</div>
+                    <div className="text-2xs text-slate-400 font-mono">{c.trader_gstin || t.challan_unregistered}</div>
                   </td>
                   <td className="p-3.5 text-slate-600">{c.fabric_quality}</td>
                   <td className="p-3.5 text-right font-mono text-slate-800">{c.than_count}</td>
@@ -236,14 +236,14 @@ export default function ChallansListPage() {
                       title="Log Fabric Flaws, Defective Meters & Yarn Wastage"
                     >
                       <Scissors className="w-3 h-3 text-amber-600" />
-                      <span>{inspectedLots[c.lot_no] ? `${inspectedLots[c.lot_no].meters}m Defect` : 'Defect Check'}</span>
+                      <span>{inspectedLots[c.lot_no] ? `${inspectedLots[c.lot_no].meters}m ${t.challan_defectLogged}` : t.challan_defectCheck}</span>
                     </button>
 
                     <Link
                       href={`/invoices/new?lot=${c.lot_no}&challanId=${c.id}`}
                       className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md text-2xs font-medium inline-flex items-center gap-1 transition"
                     >
-                      <span>Bill Lot</span>
+                      <span>{t.challan_billLot}</span>
                       <ArrowRight className="w-3 h-3" />
                     </Link>
                   </td>
@@ -253,7 +253,7 @@ export default function ChallansListPage() {
               {filtered.length === 0 && !loading && (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-slate-400">
-                    No inward challans found. Click &quot;+ Add Inward Lot&quot; to register raw fabric.
+                    {t.challan_noChallans}
                   </td>
                 </tr>
               )}
@@ -266,8 +266,8 @@ export default function ChallansListPage() {
       <Drawer
         isOpen={isAddDrawerOpen}
         onClose={() => setIsAddDrawerOpen(false)}
-        title="Register Inward Fabric Lot (આવક ચલણ)"
-        subtitle="સુરત વેપારી પાસેથી મળેલ કાચું કાપડ ચલણ એન્ટ્રી"
+        title={t.challan_drawerTitle}
+        subtitle={t.challan_drawerSubtitle}
         icon={<Truck className="w-5 h-5 text-slate-700" />}
         size="lg"
         footer={
@@ -277,7 +277,7 @@ export default function ChallansListPage() {
               onClick={() => setIsAddDrawerOpen(false)}
               className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
             >
-              Cancel
+              {t.cancel}
             </button>
             <button
               type="button"
@@ -288,14 +288,14 @@ export default function ChallansListPage() {
               disabled={submitting}
               className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
             >
-              {submitting ? 'Registering...' : 'Save Inward Lot'}
+              {submitting ? t.saving : t.challan_saveBtn}
             </button>
           </div>
         }
       >
         <form id="challan-drawer-form" onSubmit={handleCreateChallan} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Trader Firm Name (વેપારીનું નામ) *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelTrader}</label>
             <input
               type="text"
               required
@@ -308,7 +308,7 @@ export default function ChallansListPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
+              <label className="text-xs text-slate-700 font-medium">{t.challan_labelGstin}</label>
               <input
                 type="text"
                 placeholder="24BBCDE5678G1Z3"
@@ -319,7 +319,7 @@ export default function ChallansListPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Lot Number / Batch ID *</label>
+              <label className="text-xs text-slate-700 font-medium">{t.challan_labelLotNo}</label>
               <input
                 type="text"
                 required
@@ -332,7 +332,7 @@ export default function ChallansListPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Than Count (તાકા) *</label>
+              <label className="text-xs text-slate-700 font-medium">{t.challan_labelThanCount}</label>
               <input
                 type="number"
                 required
@@ -344,7 +344,7 @@ export default function ChallansListPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Inward Meters Length (m) *</label>
+              <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardMeters}</label>
               <input
                 type="number"
                 required
@@ -358,7 +358,7 @@ export default function ChallansListPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Fabric Quality Specification *</label>
+              <label className="text-xs text-slate-700 font-medium">{t.challan_labelQuality}</label>
               <input
                 type="text"
                 required
@@ -370,7 +370,7 @@ export default function ChallansListPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Design / Pattern Code</label>
+              <label className="text-xs text-slate-700 font-medium">{t.challan_labelDesignNo}</label>
               <input
                 type="text"
                 placeholder="DSG-108-ZARI"
@@ -382,7 +382,7 @@ export default function ChallansListPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Transport / Delivery Notes</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_notes}</label>
             <textarea
               rows={2}
               placeholder="e.g. Delivered via Sachin GIDC tempo transport"
@@ -401,7 +401,7 @@ export default function ChallansListPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
                 <Scissors className="w-5 h-5 text-amber-600" />
-                <span>Quality Inspection & Defect Deduction • {defectLot.lot_no}</span>
+                <span>{t.challan_defectModalTitle} • {defectLot.lot_no}</span>
               </div>
               <button
                 onClick={() => setDefectLot(null)}
@@ -413,38 +413,38 @@ export default function ChallansListPage() {
 
             <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
               <div className="flex justify-between">
-                <span className="text-slate-500">Trader (વેપારી):</span>
+                <span className="text-slate-500">{t.challan_defectTrader}</span>
                 <span className="font-semibold text-slate-800">{defectLot.trader_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Fabric Quality:</span>
+                <span className="text-slate-500">{t.challan_defectFabricQuality}</span>
                 <span className="font-semibold text-slate-800">{defectLot.fabric_quality}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Total Lot Volume:</span>
-                <span className="font-mono font-bold text-slate-900">{defectLot.inward_meters} meters ({defectLot.than_count} Thans)</span>
+                <span className="text-slate-500">{t.challan_defectLotVolume}</span>
+                <span className="font-mono font-bold text-slate-900">{defectLot.inward_meters} m ({defectLot.than_count} {t.challan_thThans})</span>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div className="space-y-1">
-                <label className="text-slate-700 font-medium">Defect Classification *</label>
+                <label className="text-slate-700 font-medium">{t.challan_defectClassification}</label>
                 <select
                   value={defectType}
                   onChange={(e) => setDefectType(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-amber-600"
                 >
-                  <option value="Weft Cut / Needle Hole">Weft Cut / Needle Hole (કાપડમાં કાણું / કટ)</option>
-                  <option value="Oil & Grease Stains">Oil & Grease Stains (ઓઇલ / ગ્રીસના ડાઘ)</option>
-                  <option value="Metallic Yarn Breakage">Metallic Yarn Breakage (ઝરી / દોરા તૂટ)</option>
-                  <option value="Shade & Color Variation">Shade & Color Variation (કલર શેડ ફેરફાર)</option>
-                  <option value="Shrinkage & Width Shortage">Shrinkage & Width Shortage (પનો ઓછો હોવો)</option>
+                  <option value="Weft Cut / Needle Hole">{t.challan_defectOptWeftCut}</option>
+                  <option value="Oil & Grease Stains">{t.challan_defectOptOilStains}</option>
+                  <option value="Metallic Yarn Breakage">{t.challan_defectOptYarnBreak}</option>
+                  <option value="Shade & Color Variation">{t.challan_defectOptShadeVar}</option>
+                  <option value="Shrinkage & Width Shortage">{t.challan_defectOptShrinkage}</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-slate-700 font-medium">Defective Meters *</label>
+                  <label className="text-slate-700 font-medium">{t.challan_defectMeters}</label>
                   <input
                     type="number"
                     min="0.5"
@@ -456,7 +456,7 @@ export default function ChallansListPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-700 font-medium">Debit Rate (₹/m) *</label>
+                  <label className="text-slate-700 font-medium">{t.challan_defectDebitRate}</label>
                   <input
                     type="number"
                     min="1"
@@ -469,12 +469,12 @@ export default function ChallansListPage() {
               </div>
 
               <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between font-mono">
-                <span className="text-xs font-medium text-rose-800">Recommended Debit Deduction:</span>
+                <span className="text-xs font-medium text-rose-800">{t.challan_defectRecommendedDeduction}</span>
                 <span className="text-sm font-bold text-rose-700">₹{(defectMeters * deductionRate).toFixed(2)}</span>
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-700 font-medium">Inspection Notes & Mending Route</label>
+                <label className="text-slate-700 font-medium">{t.challan_defectNotes}</label>
                 <input
                   type="text"
                   placeholder="e.g. Sent 2 thans for manual mending before embroidery"
@@ -491,7 +491,7 @@ export default function ChallansListPage() {
                 onClick={() => setDefectLot(null)}
                 className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 type="button"
@@ -507,7 +507,7 @@ export default function ChallansListPage() {
                 className="flex-2 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Apply Debit Note Deduction</span>
+                <span>{t.challan_defectApplyBtn}</span>
               </button>
             </div>
           </div>

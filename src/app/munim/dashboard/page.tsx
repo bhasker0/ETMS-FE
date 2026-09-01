@@ -182,13 +182,13 @@ export default function MunimDashboardPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.munimPortalTitle || 'Multi-Tenant CA Portal'}</span>
+              <span>{t.munim_portalTitle}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.munimTitle || 'Munim & Accountant Hub'}
+              {t.munim_title}
             </h1>
             <p className="text-xs text-slate-500">
-              Multi-factory consolidated daybook, shift ledger analysis & automated Tally ERP 9 / Prime XML bridge
+              {t.munim_subtitle}
             </p>
           </div>
 
@@ -197,7 +197,7 @@ export default function MunimDashboardPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Send className="w-4 h-4" />
-            <span>+ {t.linkCompany || 'Link New Company'}</span>
+            <span>+ {t.munim_linkCompany}</span>
           </button>
         </div>
 
@@ -205,17 +205,17 @@ export default function MunimDashboardPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <Building2 className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.connectedUnits || 'Connected Units'}: <strong className="font-bold text-slate-900">{approvedCompanies.length}</strong></span>
+            <span>{t.munim_connectedUnits}: <strong className="font-bold text-slate-900">{approvedCompanies.length}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
             <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Aggregate Sales: <strong className="font-bold text-emerald-700">{formatINR(daybook?.total_invoices_amount || 0)}</strong></span>
+            <span>{t.munim_aggregateSales} <strong className="font-bold text-emerald-700">{formatINR(daybook?.total_invoices_amount || 0)}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-xs text-rose-800">
             <Wallet className="w-3.5 h-3.5 text-rose-600" />
-            <span>{t.unsettledAdvance || 'Unsettled Advances'}: <strong className="font-bold text-rose-700">{formatINR(daybook?.total_uchapat_outstanding || 0)}</strong></span>
+            <span>{t.munim_unsettledAdvances} <strong className="font-bold text-rose-700">{formatINR(daybook?.total_uchapat_outstanding || 0)}</strong></span>
           </span>
         </div>
       </div>
@@ -228,17 +228,17 @@ export default function MunimDashboardPage() {
             <div className="flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Tally Prime / ERP 9 Direct XML Export
+                {t.munim_tallyXmlTitle}
               </h2>
             </div>
             <span className="text-2xs text-slate-500 font-mono">
-              Active Scope: {activeCompany?.name || 'All Connected Firms'}
+              {t.munim_activeScope} {activeCompany?.name || t.munim_allConnectedFirms}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">From Date</label>
+              <label className="text-xs text-slate-700 font-medium">{t.munim_fromDate}</label>
               <input
                 type="date"
                 value={startDate}
@@ -248,7 +248,7 @@ export default function MunimDashboardPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">To Date</label>
+              <label className="text-xs text-slate-700 font-medium">{t.munim_toDate}</label>
               <input
                 type="date"
                 value={endDate}
@@ -266,7 +266,7 @@ export default function MunimDashboardPage() {
                 className="w-4 h-4 text-slate-900 border-slate-300 rounded"
               />
               <label htmlFor="unsynced-only" className="text-xs text-slate-700 cursor-pointer">
-                Only Unsynced Invoices
+                {t.munim_onlyUnsynced}
               </label>
             </div>
 
@@ -277,7 +277,7 @@ export default function MunimDashboardPage() {
                 className="w-1/2 py-2 px-3 bg-emerald-700 hover:bg-emerald-600 text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>{exporting ? '...' : 'Tally XML'}</span>
+                <span>{exporting ? '...' : t.munim_btnTallyXml}</span>
               </button>
 
               <button
@@ -286,7 +286,7 @@ export default function MunimDashboardPage() {
                 title="Export native GSTN JSON return for direct upload to gst.gov.in"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>GSTR-1 JSON</span>
+                <span>{t.munim_btnGstr1Json}</span>
               </button>
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function MunimDashboardPage() {
           {/* Approved Clients */}
           <div className="lg:col-span-2 space-y-3">
             <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Connected Embroidery Units ({approvedCompanies.length})
+              {t.munim_connectedUnitsTitle} ({approvedCompanies.length})
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -316,12 +316,12 @@ export default function MunimDashboardPage() {
                       <div>
                         <h3 className="font-bold text-sm">{c.name}</h3>
                         <p className={`text-2xs font-mono mt-0.5 ${isCurrent ? 'text-slate-300' : 'text-slate-500'}`}>
-                          GSTIN: {c.gstin || 'Unregistered'}
+                          GSTIN: {c.gstin || t.munim_unregistered}
                         </p>
                       </div>
                       {isCurrent && (
                         <span className="px-2 py-0.5 rounded text-2xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                          Active Scope
+                          {t.munim_activeScopeBadge}
                         </span>
                       )}
                     </div>
@@ -335,7 +335,7 @@ export default function MunimDashboardPage() {
                           onClick={() => switchCompany(c.id)}
                           className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-2xs font-semibold transition"
                         >
-                          Switch Scope
+                          {t.munim_btnSwitchScope}
                         </button>
                       )}
                     </div>
@@ -345,7 +345,7 @@ export default function MunimDashboardPage() {
 
               {approvedCompanies.length === 0 && (
                 <div className="p-8 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-xl sm:col-span-2 text-xs">
-                  No factories connected yet. Click &quot;+ Invite Company&quot; to link clients.
+                  {t.munim_noFactoriesConnected}
                 </div>
               )}
             </div>
@@ -354,7 +354,7 @@ export default function MunimDashboardPage() {
           {/* Pending Requests */}
           <div className="space-y-3">
             <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Pending Link Requests ({myRequests.filter((r) => r.status === 'PENDING').length + companyRequests.filter((r) => r.status === 'PENDING').length})
+              {t.munim_pendingRequestsTitle} ({myRequests.filter((r) => r.status === 'PENDING').length + companyRequests.filter((r) => r.status === 'PENDING').length})
             </h2>
 
             {/* 1. Requests relevant to logged-in user as Accountant / Munim */}
@@ -376,13 +376,13 @@ export default function MunimDashboardPage() {
                               : 'text-amber-600 bg-amber-50 border-amber-200'
                           }`}
                         >
-                          {isSentByMe ? 'Request Sent (Pending Approval)' : 'Company Invitation'}
+                          {isSentByMe ? t.munim_requestSentPending : t.munim_companyInvitation}
                         </span>
                         <h3 className="font-semibold text-xs text-slate-900 mt-1.5">
-                          {req.company?.name || req.company_name || 'Client Factory'}
+                          {req.company?.name || req.company_name || t.munim_clientFactory}
                         </h3>
                         <div className="text-2xs font-mono text-slate-500 mt-0.5">
-                          GSTIN: {req.company?.gstin || req.company_gstin || 'Unregistered'}
+                          GSTIN: {req.company?.gstin || req.company_gstin || t.munim_unregistered}
                         </div>
                         {req.request_notes && (
                           <p className="text-2xs text-slate-600 mt-1 italic">&ldquo;{req.request_notes}&rdquo;</p>
@@ -396,7 +396,7 @@ export default function MunimDashboardPage() {
                           onClick={() => handleRespond(req.id, 'REVOKE')}
                           className="flex-1 py-1.5 bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-2xs font-semibold rounded-lg transition"
                         >
-                          Withdraw Request
+                          {t.munim_btnWithdrawRequest}
                         </button>
                       ) : (
                         <>
@@ -404,13 +404,13 @@ export default function MunimDashboardPage() {
                             onClick={() => handleRespond(req.id, 'ACCEPT')}
                             className="flex-1 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white text-2xs font-semibold rounded-lg transition shadow-xs"
                           >
-                            Accept Access
+                            {t.munim_btnAcceptAccess}
                           </button>
                           <button
                             onClick={() => handleRespond(req.id, 'REJECT')}
                             className="flex-1 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-2xs font-semibold rounded-lg transition"
                           >
-                            Decline
+                            {t.munim_btnDecline}
                           </button>
                         </>
                       )}
@@ -438,10 +438,10 @@ export default function MunimDashboardPage() {
                               : 'text-sky-600 bg-sky-50 border-sky-200'
                           }`}
                         >
-                          {isSentByCompany ? 'Invitation Sent (Pending Acceptance)' : 'Accountant Requested Access'}
+                          {isSentByCompany ? t.munim_invitationSentPending : t.munim_accountantRequestedAccess}
                         </span>
                         <h3 className="font-semibold text-xs text-slate-900 mt-1.5">
-                          {req.munimUser?.full_name || req.munim_name || 'Accountant / CA'}
+                          {req.munimUser?.full_name || req.munim_name || t.munim_accountantCa}
                         </h3>
                         <div className="text-2xs font-mono text-slate-500 mt-0.5">
                           Mobile: {req.munimUser?.mobile || req.munim_mobile || 'N/A'}
@@ -458,7 +458,7 @@ export default function MunimDashboardPage() {
                           onClick={() => handleRespond(req.id, 'REVOKE')}
                           className="flex-1 py-1.5 bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-2xs font-semibold rounded-lg transition"
                         >
-                          Cancel Invitation
+                          {t.munim_btnCancelInvitation}
                         </button>
                       ) : (
                         <>
@@ -466,13 +466,13 @@ export default function MunimDashboardPage() {
                             onClick={() => handleRespond(req.id, 'ACCEPT')}
                             className="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-2xs font-semibold rounded-lg transition shadow-xs"
                           >
-                            Grant Access
+                            {t.munim_btnGrantAccess}
                           </button>
                           <button
                             onClick={() => handleRespond(req.id, 'REJECT')}
                             className="flex-1 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-2xs font-semibold rounded-lg transition"
                           >
-                            Reject
+                            {t.munim_btnReject}
                           </button>
                         </>
                       )}
@@ -484,7 +484,7 @@ export default function MunimDashboardPage() {
             {myRequests.filter((r) => r.status === 'PENDING').length === 0 &&
               companyRequests.filter((r) => r.status === 'PENDING').length === 0 && (
                 <div className="p-6 text-center text-slate-400 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                  No pending link requests.
+                  {t.munim_noPendingRequests}
                 </div>
               )}
           </div>

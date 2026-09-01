@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { offlineStore } from '@/lib/offline-store';
 import { MOCK_INVOICES } from '@/lib/mock-data';
 import { InvoiceSAC9988 } from '@/lib/types';
@@ -23,6 +24,7 @@ export default function InvoiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { activeCompany } = useAuth();
+  const { t } = useI18n();
 
   const currentCompany = {
     name: activeCompany?.name || 'Company Name',
@@ -47,7 +49,7 @@ export default function InvoiceDetailPage() {
   if (!invoice) {
     return (
       <div className="p-8 text-center text-slate-400">
-        ઇનવોઇસ લોડ થઈ રહ્યું છે...
+        {t.invoice_loading}
       </div>
     );
   }
@@ -69,14 +71,13 @@ export default function InvoiceDetailPage() {
 📊 *GST (5%):* ₹${(invoice.cgstAmount + invoice.sgstAmount + (invoice.igstAmount || 0)).toFixed(2)}
 💵 *TOTAL AMOUNT:* ₹${invoice.totalAmount.toFixed(2)}
 --------------------------------
-UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
-જય શ્રી કૃષ્ણ 🙏`;
+UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}`;
 
   const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(messageText)}`;
 
   const handleOpenWhatsApp = () => {
     window.open(waUrl, '_blank');
-    toast.success('WhatsApp ચેટ ઓપન થઈ!');
+    toast.success(t.invoice_waChatOpened);
   };
 
   const handlePrint = () => {
@@ -85,7 +86,7 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
 
   const handleCopyText = () => {
     navigator.clipboard.writeText(messageText);
-    toast.success('ઇનવોઇસ સમરી કોપી થઈ ગઈ!');
+    toast.success(t.invoice_summaryCopied);
   };
 
   return (
@@ -111,11 +112,11 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
                     : 'bg-rose-500/20 text-rose-400'
                 }`}
               >
-                {invoice.paymentStatus === 'paid' ? 'ચુકવાઈ ગયું (PAID)' : 'બાકી (UNPAID)'}
+                {invoice.paymentStatus === 'paid' ? t.invoice_statusPaid : t.invoice_statusUnpaid}
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              વેપારી: <strong>{invoice.traderName}</strong> • {invoice.lotNumber}
+              {t.invoice_traderLabel} <strong>{invoice.traderName}</strong> • {invoice.lotNumber}
             </p>
           </div>
         </div>
@@ -133,7 +134,7 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
               }`}
             >
               <FileCheck className="w-3.5 h-3.5" />
-              <span>A4 ટેક્સ ઇનવોઇસ</span>
+              <span>{t.invoice_formatA4}</span>
             </button>
             <button
               onClick={() => setPrintFormat('thermal')}
@@ -144,7 +145,7 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
               }`}
             >
               <Receipt className="w-3.5 h-3.5" />
-              <span>૩-ઇંચ થર્મલ સ્લિપ</span>
+              <span>{t.invoice_formatThermal}</span>
             </button>
           </div>
 
@@ -153,7 +154,7 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
             className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-lg transition"
           >
             <Share2 className="w-4 h-4" />
-            <span>WhatsApp પર મોકલો</span>
+            <span>{t.invoice_btnSendWhatsApp}</span>
           </button>
 
           <button
@@ -161,7 +162,7 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
             className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold rounded-xl text-xs sm:text-sm flex items-center gap-1.5 shadow-lg transition"
           >
             <Printer className="w-4 h-4" />
-            <span>પ્રિન્ટ કરો</span>
+            <span>{t.invoice_btnPrint}</span>
           </button>
         </div>
       </div>
@@ -171,7 +172,7 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
         <div className="flex items-center gap-2 text-slate-300 truncate">
           <Smartphone className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="truncate font-mono">
-            WhatsApp લિંક: wa.me/{waPhone}?text={invoice.invoiceNumber}...
+            {t.invoice_waLink} wa.me/{waPhone}?text={invoice.invoiceNumber}...
           </span>
         </div>
         <button
@@ -179,7 +180,7 @@ UPI Pay: ${currentCompany.upiVpa || 'Contact us for payment details'}
           className="px-3 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 rounded-lg font-bold text-2xs flex items-center gap-1 shrink-0"
         >
           <Copy className="w-3 h-3" />
-          <span>કોપી ટેક્સ્ટ</span>
+          <span>{t.invoice_btnCopyText}</span>
         </button>
       </div>
 

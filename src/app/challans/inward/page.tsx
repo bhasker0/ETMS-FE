@@ -6,6 +6,7 @@ import { InwardChallansApi, CreateInwardChallanDto } from '@/lib/api/challans';
 import { PartiesApi, PartyApiItem } from '@/lib/api/parties';
 import { useAppDrawer } from '@/lib/app-drawer-context';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import {
   Truck,
   Save,
@@ -19,6 +20,7 @@ export default function InwardChallanFormPage() {
   const router = useRouter();
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
 
   const [parties, setParties] = useState<PartyApiItem[]>([]);
   const [traderName, setTraderName] = useState('');
@@ -103,10 +105,10 @@ export default function InwardChallanFormPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Truck className="w-3.5 h-3.5 text-slate-400" />
-              <span>આવક કાપડ ચલણ • Inward Delivery Challan</span>
+              <span>{t.challan_headerBadge}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Register Inward Fabric Lot (આવક ચલણ)
+              {t.challan_inwardPageTitle}
             </h1>
           </div>
         </div>
@@ -117,7 +119,7 @@ export default function InwardChallanFormPage() {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="text-2xs font-semibold text-slate-500 uppercase tracking-wider">
-              Select Registered Trader / Party (વેપારી પસંદ કરો)
+              {t.challan_selectRegisteredTrader}
             </label>
             <button
               type="button"
@@ -131,7 +133,7 @@ export default function InwardChallanFormPage() {
               className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] inline-flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>+ Add New Party</span>
+              <span>{t.party_addNew}</span>
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -157,7 +159,7 @@ export default function InwardChallanFormPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Trader Name (વેપારી પેઢી) *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelTrader}</label>
             <input
               type="text"
               required
@@ -169,7 +171,7 @@ export default function InwardChallanFormPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Inward Date *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardDate}</label>
             <input
               type="date"
               required
@@ -180,7 +182,7 @@ export default function InwardChallanFormPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelGstin}</label>
             <input
               type="text"
               value={traderGstin}
@@ -190,7 +192,7 @@ export default function InwardChallanFormPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Lot Number (લોટ નં.) *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelLotNo}</label>
             <input
               type="text"
               required
@@ -202,7 +204,7 @@ export default function InwardChallanFormPage() {
         </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Than / Taka Count (તાકા) *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelThanCount}</label>
             <input
               type="number"
               required
@@ -214,7 +216,7 @@ export default function InwardChallanFormPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Inward Gray Meters *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardMeters}</label>
             <input
               type="number"
               required
@@ -228,7 +230,7 @@ export default function InwardChallanFormPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Fabric Quality (કાપડ ક્વોલિટી)</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelQuality}</label>
             <select
               value={fabricQuality}
               onChange={(e) => setFabricQuality(e.target.value)}
@@ -243,7 +245,7 @@ export default function InwardChallanFormPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Design / Program Code</label>
+            <label className="text-xs text-slate-700 font-medium">{t.challan_labelDesignNo}</label>
             <input
               type="text"
               placeholder="e.g. DSG-108, BUTTA-22"
@@ -255,7 +257,7 @@ export default function InwardChallanFormPage() {
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">Notes / Transport Details</label>
+          <label className="text-xs text-slate-700 font-medium">{t.challan_notes}</label>
           <input
             type="text"
             value={notes}
@@ -271,7 +273,7 @@ export default function InwardChallanFormPage() {
             className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-medium rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4" />
-            <span>{submitting ? 'Saving...' : 'Save Inward Challan (આવક નોંધો)'}</span>
+            <span>{submitting ? t.saving : t.challan_saveBtn}</span>
           </button>
         </div>
       </form>

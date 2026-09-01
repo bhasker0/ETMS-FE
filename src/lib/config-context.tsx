@@ -87,11 +87,11 @@ export const SYSTEM_MODULES: SystemModule[] = [
 ];
 
 export const PERMISSION_ACTIONS: { action: PermissionAction; label: string; labelGu: string; color: string }[] = [
-  { action: 'view', label: 'View', labelGu: 'જુઓ (View)', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  { action: 'create', label: 'Create', labelGu: 'ઉમેરો (Create)', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  { action: 'edit', label: 'Edit', labelGu: 'એડિટ (Edit)', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  { action: 'delete', label: 'Delete', labelGu: 'ડિલીટ (Delete)', color: 'bg-rose-50 text-rose-700 border-rose-200' },
-  { action: 'manage', label: 'Manage (Settings)', labelGu: 'મેનેજ (સેટિંગ્સ)', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+  { action: 'view', label: 'View', labelGu: 'જુઓ', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  { action: 'create', label: 'Create', labelGu: 'ઉમેરો', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+  { action: 'edit', label: 'Edit', labelGu: 'એડિટ', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  { action: 'delete', label: 'Delete', labelGu: 'ડિલીટ', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+  { action: 'manage', label: 'Manage', labelGu: 'મેનેજ', color: 'bg-purple-50 text-purple-700 border-purple-200' },
 ];
 
 export type RolePermissionsMap = Record<string, PermissionAction[]>;

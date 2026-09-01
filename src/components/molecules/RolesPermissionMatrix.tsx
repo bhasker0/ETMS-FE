@@ -11,9 +11,11 @@ import {
 } from '@/lib/config-context';
 import { ShieldCheck, Plus, Check, Trash2, Edit3, Lock, Info, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const RolesPermissionMatrix: React.FC = () => {
   const { roles, addRole, updateRole, deleteRole } = useConfig();
+  const { t, language } = useI18n();
   const [selectedRole, setSelectedRole] = useState<CustomRole | null>(roles[0] || null);
   const [isEditing, setIsEditing] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -119,19 +121,18 @@ export const RolesPermissionMatrix: React.FC = () => {
           updated[m.id] = ['view'];
         }
       } else if (presetType === 'operator') {
-        if (m.id === 'shift_logs') {
+        if (['shift_logs', 'uchapat'].includes(m.id)) {
           updated[m.id] = ['view', 'create'];
         } else {
           updated[m.id] = ['view'];
         }
-      } else {
-        // view_only
+      } else if (presetType === 'view_only') {
         updated[m.id] = ['view'];
       }
     });
 
     setPermissionsMap(updated);
-    toast.info(`Applied ${presetType.toUpperCase()} preset permissions`);
+    toast.success('Applied permission preset');
   };
 
   const handleSave = () => {
@@ -144,11 +145,11 @@ export const RolesPermissionMatrix: React.FC = () => {
       addRole({
         name: roleName,
         nameGu: roleNameGu || roleName,
-        code: roleCode || roleName.toUpperCase().replace(/\s+/g, '_'),
-        description: description || 'Custom role created for company staff',
+        code: roleCode || roleName.toUpperCase().replace(/\s+/g, '_').slice(0, 15),
+        description: description || 'Custom embroidery factory role',
         permissions: permissionsMap,
       });
-      toast.success('Custom Role created successfully');
+      toast.success('Custom role created successfully');
     } else if (selectedRole) {
       updateRole(selectedRole.id, {
         name: roleName,
@@ -156,7 +157,7 @@ export const RolesPermissionMatrix: React.FC = () => {
         description,
         permissions: permissionsMap,
       });
-      toast.success('Custom Role updated successfully');
+      toast.success('Role and permissions updated');
     }
 
     setIsEditing(false);
@@ -169,7 +170,7 @@ export const RolesPermissionMatrix: React.FC = () => {
         <div>
           <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#0099B8]" />
-            Custom Roles & Module Permissions Matrix
+            {t.config_menuRoleManagement}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
             Configure action privileges (<code className="text-[#0099B8] font-mono">view</code>, <code className="text-[#0099B8] font-mono">create</code>, <code className="text-[#0099B8] font-mono">edit</code>, <code className="text-[#0099B8] font-mono">delete</code>, <code className="text-purple-600 font-mono font-bold">manage</code>) for each system module.
@@ -180,7 +181,7 @@ export const RolesPermissionMatrix: React.FC = () => {
           className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>Create Custom Role</span>
+          <span>{t.matrix_createNewRole}</span>
         </button>
       </div>
 
@@ -199,11 +200,12 @@ export const RolesPermissionMatrix: React.FC = () => {
         {/* Role List Selection Sidebar */}
         <div className="lg:col-span-4 space-y-2">
           <div className="text-2xs font-bold uppercase tracking-wider text-slate-400 px-1">
-            Company Roles ({roles.length})
+            {t.matrix_companyRoles} ({roles.length})
           </div>
           <div className="space-y-2">
             {roles.map((r) => {
               const isSelected = (selectedRole?.id === r.id && !isCreatingNew) || (isEditing && selectedRole?.id === r.id);
+              const displayName = language === 'gu' && r.nameGu ? r.nameGu : r.name;
               return (
                 <div
                   key={r.id}
@@ -217,14 +219,13 @@ export const RolesPermissionMatrix: React.FC = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <span>{r.name}</span>
+                        <span>{displayName}</span>
                         {r.isSystem && (
                           <span className="text-3xs bg-slate-100 text-slate-500 font-mono px-1.5 py-0.5 rounded border border-slate-200">
-                            System
+                            {t.matrix_systemRoleBadge}
                           </span>
                         )}
                       </div>
-                      <div className="text-2xs text-[#0099B8] font-medium mt-0.5">{r.nameGu}</div>
                       <p className="text-2xs text-slate-500 mt-1 line-clamp-2">{r.description}</p>
                     </div>
                     {isSelected && <Check className="w-4 h-4 text-[#0099B8] shrink-0" />}
@@ -233,7 +234,7 @@ export const RolesPermissionMatrix: React.FC = () => {
                   <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-3xs text-slate-400">
                     <span className="font-mono">{r.code}</span>
                     <span>
-                      {Object.values(r.permissions).reduce((acc, curr) => acc + curr.length, 0)} Active Actions
+                      {Object.values(r.permissions).reduce((acc, curr) => acc + curr.length, 0)} {t.matrix_activeActions}
                     </span>
                   </div>
                 </div>
@@ -249,10 +250,10 @@ export const RolesPermissionMatrix: React.FC = () => {
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h4 className="font-bold text-slate-900 text-sm">
-                    {isCreatingNew ? 'Create New Custom Role' : `Edit Role: ${roleName}`}
+                    {isCreatingNew ? t.matrix_createNewRole : `${t.matrix_editRole}: ${roleName}`}
                   </h4>
                   <span className="text-2xs text-slate-500">
-                    Set granular module privileges & manage controls
+                    {t.matrix_setGranularPrivileges}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -260,22 +261,22 @@ export const RolesPermissionMatrix: React.FC = () => {
                     onClick={() => setIsEditing(false)}
                     className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition"
                   >
-                    Cancel
+                    {t.cancel}
                   </button>
                   <button
                     onClick={handleSave}
                     className="px-4 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white text-xs font-bold rounded-lg transition shadow-xs"
                   >
-                    Save Role & Matrix
+                    {t.matrix_saveRoleAndMatrix}
                   </button>
                 </div>
               </div>
 
               {/* Role Details Input */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block text-2xs font-semibold text-slate-700 mb-1">
-                    Role Name (English)
+                    {t.matrix_roleNameEn}
                   </label>
                   <input
                     type="text"
@@ -285,21 +286,9 @@ export const RolesPermissionMatrix: React.FC = () => {
                     className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-[#0099B8] outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-2xs font-semibold text-slate-700 mb-1">
-                    Role Name (Gujarati / Local)
-                  </label>
-                  <input
-                    type="text"
-                    value={roleNameGu}
-                    onChange={(e) => setRoleNameGu(e.target.value)}
-                    placeholder="e.g. શિફ્ટ ઇનચાર્જ"
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-[#0099B8] outline-none font-medium"
-                  />
-                </div>
                 <div className="sm:col-span-2">
                   <label className="block text-2xs font-semibold text-slate-700 mb-1">
-                    Description & Role Scope
+                    {t.matrix_roleDescription}
                   </label>
                   <input
                     type="text"
@@ -315,7 +304,7 @@ export const RolesPermissionMatrix: React.FC = () => {
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                 <div className="text-2xs font-bold text-slate-600 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#0099B8]" />
-                  <span>Quick Permission Presets:</span>
+                  <span>{t.matrix_quickPresets}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   <button
@@ -323,35 +312,35 @@ export const RolesPermissionMatrix: React.FC = () => {
                     onClick={() => applyPreset('admin')}
                     className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
                   >
-                    Full Admin Access
+                    {t.matrix_presetAdmin}
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('supervisor')}
                     className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
                   >
-                    Floor Supervisor Preset
+                    {t.matrix_presetSupervisor}
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('munim')}
                     className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
                   >
-                    Munim & Accounts Preset
+                    {t.matrix_presetMunim}
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('operator')}
                     className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
                   >
-                    Karigar / Operator Preset
+                    {t.matrix_presetOperator}
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('view_only')}
                     className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
                   >
-                    Read Only Auditor Preset
+                    {t.matrix_presetAuditor}
                   </button>
                 </div>
               </div>
@@ -363,26 +352,39 @@ export const RolesPermissionMatrix: React.FC = () => {
                     <thead>
                       <tr className="bg-slate-100 border-b border-slate-200 text-slate-700">
                         <th className="p-3 font-bold w-1/3">
-                          System Module
+                          {t.matrix_systemModule}
                         </th>
-                        {PERMISSION_ACTIONS.map((pa) => (
-                          <th key={pa.action} className="p-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => toggleActionColumn(pa.action)}
-                              className="group flex flex-col items-center mx-auto hover:opacity-80 transition"
-                            >
-                              <span
-                                className={`px-2 py-0.5 rounded text-3xs font-bold border ${pa.color}`}
+                        {PERMISSION_ACTIONS.map((pa) => {
+                          const actionLabel =
+                            pa.action === 'view'
+                              ? t.matrix_actionView
+                              : pa.action === 'create'
+                              ? t.matrix_actionCreate
+                              : pa.action === 'edit'
+                              ? t.matrix_actionEdit
+                              : pa.action === 'delete'
+                              ? t.matrix_actionDelete
+                              : t.matrix_actionManage;
+
+                          return (
+                            <th key={pa.action} className="p-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => toggleActionColumn(pa.action)}
+                                className="group flex flex-col items-center mx-auto hover:opacity-80 transition"
                               >
-                                {pa.label}
-                              </span>
-                              <span className="text-3xs text-slate-400 mt-0.5 group-hover:underline">
-                                (Toggle All)
-                              </span>
-                            </button>
-                          </th>
-                        ))}
+                                <span
+                                  className={`px-2 py-0.5 rounded text-3xs font-bold border ${pa.color}`}
+                                >
+                                  {actionLabel}
+                                </span>
+                                <span className="text-3xs text-slate-400 mt-0.5 group-hover:underline">
+                                  {t.matrix_toggleAll}
+                                </span>
+                              </button>
+                            </th>
+                          );
+                        })}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
@@ -391,6 +393,7 @@ export const RolesPermissionMatrix: React.FC = () => {
                         const isFullySelected = PERMISSION_ACTIONS.every((pa) =>
                           activeActions.includes(pa.action)
                         );
+                        const moduleTitle = language === 'gu' && m.nameGu ? m.nameGu : m.name;
 
                         return (
                           <tr key={m.id} className="hover:bg-slate-50/80 transition">
@@ -410,10 +413,7 @@ export const RolesPermissionMatrix: React.FC = () => {
                                 </button>
                                 <div>
                                   <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                                    <span>{m.name}</span>
-                                    <span className="text-2xs font-normal text-[#0099B8]">
-                                      ({m.nameGu})
-                                    </span>
+                                    <span>{moduleTitle}</span>
                                   </div>
                                   <p className="text-3xs text-slate-400">{m.description}</p>
                                 </div>
@@ -454,8 +454,9 @@ export const RolesPermissionMatrix: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-slate-900 text-base">{selectedRole.name}</h4>
-                      <span className="text-xs text-[#0099B8] font-semibold">({selectedRole.nameGu})</span>
+                      <h4 className="font-bold text-slate-900 text-base">
+                        {language === 'gu' && selectedRole.nameGu ? selectedRole.nameGu : selectedRole.name}
+                      </h4>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">{selectedRole.description}</p>
                   </div>
@@ -474,7 +475,7 @@ export const RolesPermissionMatrix: React.FC = () => {
                       className="px-3.5 py-1.5 bg-[#0099B8]/10 hover:bg-[#0099B8]/20 text-[#0099B8] text-xs font-bold rounded-lg flex items-center gap-1.5 transition"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      <span>Edit Matrix</span>
+                      <span>{t.matrix_editMatrix}</span>
                     </button>
                   </div>
                 </div>
@@ -482,24 +483,35 @@ export const RolesPermissionMatrix: React.FC = () => {
                 {/* Read-Only Summary Table */}
                 <div className="space-y-2">
                   <div className="text-2xs font-bold uppercase tracking-wider text-slate-400">
-                    Active Module Permissions Matrix
+                    {t.matrix_activePermissionsMatrix}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {SYSTEM_MODULES.map((m) => {
                       const actions = selectedRole.permissions[m.id] || [];
+                      const moduleName = language === 'gu' && m.nameGu ? m.nameGu : m.name;
                       return (
                         <div
                           key={m.id}
                           className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2"
                         >
                           <div>
-                            <div className="font-bold text-slate-900 text-xs">{m.name}</div>
-                            <div className="text-3xs text-slate-400">{m.nameGu}</div>
+                            <div className="font-bold text-slate-900 text-xs">{moduleName}</div>
                           </div>
                           <div className="flex flex-wrap gap-1 justify-end max-w-[160px]">
                             {actions.length > 0 ? (
                               actions.map((act) => {
                                 const pa = PERMISSION_ACTIONS.find((p) => p.action === act);
+                                const actLabel =
+                                  act === 'view'
+                                    ? t.matrix_actionView
+                                    : act === 'create'
+                                    ? t.matrix_actionCreate
+                                    : act === 'edit'
+                                    ? t.matrix_actionEdit
+                                    : act === 'delete'
+                                    ? t.matrix_actionDelete
+                                    : t.matrix_actionManage;
+
                                 return (
                                   <span
                                     key={act}
@@ -507,12 +519,12 @@ export const RolesPermissionMatrix: React.FC = () => {
                                       pa?.color || 'bg-slate-100 text-slate-700'
                                     }`}
                                   >
-                                    {act}
+                                    {actLabel}
                                   </span>
                                 );
                               })
                             ) : (
-                              <span className="text-3xs text-slate-400 italic">No access</span>
+                              <span className="text-3xs text-slate-400 italic">{t.matrix_noAccess}</span>
                             )}
                           </div>
                         </div>

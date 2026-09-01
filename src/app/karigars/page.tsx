@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { useI18n } from '@/lib/i18n';
 import { formatINR } from '@/lib/utils';
 import {
   Users,
@@ -18,6 +19,7 @@ import { toast } from 'sonner';
 export default function KarigarsMasterPage() {
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
+  const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,13 +70,13 @@ export default function KarigarsMasterPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <Users className="w-3.5 h-3.5 text-slate-400" />
-              <span>કારીગર માસ્ટર • Karigar & Operator Master</span>
+              <span>{t.navKarigars}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Karigars ({karigars.length})
+              {t.navKarigars} ({karigars.length})
             </h1>
             <p className="text-xs text-slate-500">
-              Wage rates, piece-rate per meter, monthly fixed salary & production incentive models
+              {t.karigar_directorySubtitle}
             </p>
           </div>
 
@@ -83,7 +85,7 @@ export default function KarigarsMasterPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Add New Karigar</span>
+            <span>{t.karigar_addNew}</span>
           </button>
         </div>
 
@@ -91,20 +93,20 @@ export default function KarigarsMasterPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <Users className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>Active: <strong className="font-bold text-slate-900">{activeCount} Karigars</strong></span>
+            <span>{t.karigar_activeChip} <strong className="font-bold text-slate-900">{activeCount} {t.navKarigars}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Piece Rate: <strong className="font-bold text-slate-900">{pieceRateCount}</strong></span>
+            <span>{t.karigar_pieceRateChip} <strong className="font-bold text-slate-900">{pieceRateCount}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-700">
-            <span>Fixed Monthly: <strong className="font-bold text-slate-900">{fixedSalaryCount}</strong></span>
+            <span>{t.karigar_fixedMonthlyChip} <strong className="font-bold text-slate-900">{fixedSalaryCount}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-xs text-cyan-900">
-            <span>Fixed + Incentive: <strong className="font-bold text-cyan-900">{hybridCount}</strong></span>
+            <span>{t.karigar_fixedIncentiveChip} <strong className="font-bold text-cyan-900">{hybridCount}</strong></span>
           </span>
         </div>
       </div>
@@ -116,7 +118,7 @@ export default function KarigarsMasterPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search karigar by name or mobile..."
+            placeholder={t.karigar_searchPlaceholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400"
@@ -128,12 +130,12 @@ export default function KarigarsMasterPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-200">
               <tr>
-                <th className="p-3.5">Name</th>
-                <th className="p-3.5">Mobile</th>
-                <th className="p-3.5">Wage Type</th>
-                <th className="p-3.5">Rate / Salary & Incentive</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
+                <th className="p-3.5">{t.karigar_thName}</th>
+                <th className="p-3.5">{t.karigar_thMobile}</th>
+                <th className="p-3.5">{t.karigar_thWageType}</th>
+                <th className="p-3.5">{t.karigar_thRateSalary}</th>
+                <th className="p-3.5">{t.karigar_thStatus}</th>
+                <th className="p-3.5 text-right">{t.karigar_thActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -152,24 +154,24 @@ export default function KarigarsMasterPage() {
                       }`}
                     >
                       {k.wage_type === 'PIECE_RATE'
-                        ? 'Piece Rate (ટાંકા દર)'
+                        ? t.karigar_typePieceRate
                         : k.wage_type === 'FIXED_PLUS_INCENTIVE'
-                        ? 'Fixed + Incentive (કમિશન)'
-                        : 'Monthly Fixed'}
+                        ? t.karigar_typeFixedIncentive
+                        : t.karigar_typeFixedMonthly}
                     </span>
                   </td>
                   <td className="p-3.5 font-mono text-slate-800">
                     {k.wage_type === 'PIECE_RATE' && (
-                      <span className="font-medium">₹{k.default_rate_per_meter || 0.18} / meter</span>
+                      <span className="font-medium">₹{k.default_rate_per_meter || 0.18} / {t.karigar_perMeter}</span>
                     )}
                     {k.wage_type === 'FIXED_MONTHLY' && (
-                      <span className="font-medium">{formatINR(k.default_monthly_salary || 18000)} / mo</span>
+                      <span className="font-medium">{formatINR(k.default_monthly_salary || 18000)} / {t.karigar_perMonth}</span>
                     )}
                     {k.wage_type === 'FIXED_PLUS_INCENTIVE' && (
                       <div>
-                        <div className="font-bold text-slate-900">{formatINR(k.default_monthly_salary || 18000)} / mo</div>
+                        <div className="font-bold text-slate-900">{formatINR(k.default_monthly_salary || 18000)} / {t.karigar_perMonth}</div>
                         <div className="text-3xs text-emerald-700 font-semibold">
-                          + ₹{k.incentive_rate || 0.25} / {k.incentive_rate_type === 'PER_PIECE' ? 'piece' : k.incentive_rate_type === 'PER_METER' ? 'm' : '1k st.'} above {(k.incentive_threshold_value || 100000).toLocaleString()}
+                          + ₹{k.incentive_rate || 0.25} / {k.incentive_rate_type === 'PER_PIECE' ? t.karigar_perPiece : k.incentive_rate_type === 'PER_METER' ? t.karigar_perMeterUnit : t.karigar_per1kStitches} {t.karigar_aboveThreshold} {(k.incentive_threshold_value || 100000).toLocaleString()}
                         </div>
                       </div>
                     )}
@@ -177,10 +179,10 @@ export default function KarigarsMasterPage() {
                   <td className="p-3.5">
                     {k.is_active ? (
                       <span className="inline-flex items-center gap-1 text-emerald-600 font-medium text-2xs">
-                        <CheckCircle2 className="w-3 h-3" /> Active
+                        <CheckCircle2 className="w-3 h-3" /> {t.karigar_activeStatus}
                       </span>
                     ) : (
-                      <span className="text-slate-400 text-2xs">Inactive</span>
+                      <span className="text-slate-400 text-2xs">{t.karigar_inactiveStatus}</span>
                     )}
                   </td>
                   <td className="p-3.5 text-right space-x-1">
@@ -205,7 +207,7 @@ export default function KarigarsMasterPage() {
               {filtered.length === 0 && !loading && (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-slate-400">
-                    No karigars found. Click &quot;+ Add New Karigar&quot; to register operators.
+                    {t.karigar_noKarigars}
                   </td>
                 </tr>
               )}
@@ -216,3 +218,4 @@ export default function KarigarsMasterPage() {
     </div>
   );
 }
+

@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import { useConfig } from '@/lib/config-context';
 import { UserCheck, ShieldCheck, Users, Check, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const UserAccessManager: React.FC = () => {
   const { userAccessList, roles, permissionGroups, updateUserAccess } = useConfig();
+  const { t, language } = useI18n();
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
@@ -30,10 +32,10 @@ export const UserAccessManager: React.FC = () => {
         <div>
           <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
             <UserCheck className="w-5 h-5 text-[#0099B8]" />
-            Company Staff & User Access Control
+            {t.access_title}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Assign custom roles and permission groups to company users, supervisors, accountants, and operators.
+            {t.access_subtitle}
           </p>
         </div>
       </div>
@@ -44,11 +46,11 @@ export const UserAccessManager: React.FC = () => {
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-100 border-b border-slate-200 text-slate-700">
-                <th className="p-3.5 font-bold">User Name & Contact</th>
-                <th className="p-3.5 font-bold">Designation</th>
-                <th className="p-3.5 font-bold">Assigned Custom Role</th>
-                <th className="p-3.5 font-bold">Permission Group</th>
-                <th className="p-3.5 font-bold text-right">Actions</th>
+                <th className="p-3.5 font-bold">{t.access_thUser}</th>
+                <th className="p-3.5 font-bold">{t.access_thDesignation}</th>
+                <th className="p-3.5 font-bold">{t.access_thRole}</th>
+                <th className="p-3.5 font-bold">{t.access_thGroup}</th>
+                <th className="p-3.5 font-bold text-right">{t.actions || 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -56,6 +58,8 @@ export const UserAccessManager: React.FC = () => {
                 const isEditing = editingUserId === u.userId;
                 const activeRole = roles.find((r) => r.id === u.roleId);
                 const activeGroup = permissionGroups.find((g) => g.id === u.permissionGroupId);
+                const roleLabel = activeRole ? (language === 'gu' && activeRole.nameGu ? activeRole.nameGu : activeRole.name) : u.roleId;
+                const groupLabel = activeGroup ? (language === 'gu' && activeGroup.nameGu ? activeGroup.nameGu : activeGroup.name) : null;
 
                 return (
                   <tr key={u.userId} className="hover:bg-slate-50 transition">
@@ -73,16 +77,19 @@ export const UserAccessManager: React.FC = () => {
                           onChange={(e) => setSelectedRoleId(e.target.value)}
                           className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-[#0099B8] outline-none"
                         >
-                          {roles.map((r) => (
-                            <option key={r.id} value={r.id}>
-                              {r.name} ({r.code})
-                            </option>
-                          ))}
+                          {roles.map((r) => {
+                            const rName = language === 'gu' && r.nameGu ? r.nameGu : r.name;
+                            return (
+                              <option key={r.id} value={r.id}>
+                                {rName} ({r.code})
+                              </option>
+                            );
+                          })}
                         </select>
                       ) : (
                         <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-2xs font-bold inline-flex items-center gap-1">
                           <ShieldCheck className="w-3 h-3" />
-                          <span>{activeRole?.name || u.roleId}</span>
+                          <span>{roleLabel}</span>
                         </span>
                       )}
                     </td>
@@ -95,20 +102,23 @@ export const UserAccessManager: React.FC = () => {
                           onChange={(e) => setSelectedGroupId(e.target.value)}
                           className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-[#0099B8] outline-none"
                         >
-                          <option value="">None (Individual Role Permissions Only)</option>
-                          {permissionGroups.map((g) => (
-                            <option key={g.id} value={g.id}>
-                              {g.name}
-                            </option>
-                          ))}
+                          <option value="">{t.access_noneGroup}</option>
+                          {permissionGroups.map((g) => {
+                            const gName = language === 'gu' && g.nameGu ? g.nameGu : g.name;
+                            return (
+                              <option key={g.id} value={g.id}>
+                                {gName}
+                              </option>
+                            );
+                          })}
                         </select>
                       ) : activeGroup ? (
                         <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-md text-2xs font-bold inline-flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          <span>{activeGroup.name}</span>
+                          <span>{groupLabel}</span>
                         </span>
                       ) : (
-                        <span className="text-2xs text-slate-400 italic">No Group</span>
+                        <span className="text-2xs text-slate-400 italic">{t.access_noneGroup}</span>
                       )}
                     </td>
 
@@ -120,13 +130,13 @@ export const UserAccessManager: React.FC = () => {
                             onClick={() => setEditingUserId(null)}
                             className="px-2.5 py-1 text-2xs text-slate-600 hover:bg-slate-100 rounded transition"
                           >
-                            Cancel
+                            {t.cancel}
                           </button>
                           <button
                             onClick={() => handleSave(u.userId)}
                             className="px-3 py-1 bg-[#0099B8] text-white text-2xs font-bold rounded shadow-xs transition"
                           >
-                            Save
+                            {t.save}
                           </button>
                         </div>
                       ) : (
@@ -134,7 +144,7 @@ export const UserAccessManager: React.FC = () => {
                           onClick={() => startEdit(u)}
                           className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-2xs font-semibold rounded transition"
                         >
-                          Edit Access
+                          {t.access_btnEditAccess}
                         </button>
                       )}
                     </td>

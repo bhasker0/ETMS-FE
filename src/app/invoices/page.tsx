@@ -197,13 +197,13 @@ export default function InvoicesListPage() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <FileText className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.invoiceTitle || 'SAC 9988 Jobwork Tax Invoices'}</span>
+              <span>{t.invoice_headerBadge}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.navInvoices || 'Outward Invoices'} ({invoices.length})
+              {t.invoice_title} ({invoices.length})
             </h1>
             <p className="text-xs text-slate-500">
-              Stitch billing for {activeCompany?.name} with instant Puppeteer PDF export
+              {t.invoice_subtitle} • {activeCompany?.name}
             </p>
           </div>
 
@@ -212,7 +212,7 @@ export default function InvoicesListPage() {
             className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>+ {t.createInvoiceBtn || 'Create SAC 9988 Invoice'}</span>
+            <span>{t.invoice_btnCreate}</span>
           </button>
         </div>
 
@@ -220,15 +220,15 @@ export default function InvoicesListPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
             <FileText className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.total || 'Total Invoices'}: <strong className="font-bold text-slate-900">{invoices.length}</strong></span>
+            <span>{t.invoice_chipTotal} <strong className="font-bold text-slate-900">{invoices.length}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-            <span>{t.totalBilled || 'Billed Volume'}: <strong className="font-bold text-emerald-700">{formatINR(totalInvoicedSum)}</strong></span>
+            <span>{t.invoice_chipVolume} <strong className="font-bold text-emerald-700">{formatINR(totalInvoicedSum)}</strong></span>
           </span>
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-xs text-purple-800">
-            <span>{t.sacCodeLabel || 'GST Rate: SAC 9988 (5%)'}</span>
+            <span>{t.invoice_chipGstRate}</span>
           </span>
         </div>
       </div>
@@ -241,7 +241,7 @@ export default function InvoicesListPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search invoice number, trader name or GSTIN..."
+              placeholder={t.invoice_searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-slate-900"
@@ -254,14 +254,14 @@ export default function InvoicesListPage() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
-                <th className="p-3.5">Invoice No</th>
-                <th className="p-3.5">Date</th>
-                <th className="p-3.5">Trader (વેપારી)</th>
-                <th className="p-3.5 text-right">Stitches & Heads</th>
-                <th className="p-3.5 text-right">Taxable Gross</th>
-                <th className="p-3.5 text-right">Total Net (₹)</th>
-                <th className="p-3.5 text-center">Tally Status</th>
-                <th className="p-3.5 text-right">Actions</th>
+                <th className="p-3.5">{t.invoice_thInvoiceNo}</th>
+                <th className="p-3.5">{t.invoice_thDate}</th>
+                <th className="p-3.5">{t.invoice_thTrader}</th>
+                <th className="p-3.5 text-right">{t.invoice_thStitchesHeads}</th>
+                <th className="p-3.5 text-right">{t.invoice_thGross}</th>
+                <th className="p-3.5 text-right">{t.invoice_thNet}</th>
+                <th className="p-3.5 text-center">{t.invoice_thTallyStatus}</th>
+                <th className="p-3.5 text-right">{t.invoice_thActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-sans">
@@ -288,11 +288,11 @@ export default function InvoicesListPage() {
                   <td className="p-3.5 text-center">
                     {inv.is_tally_synced ? (
                       <span className="px-2 py-0.5 rounded-full text-2xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Synced
+                        {t.invoice_tallySynced}
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-full text-2xs font-medium bg-slate-100 text-slate-500">
-                        Pending
+                        {t.invoice_tallyPending}
                       </span>
                     )}
                   </td>
@@ -303,7 +303,7 @@ export default function InvoicesListPage() {
                       title="Generate Government NIC E-Way Bill JSON"
                     >
                       <Truck className="w-3.5 h-3.5" />
-                      <span>E-Way Bill</span>
+                      <span>{t.invoice_btnEwayBill}</span>
                     </button>
 
                     <button
@@ -312,7 +312,7 @@ export default function InvoicesListPage() {
                       title="Download Official Puppeteer PDF"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>PDF</span>
+                      <span>{t.invoice_btnPdf}</span>
                     </button>
 
                     <a
@@ -324,7 +324,7 @@ export default function InvoicesListPage() {
                       className="p-1.5 hover:bg-emerald-50 text-emerald-700 rounded-md transition inline-flex items-center gap-1 text-2xs font-medium"
                     >
                       <Share2 className="w-3.5 h-3.5" />
-                      <span>WhatsApp</span>
+                      <span>{t.invoice_btnWhatsApp}</span>
                     </a>
                   </td>
                 </tr>
@@ -333,7 +333,7 @@ export default function InvoicesListPage() {
               {filtered.length === 0 && !loading && (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">
-                    No invoices generated yet. Click &quot;+ Create SAC 9988 Invoice&quot; to begin.
+                    {t.invoice_noInvoices}
                   </td>
                 </tr>
               )}
@@ -346,8 +346,8 @@ export default function InvoicesListPage() {
       <Drawer
         isOpen={isAddDrawerOpen}
         onClose={() => setIsAddDrawerOpen(false)}
-        title="Create SAC 9988 Outward Bill (ઇનવોઇસ બનાવો)"
-        subtitle="સુરત એમ્બ્રોઇડરી જ્હોબવર્ક 5% GST ટેક્સ બિલ"
+        title={t.invoice_drawerTitle}
+        subtitle={t.invoice_drawerSubtitle}
         icon={<FileText className="w-5 h-5 text-slate-700" />}
         size="lg"
         footer={
@@ -357,7 +357,7 @@ export default function InvoicesListPage() {
               onClick={() => setIsAddDrawerOpen(false)}
               className="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
             >
-              Cancel
+              {t.cancel}
             </button>
             <button
               type="button"
@@ -368,14 +368,14 @@ export default function InvoicesListPage() {
               disabled={submitting}
               className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
             >
-              {submitting ? 'Generating...' : 'Generate Invoice'}
+              {submitting ? t.saving : t.invoice_btnGenerate}
             </button>
           </div>
         }
       >
         <form id="invoice-drawer-form" onSubmit={handleCreateInvoice} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Billed Trader / Party Name *</label>
+            <label className="text-xs text-slate-700 font-medium">{t.invoice_labelTrader}</label>
             <input
               type="text"
               required
@@ -388,7 +388,7 @@ export default function InvoicesListPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
+              <label className="text-xs text-slate-700 font-medium">{t.invoice_labelGstin}</label>
               <input
                 type="text"
                 placeholder="24BBCDE5678G1Z3"
@@ -399,7 +399,7 @@ export default function InvoicesListPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">Invoice Issue Date *</label>
+              <label className="text-xs text-slate-700 font-medium">{t.invoice_labelDate}</label>
               <input
                 type="date"
                 required
@@ -411,13 +411,13 @@ export default function InvoicesListPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">Link Inward Fabric Lot (Challan)</label>
+            <label className="text-xs text-slate-700 font-medium">{t.invoice_linkLotOptional}</label>
             <select
               value={inwardChallanId}
               onChange={(e) => setInwardChallanId(e.target.value)}
               className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
             >
-              <option value="">-- Direct SAC 9988 Billing --</option>
+              <option value="">{t.invoice_directBilling}</option>
               {challans.map((c) => (
                 <option key={c.id} value={c.id}>
                   Lot #{c.lot_no} • {c.trader_name} ({c.inward_meters}m {c.fabric_quality})
@@ -428,12 +428,12 @@ export default function InvoicesListPage() {
 
           <div className="p-4 bg-slate-100 rounded-xl border border-slate-200 space-y-3">
             <span className="text-2xs font-bold uppercase tracking-wider text-slate-600 block">
-              SAC 9988 Jobwork Calculation Breakdown
+              {t.invoice_calcBreakdownTitle}
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Billed Quantity (Meters) *</label>
+                <label className="text-xs text-slate-700 font-medium">{t.invoice_billedQuantityMeters}</label>
                 <input
                   type="number"
                   required
@@ -445,7 +445,7 @@ export default function InvoicesListPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Stitch Rate (₹ / Meter) *</label>
+                <label className="text-xs text-slate-700 font-medium">{t.invoice_stitchRatePerMeter}</label>
                 <input
                   type="number"
                   required
@@ -460,15 +460,15 @@ export default function InvoicesListPage() {
 
             <div className="space-y-1 pt-2 border-t border-slate-200 text-xs">
               <div className="flex items-center justify-between text-slate-600">
-                <span>Taxable Value (SAC 9988):</span>
+                <span>{t.invoice_taxableValue}</span>
                 <span className="font-mono font-semibold text-slate-900">{formatINR(taxableAmount)}</span>
               </div>
               <div className="flex items-center justify-between text-slate-600">
-                <span>GST (CGST 2.5% + SGST 2.5%):</span>
+                <span>{t.invoice_gstSplit}</span>
                 <span className="font-mono font-semibold text-slate-900">{formatINR(gstAmount)}</span>
               </div>
               <div className="flex items-center justify-between font-bold text-slate-900 pt-1 border-t border-slate-300">
-                <span>NET PAYABLE INVOICE TOTAL:</span>
+                <span>{t.invoice_netPayable}</span>
                 <span className="font-mono text-emerald-700 text-sm">{formatINR(netAmount)}</span>
               </div>
             </div>
@@ -483,7 +483,7 @@ export default function InvoicesListPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2 text-amber-700 font-bold text-sm">
                 <Truck className="w-5 h-5" />
-                <span>NIC E-Way Bill Generator • {selectedEwbInvoice.invoice_no}</span>
+                <span>{t.invoice_ewbModalTitle} • {selectedEwbInvoice.invoice_no}</span>
               </div>
               <button
                 onClick={() => setSelectedEwbInvoice(null)}
@@ -495,22 +495,22 @@ export default function InvoicesListPage() {
 
             <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1">
               <div className="flex justify-between">
-                <span className="text-slate-500">Consignor (GSTIN):</span>
+                <span className="text-slate-500">{t.invoice_ewbConsignor}</span>
                 <span className="font-mono font-bold text-slate-800">{activeCompany?.gstin || '24AAAAA0000A1Z5'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Consignee (Trader):</span>
+                <span className="text-slate-500">{t.invoice_ewbConsignee}</span>
                 <span className="font-semibold text-slate-800">{selectedEwbInvoice.trader_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Invoice Net Amount:</span>
+                <span className="text-slate-500">{t.invoice_ewbNet}</span>
                 <span className="font-mono font-bold text-amber-900">{formatINR(selectedEwbInvoice.net_amount)}</span>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div className="space-y-1">
-                <label className="text-slate-700 font-medium">Vehicle Number (Part-B Transport) *</label>
+                <label className="text-slate-700 font-medium">{t.invoice_ewbVehicleNo}</label>
                 <input
                   type="text"
                   required
@@ -523,7 +523,7 @@ export default function InvoicesListPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-slate-700 font-medium">Transporter GSTIN / ID</label>
+                  <label className="text-slate-700 font-medium">{t.invoice_ewbTransporterId}</label>
                   <input
                     type="text"
                     placeholder="24AAACT1234A1Z1"
@@ -533,7 +533,7 @@ export default function InvoicesListPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-slate-700 font-medium">Approx Distance (KM)</label>
+                  <label className="text-slate-700 font-medium">{t.invoice_ewbDistance}</label>
                   <input
                     type="number"
                     min="1"
@@ -551,7 +551,7 @@ export default function InvoicesListPage() {
                 onClick={() => setSelectedEwbInvoice(null)}
                 className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 type="button"
@@ -559,7 +559,7 @@ export default function InvoicesListPage() {
                 className="flex-2 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Download NIC EWB JSON Payload</span>
+                <span>{t.invoice_ewbDownloadBtn}</span>
               </button>
             </div>
           </div>

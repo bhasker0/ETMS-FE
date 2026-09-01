@@ -38,6 +38,8 @@ export interface WageHisabCalculationResult {
     commission_type?: string;
     applied_basis?: string;
     shift_earnings?: number;
+    shift_base_salary?: number;
+    shift_incentive?: number;
   }>;
   uchapats?: Array<{
     id: string;

@@ -3,6 +3,7 @@
 import React from 'react';
 import { InvoiceSAC9988 } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import { QrCode } from 'lucide-react';
 
@@ -12,6 +13,7 @@ interface InvoicePrintProps {
 
 export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) => {
   const { activeCompany } = useAuth();
+  const { t } = useI18n();
 
   const currentCompany = {
     name: activeCompany?.name || 'Company Name',
@@ -39,13 +41,13 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
 
         <div className="text-right space-y-1">
           <div className="inline-block bg-slate-900 text-white font-extrabold text-xs px-3 py-1 rounded uppercase tracking-wider">
-            TAX INVOICE (ટેક્સ ઇનવોઇસ)
+            {t.print_taxInvoice}
           </div>
           <div className="text-lg font-black text-slate-900 font-mono">
             {invoice.invoiceNumber}
           </div>
           <div className="text-xs text-slate-600">
-            તારીખ / Date: <strong>{invoice.invoiceDate}</strong>
+            {t.print_date} <strong>{invoice.invoiceDate}</strong>
           </div>
         </div>
       </div>
@@ -54,7 +56,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
       <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 text-xs">
         <div>
           <span className="font-bold text-slate-500 uppercase tracking-wider block mb-1">
-            ગ્રાહક / Billed To:
+            {t.print_billedTo}
           </span>
           <div className="font-bold text-sm text-slate-900">{invoice.traderName}</div>
           <div className="text-slate-600">{invoice.traderAddress}</div>
@@ -66,23 +68,23 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
 
         <div className="space-y-1">
           <div className="flex justify-between">
-            <span className="text-slate-600">જોબવર્ક કોડ (SAC Code):</span>
-            <span className="font-bold font-mono text-slate-900">9988 (Textile Embroidery)</span>
+            <span className="text-slate-600">{t.print_sacCodeLabel}</span>
+            <span className="font-bold font-mono text-slate-900">9988</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">લોટ નંબર (Lot No):</span>
+            <span className="text-slate-600">{t.print_lotNo}</span>
             <span className="font-bold text-slate-900">{invoice.lotNumber}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">કાપડ પ્રકાર (Fabric):</span>
+            <span className="text-slate-600">{t.print_fabric}</span>
             <span className="font-bold text-slate-900">{invoice.fabricQuality}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">તાકાની સંખ્યા (Takas):</span>
-            <span className="font-bold text-slate-900">{invoice.numberOfTakas} થાન</span>
+            <span className="text-slate-600">{t.print_takas}</span>
+            <span className="font-bold text-slate-900">{invoice.numberOfTakas} {t.print_thansUnit}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-600">તૈયાર મીટર (Meters):</span>
+            <span className="text-slate-600">{t.print_meters}</span>
             <span className="font-bold text-slate-900">{formatNumber(invoice.meters)} MTR</span>
           </div>
         </div>
@@ -93,21 +95,21 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
         <table className="w-full text-left border-collapse border border-slate-300 text-xs">
           <thead>
             <tr className="bg-slate-100 border-b border-slate-300 font-bold text-slate-800">
-              <th className="p-2 border-r border-slate-300">વિગત / Description</th>
-              <th className="p-2 border-r border-slate-300 text-right">ટાંકા (Stitches)</th>
-              <th className="p-2 border-r border-slate-300 text-right">હેડ (Heads)</th>
-              <th className="p-2 border-r border-slate-300 text-right">ભાવ (Rate/1k St.)</th>
-              <th className="p-2 text-right">મૂળ રકમ (Taxable Value ₹)</th>
+              <th className="p-2 border-r border-slate-300">{t.print_thDescription}</th>
+              <th className="p-2 border-r border-slate-300 text-right">{t.print_thStitches}</th>
+              <th className="p-2 border-r border-slate-300 text-right">{t.print_thHeads}</th>
+              <th className="p-2 border-r border-slate-300 text-right">{t.print_thRate}</th>
+              <th className="p-2 text-right">{t.print_thTaxableValue}</th>
             </tr>
           </thead>
           <tbody>
             <tr className="border-b border-slate-200">
               <td className="p-2.5 border-r border-slate-300">
                 <div className="font-bold text-slate-900">
-                  એમ્બ્રોઇડરી જોબવર્ક પ્રોસેસિંગ (SAC 9988)
+                  {t.print_embroideryProcessing}
                 </div>
                 <div className="text-slate-500 text-2xs">
-                  {invoice.fabricQuality} પર ડિઝાઈન વર્ક ({invoice.lotNumber})
+                  {invoice.fabricQuality} {t.print_designWorkOn} ({invoice.lotNumber})
                 </div>
               </td>
               <td className="p-2.5 border-r border-slate-300 text-right font-mono font-bold">
@@ -135,13 +137,13 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
             <QrCode className="w-16 h-16 text-amber-400" />
           </div>
           <div className="text-xs space-y-0.5">
-            <span className="font-bold text-slate-900 block">UPI થી તાત્કાલિક ચુકવણી કરો:</span>
+            <span className="font-bold text-slate-900 block">{t.print_upiPayInstant}</span>
             <span className="text-2xs text-slate-600 block">Google Pay / PhonePe / Paytm</span>
             <span className="font-mono text-2xs font-bold text-slate-800">
               {currentCompany.upiVpa ? `VPA: ${currentCompany.upiVpa}` : 'UPI not configured'}
             </span>
             <span className="text-2xs text-emerald-700 font-bold block">
-              Scan & Pay ₹{invoice.totalAmount.toFixed(2)}
+              {t.print_scanAndPay} ₹{invoice.totalAmount.toFixed(2)}
             </span>
           </div>
         </div>
@@ -149,7 +151,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
         {/* GST Breakup */}
         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-1.5 font-mono">
           <div className="flex justify-between text-slate-700">
-            <span>ટેક્સેબલ રકમ (Taxable Value):</span>
+            <span>{t.print_taxableAmount}</span>
             <span>{formatINR(invoice.baseAmount)}</span>
           </div>
           {invoice.cgstAmount > 0 && (
@@ -171,7 +173,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
             </div>
           )}
           <div className="border-t-2 border-slate-900 pt-1.5 flex justify-between font-black text-sm text-slate-900 font-sans">
-            <span>કુલ બીલ રકમ (Grand Total ₹):</span>
+            <span>{t.print_grandTotal}</span>
             <span className="text-base text-amber-900 font-mono">
               {formatINR(invoice.totalAmount)}
             </span>
@@ -182,7 +184,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
       {/* Terms & Signatures */}
       <div className="border-t border-slate-300 pt-3 flex justify-between items-end text-2xs text-slate-600">
         <div className="max-w-md space-y-1">
-          <span className="font-bold text-slate-800 uppercase block">શરતો અને નિયમો / Terms:</span>
+          <span className="font-bold text-slate-800 uppercase block">{t.print_termsAndConditions}</span>
           <p>{invoice.termsCondition}</p>
         </div>
 
@@ -191,7 +193,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
             For, {currentCompany.name}
           </span>
           <span className="block border-t border-slate-400 pt-1 font-bold text-slate-900">
-            અધિકૃત સહી / Authorised Signatory
+            {t.print_authorisedSignatory}
           </span>
         </div>
       </div>

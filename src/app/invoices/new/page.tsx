@@ -184,10 +184,10 @@ function NewInvoiceContent() {
           <div>
             <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
               <FileText className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.invoiceTitle || 'GST SAC 9988 Jobwork Invoice Creator'}</span>
+              <span>{t.invoice_headerBadge}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.createInvoiceBtn || 'Create Outward Invoice'}
+              {t.invoice_btnCreate}
             </h1>
           </div>
         </div>
@@ -198,12 +198,12 @@ function NewInvoiceContent() {
           {/* Left: Input Parameters */}
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
             <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">
-              Trader & Stitch Parameters
+              {t.invoice_paramHeader}
             </h2>
 
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Link Inward Lot (Optional)</label>
+                <label className="text-xs text-slate-700 font-medium">{t.invoice_linkLotOptional}</label>
                 <select
                   value={inwardChallanId}
                   onChange={(e) => {
@@ -217,7 +217,7 @@ function NewInvoiceContent() {
                   }}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
                 >
-                  <option value="">-- Direct Billing / Standalone Lot --</option>
+                  <option value="">{t.invoice_directBilling}</option>
                   {challans.map((ch) => (
                     <option key={ch.id} value={ch.id}>
                       {ch.lot_no} • {ch.trader_name} ({ch.than_count} Thans)
@@ -229,7 +229,7 @@ function NewInvoiceContent() {
               {/* Quick Party Picker */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs text-slate-700 font-medium">Select Registered Party (પાર્ટી પસંદ કરો)</label>
+                  <label className="text-xs text-slate-700 font-medium">{t.invoice_selectRegisteredParty}</label>
                   <button
                     type="button"
                     onClick={() =>
@@ -242,7 +242,7 @@ function NewInvoiceContent() {
                     className="text-2xs font-semibold text-[#0099B8] hover:text-[#0E7090] inline-flex items-center gap-1"
                   >
                     <Plus className="w-3 h-3" />
-                    <span>+ Add New Party</span>
+                    <span>{t.party_addNew}</span>
                   </button>
                 </div>
                 <select
@@ -256,7 +256,7 @@ function NewInvoiceContent() {
                   }}
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
                 >
-                  <option value="">-- Choose From Registered Parties --</option>
+                  <option value="">{t.invoice_chooseRegistered}</option>
                   {parties.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} {p.gstin ? `(${p.gstin})` : '(URP)'}
@@ -266,7 +266,7 @@ function NewInvoiceContent() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">Trader Name (વેપારી પેઢી) *</label>
+                <label className="text-xs text-slate-700 font-medium">{t.invoice_labelTrader}</label>
                 <input
                   type="text"
                   required
@@ -278,7 +278,7 @@ function NewInvoiceContent() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-700 font-medium">Trader GSTIN</label>
+                  <label className="text-xs text-slate-700 font-medium">{t.invoice_labelGstin}</label>
                   <input
                     type="text"
                     value={traderGstin}
@@ -288,7 +288,7 @@ function NewInvoiceContent() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-700 font-medium">Invoice Date</label>
+                  <label className="text-xs text-slate-700 font-medium">{t.invoice_labelDate}</label>
                   <input
                     type="date"
                     required
@@ -302,7 +302,7 @@ function NewInvoiceContent() {
               {/* Stitches, Heads, Rate */}
               <div className="grid grid-cols-3 gap-2.5 pt-1">
                 <div className="space-y-1">
-                  <label className="text-2xs text-slate-600 font-semibold uppercase">Total Stitches *</label>
+                  <label className="text-2xs text-slate-600 font-semibold uppercase">{t.invoice_labelTotalStitches}</label>
                   <input
                     type="number"
                     required
@@ -314,7 +314,7 @@ function NewInvoiceContent() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-2xs text-slate-600 font-semibold uppercase">Machine Heads</label>
+                  <label className="text-2xs text-slate-600 font-semibold uppercase">{t.invoice_labelMachineHeads}</label>
                   <input
                     type="number"
                     value={machineHeads}
@@ -324,7 +324,7 @@ function NewInvoiceContent() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-2xs text-slate-600 font-semibold uppercase">Rate / 1k St. (₹)</label>
+                  <label className="text-2xs text-slate-600 font-semibold uppercase">{t.invoice_labelRatePer1k}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -339,7 +339,7 @@ function NewInvoiceContent() {
               {/* Inward vs Outward Meters */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-700 font-medium">Inward Gray Meters</label>
+                  <label className="text-xs text-slate-700 font-medium">{t.invoice_labelInwardMeters}</label>
                   <input
                     type="number"
                     min="1"
@@ -350,7 +350,7 @@ function NewInvoiceContent() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-700 font-medium">Outward Finished Meters</label>
+                  <label className="text-xs text-slate-700 font-medium">{t.invoice_labelOutwardMeters}</label>
                   <input
                     type="number"
                     min="1"
@@ -367,14 +367,14 @@ function NewInvoiceContent() {
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Live Calculation & GST 5% Breakdown
+                {t.invoice_calcBreakdownTitle}
               </h2>
               <span className="text-2xs text-slate-500 font-mono">SAC 9988</span>
             </div>
 
             {/* Formula display */}
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-2xs text-slate-500 font-mono">
-              Gross = (Total Stitches ÷ 1000) × Rate × Machine Heads
+              {t.invoice_calcFormula}
             </div>
 
             {calcResult && (
@@ -385,7 +385,7 @@ function NewInvoiceContent() {
                     <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                     <div>
                       <span className="font-bold block">
-                        Shrinkage Warning: {calcResult.shrinkage_percent}% (&gt;3.0% tolerance)
+                        {t.invoice_shrinkageWarning} {calcResult.shrinkage_percent}% {t.invoice_shrinkageTolerance}
                       </span>
                       <span className="text-2xs text-rose-600">
                         {calcResult.shrinkage_warning || 'High fabric loss deviation detected.'}
@@ -395,37 +395,37 @@ function NewInvoiceContent() {
                 ) : (
                   <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-2xs flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Shrinkage is within standard tolerance ({calcResult.shrinkage_percent}%)</span>
+                    <span>{t.invoice_shrinkageNormal} ({calcResult.shrinkage_percent}%)</span>
                   </div>
                 )}
 
                 {/* Calculation Breakdown */}
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-2 text-xs font-mono">
                   <div className="flex justify-between text-slate-700">
-                    <span>Taxable Gross Amount:</span>
+                    <span>{t.invoice_taxableGross}</span>
                     <span className="font-bold text-slate-900">{formatINR(calcResult.gross_amount)}</span>
                   </div>
 
                   {!calcResult.is_interstate ? (
                     <>
                       <div className="flex justify-between text-slate-500 text-2xs">
-                        <span>CGST @ 2.5%:</span>
+                        <span>{t.invoice_cgst}</span>
                         <span>{formatINR(calcResult.cgst_amount)}</span>
                       </div>
                       <div className="flex justify-between text-slate-500 text-2xs">
-                        <span>SGST @ 2.5%:</span>
+                        <span>{t.invoice_sgst}</span>
                         <span>{formatINR(calcResult.sgst_amount)}</span>
                       </div>
                     </>
                   ) : (
                     <div className="flex justify-between text-slate-500 text-2xs">
-                      <span>IGST @ 5.0% (Inter-state):</span>
+                      <span>{t.invoice_igst}</span>
                       <span>{formatINR(calcResult.igst_amount)}</span>
                     </div>
                   )}
 
                   <div className="border-t border-slate-200 pt-2 flex justify-between font-sans text-sm font-bold text-slate-900">
-                    <span>INVOICE NET TOTAL (₹):</span>
+                    <span>{t.invoice_netTotal}</span>
                     <span className="font-mono text-base font-black text-slate-900">
                       {formatINR(calcResult.net_amount)}
                     </span>
@@ -440,7 +440,7 @@ function NewInvoiceContent() {
               className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-medium rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-2"
             >
               <Save className="w-4 h-4" />
-              <span>{submitting ? 'Generating...' : 'Save SAC 9988 Invoice'}</span>
+              <span>{submitting ? t.saving : t.invoice_btnGenerate}</span>
             </button>
           </div>
         </div>
