@@ -3,66 +3,277 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Brand Theme Palette */
-    --background: 210 40% 98%;           /* #F8FAFC - Base Surface */
-    --foreground: 222 33% 18%;           /* #1E293B - Slate Dark Text */
-    --card: 0 0% 100%;                   /* #FFFFFF - Pure Card Surface */
-    --card-foreground: 222 33% 18%;      /* #1E293B */
-    --popover: 0 0% 100%;                /* #FFFFFF */
-    --popover-foreground: 222 33% 18%;
-    --primary: 190 100% 36%;             /* #0099B8 - Ocean Teal */
-    --primary-foreground: 0 0% 100%;     /* White Text on Primary */
-    --secondary: 195 82% 31%;           /* #0E7090 - Deep Blue */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 96.1%;              /* #F1F5F9 */
-    --muted-foreground: 215 16% 47%;     /* #64748B - Slate Muted */
-    --accent: 27 91% 54%;                /* #F58220 - Warm Orange */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;            /* #EF4444 - Danger Red */
+  :root,
+  [data-theme="light"],
+  .light {
+    /* 5-COLOR PALETTE (STEEL BLUE, PERIWINKLE, ICE CANVAS, POWDER BLUE, SLATE GREY) */
+    --bg-canvas: #eff7ff;
+    --bg-surface: #FFFFFF;
+    --bg-surface-elevated: #cee3f8;
+    --border: #c6c6c6;
+    --border-strong: #336699;
+    --text-main: #336699;
+    --text-muted: #5c768d;
+    --primary: #336699;
+    --primary-foreground: #FFFFFF;
+    --secondary: #cee3f8;
+    --secondary-foreground: #336699;
+    --accent-red: #8A1C14;
+    --accent-green: #1B4D2E;
+    --accent-yellow: #744210;
+    --accent-blue: #336699;
+    --accent-purple: #9494ff;
+    --warning: #744210;
+    --radius: 8px;
+
+    /* Subtle Shadows */
+    --shadow-subtle: 0 1px 2px rgba(51, 102, 153, 0.05);
+    --shadow-card: 0 1px 3px rgba(51, 102, 153, 0.06), 0 1px 2px rgba(51, 102, 153, 0.04);
+    --shadow-modal: 0 12px 28px -4px rgba(51, 102, 153, 0.12), 0 4px 10px -2px rgba(51, 102, 153, 0.06);
+
+    /* Shadcn compatibility bindings */
+    --background: 210 100% 97%;
+    --foreground: 210 50% 40%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 50% 40%;
+    --popover: 210 70% 95%;
+    --popover-foreground: 210 50% 40%;
+    --muted: 210 50% 90%;
+    --muted-foreground: 210 20% 45%;
+    --destructive: 0 74% 31%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;               /* #E2E8F0 - Slate Border */
-    --input: 214 32% 91%;
-    --ring: 190 100% 36%;                /* Ocean Teal Focus Ring */
-    --radius: 0.75rem;
+    --input: 0 0% 78%;
+    --ring: 210 50% 40%;
+  }
+
+  [data-theme="dark"],
+  .dark {
+    /* TINTED STEEL NAVY DARK PALETTE */
+    --bg-canvas: #0e1726;
+    --bg-surface: #19263e;
+    --bg-surface-elevated: #243556;
+    --border: #2e4368;
+    --border-strong: #9494ff;
+    --text-main: #eff7ff;
+    --text-muted: #cee3f8;
+    --primary: #9494ff;
+    --primary-foreground: #0e1726;
+    --secondary: #243556;
+    --secondary-foreground: #eff7ff;
+    --accent-red: #E63946;
+    --accent-green: #2A9D8F;
+    --accent-yellow: #E76F51;
+    --accent-blue: #cee3f8;
+    --accent-purple: #9494ff;
+    --warning: #E76F51;
+    --radius: 8px;
+
+    /* Shadows */
+    --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow-modal: 0 16px 32px rgba(0, 0, 0, 0.6);
+
+    /* Shadcn compatibility bindings */
+    --background: 217 46% 10%;
+    --foreground: 210 100% 97%;
+    --card: 217 42% 17%;
+    --card-foreground: 210 100% 97%;
+    --popover: 217 41% 24%;
+    --popover-foreground: 210 100% 97%;
+    --muted: 217 41% 24%;
+    --muted-foreground: 210 70% 89%;
+    --destructive: 355 78% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --input: 217 38% 30%;
+    --ring: 240 100% 79%;
   }
 }
 
 body {
-  background-color: #F8FAFC;
-  color: #1E293B;
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
 }
 
-/* Subtle scrollbars matching slate palette */
+/* TACTILE HARD SCROLLBARS */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: var(--bg-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 4px;
+  background: var(--border-strong);
+  border-radius: 0px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: var(--primary);
 }
 
-/* Standard UI Tabular alignment using primary font (Inter) */
+/* CRT ANALOG SCANLINE SHADER */
+.crt-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12),
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+}
+
+/* AVIATION HAZARD DIAGONAL STRIPES */
+.hazard-strip {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--accent-red),
+    var(--accent-red) 10px,
+    #000000 10px,
+    #000000 20px
+  );
+}
+
+.hazard-strip-warning {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--warning),
+    var(--warning) 10px,
+    #000000 10px,
+    #000000 20px
+  );
+}
+
+/* BLUEPRINT MATRIX GRIDS */
+.grid-blueprint {
+  display: grid;
+  gap: 1px;
+  background-color: var(--border);
+  border: 1px solid var(--border);
+}
+.grid-blueprint > * {
+  background-color: var(--bg-surface);
+}
+
+/* ASCII BRACKET FRAMES */
+.bracket-frame {
+  position: relative;
+  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+}
+.bracket-frame::before {
+  content: '[';
+  position: absolute;
+  top: -8px;
+  left: 6px;
+  background: var(--bg-surface);
+  font-family: var(--font-mono), monospace;
+  font-weight: 800;
+  color: var(--primary);
+  padding: 0 4px;
+  font-size: 0.7rem;
+}
+
+/* MACRO TYPOGRAPHY & STATS */
+.macro-stat {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  font-family: var(--font-sans), sans-serif;
+  text-transform: uppercase;
+}
+
+/* MICRO TELEMETRY LABELS */
+.telemetry-metric {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* TABULAR NUMERALS FOR GAUGES & COUNTERS */
 .tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Monospace font strictly for PDF tax invoices, thermal slips & financial ledgers */
-.ledger-nums, .print-nums {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono), monospace;
 }
 
-/* Print CSS */
+/* THERMAL RECEIPT & HISAB PRINT STYLING */
+.thermal-receipt {
+  font-family: var(--font-mono), monospace;
+  border: 1px dashed var(--border-strong);
+  background: #FFFFFF;
+  color: #000000;
+  padding: 1rem;
+}
+
+/* MUTED PASTEL BADGES */
+.badge-pastel-green {
+  background-color: #EDF3EC !important;
+  color: #1B4D2E !important;
+  border: 1px solid #C6E2CD !important;
+}
+
+.badge-pastel-red {
+  background-color: #FDEBEC !important;
+  color: #8A1C14 !important;
+  border: 1px solid #F5C2C4 !important;
+}
+
+.badge-pastel-yellow {
+  background-color: #FBF3DB !important;
+  color: #744210 !important;
+  border: 1px solid #F5E6B8 !important;
+}
+
+.badge-pastel-blue {
+  background-color: #E1F3FE !important;
+  color: #0C4A6E !important;
+  border: 1px solid #BAE6FD !important;
+}
+
+.dark .badge-pastel-green {
+  background-color: rgba(42, 157, 143, 0.15) !important;
+  color: #6EE7B7 !important;
+  border: 1px solid rgba(42, 157, 143, 0.3) !important;
+}
+
+.dark .badge-pastel-red {
+  background-color: rgba(230, 57, 70, 0.15) !important;
+  color: #FCA5A5 !important;
+  border: 1px solid rgba(230, 57, 70, 0.3) !important;
+}
+
+.dark .badge-pastel-yellow {
+  background-color: rgba(231, 111, 81, 0.15) !important;
+  color: #FCD34D !important;
+  border: 1px solid rgba(231, 111, 81, 0.3) !important;
+}
+
+.dark .badge-pastel-blue {
+  background-color: rgba(2, 132, 199, 0.15) !important;
+  color: #7DD3FC !important;
+  border: 1px solid rgba(2, 132, 199, 0.3) !important;
+}
+
+/* BENTO CARD & CONTAINERS */
+.bento-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bento-card:hover {
+  border-color: var(--border-strong);
+}
+
 @media print {
   body, .bg-card, .bg-white {
     background: #FFFFFF !important;
@@ -75,3 +286,4 @@ body {
     display: block !important;
   }
 }
+

@@ -132,7 +132,7 @@ export const RolesPermissionMatrix: React.FC = () => {
     });
 
     setPermissionsMap(updated);
-    toast.success('Applied permission preset');
+    toast.success(`[PRESET] Applied ${presetType.toUpperCase()} permissions template`);
   };
 
   const handleSave = () => {
@@ -149,7 +149,7 @@ export const RolesPermissionMatrix: React.FC = () => {
         description: description || 'Custom embroidery factory role',
         permissions: permissionsMap,
       });
-      toast.success('Custom role created successfully');
+      toast.success('[CREATED] Custom role registered');
     } else if (selectedRole) {
       updateRole(selectedRole.id, {
         name: roleName,
@@ -157,50 +157,48 @@ export const RolesPermissionMatrix: React.FC = () => {
         description,
         permissions: permissionsMap,
       });
-      toast.success('Role and permissions updated');
+      toast.success('[UPDATED] Role privileges updated');
     }
 
     setIsEditing(false);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--bg-surface)] p-5 border border-[var(--border)] rounded-xl shadow-xs">
         <div>
-          <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-[#0099B8]" />
-            {t.config_menuRoleManagement}
+          <h3 className="font-bold text-[var(--text-main)] text-sm flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Role-Based Access Control (RBAC) Matrix</span>
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Configure action privileges (<code className="text-[#0099B8] font-mono">view</code>, <code className="text-[#0099B8] font-mono">create</code>, <code className="text-[#0099B8] font-mono">edit</code>, <code className="text-[#0099B8] font-mono">delete</code>, <code className="text-purple-600 font-mono font-bold">manage</code>) for each system module.
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            Configure action privileges (<span className="font-mono text-emerald-600 font-semibold">View</span>, <span className="font-mono text-emerald-600 font-semibold">Create</span>, <span className="font-mono text-emerald-600 font-semibold">Edit</span>, <span className="font-mono text-emerald-600 font-semibold">Delete</span>, <span className="font-mono text-emerald-600 font-semibold">Manage</span>) per module.
           </p>
         </div>
         <button
           onClick={startCreate}
-          className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
+          className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] text-xs font-semibold rounded-md flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>{t.matrix_createNewRole}</span>
+          <span>New Role</span>
         </button>
       </div>
 
       {/* Special Rule Notice Banner */}
-      <div className="bg-purple-50 border border-purple-200 rounded-xl p-3.5 flex items-start gap-3">
-        <Info className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-purple-900 leading-relaxed">
-          <span className="font-bold">Understanding the `manage` Action Rule:</span>
-          <br />
-          The <span className="font-bold text-purple-700">`manage`</span> permission action specifically grants access to view & configure the module&apos;s settings inside this configuration drawer. If a user is assigned <span className="font-semibold">`view`</span> permission for a module (e.g. Users or Invoices), they can access standard pages in the app, but if <span className="font-bold text-purple-700">`manage`</span> action is OFF for that module, the setting drawer menu section remains completely hidden from them.
+      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-xl p-4 flex items-start gap-3 text-xs text-emerald-800 dark:text-emerald-300">
+        <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+        <div className="text-xs leading-relaxed">
+          <strong className="font-semibold text-emerald-900 dark:text-emerald-200 uppercase tracking-wider text-[0.6875rem] mr-1">Manage Privilege Rule:</strong> The <span className="font-semibold">Manage</span> permission grants exclusive authority to access configuration settings inside this drawer. Standard users with only <span className="font-semibold">View</span> can use pages, but will have the management drawer menu section concealed.
         </div>
       </div>
 
       {/* Main Grid: Left List + Right Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Role List Selection Sidebar */}
-        <div className="lg:col-span-4 space-y-2">
-          <div className="text-2xs font-bold uppercase tracking-wider text-slate-400 px-1">
-            {t.matrix_companyRoles} ({roles.length})
+        <div className="lg:col-span-4 space-y-3">
+          <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] px-1">
+            Roles Directory ({roles.length})
           </div>
           <div className="space-y-2">
             {roles.map((r) => {
@@ -210,31 +208,31 @@ export const RolesPermissionMatrix: React.FC = () => {
                 <div
                   key={r.id}
                   onClick={() => startEdit(r)}
-                  className={`p-3.5 rounded-xl border transition cursor-pointer relative ${
+                  className={`p-4 border rounded-xl transition cursor-pointer relative ${
                     isSelected
-                      ? 'bg-white border-[#0099B8] shadow-sm ring-1 ring-[#0099B8]/20'
-                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      ? 'bg-[var(--bg-surface)] border-emerald-500/50 shadow-xs ring-1 ring-emerald-500/20'
+                      : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--text-muted)]/40'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                      <div className="font-bold text-[var(--text-main)] text-xs flex items-center gap-1.5">
                         <span>{displayName}</span>
                         {r.isSystem && (
-                          <span className="text-3xs bg-slate-100 text-slate-500 font-mono px-1.5 py-0.5 rounded border border-slate-200">
-                            {t.matrix_systemRoleBadge}
+                          <span className="badge-pastel-green px-1.5 py-0.2 rounded text-[0.625rem] font-semibold">
+                            System
                           </span>
                         )}
                       </div>
-                      <p className="text-2xs text-slate-500 mt-1 line-clamp-2">{r.description}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{r.description}</p>
                     </div>
-                    {isSelected && <Check className="w-4 h-4 text-[#0099B8] shrink-0" />}
+                    {isSelected && <Check className="w-4 h-4 text-emerald-600 shrink-0" />}
                   </div>
 
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-3xs text-slate-400">
-                    <span className="font-mono">{r.code}</span>
-                    <span>
-                      {Object.values(r.permissions).reduce((acc, curr) => acc + curr.length, 0)} {t.matrix_activeActions}
+                  <div className="mt-3 pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--text-muted)] font-mono">
+                    <span className="uppercase text-[0.6875rem] font-semibold">{r.code}</span>
+                    <span className="text-[0.6875rem]">
+                      {Object.values(r.permissions).reduce((acc, curr) => acc + curr.length, 0)} Actions
                     </span>
                   </div>
                 </div>
@@ -246,225 +244,208 @@ export const RolesPermissionMatrix: React.FC = () => {
         {/* Matrix & Form Details Editor */}
         <div className="lg:col-span-8">
           {isEditing ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-5 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 space-y-5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
                 <div>
-                  <h4 className="font-bold text-slate-900 text-sm">
-                    {isCreatingNew ? t.matrix_createNewRole : `${t.matrix_editRole}: ${roleName}`}
+                  <h4 className="font-bold text-[var(--text-main)] text-sm">
+                    {isCreatingNew ? 'Create Custom Factory Role' : `Edit Role: ${roleName}`}
                   </h4>
-                  <span className="text-2xs text-slate-500">
-                    {t.matrix_setGranularPrivileges}
+                  <span className="text-xs text-[var(--text-muted)]">
+                    Set granular module action privileges
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                    className="px-3 py-1.5 text-xs text-[var(--text-main)] bg-[var(--bg-surface-elevated)] border border-[var(--border)] font-semibold rounded-md transition cursor-pointer shadow-xs"
                   >
-                    {t.cancel}
+                    Cancel
                   </button>
                   <button
                     onClick={handleSave}
-                    className="px-4 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white text-xs font-bold rounded-lg transition shadow-xs"
+                    className="px-3.5 py-1.5 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] text-xs font-semibold rounded-md transition cursor-pointer shadow-sm"
                   >
-                    {t.matrix_saveRoleAndMatrix}
+                    Save Privileges
                   </button>
                 </div>
               </div>
 
               {/* Role Details Input */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="sm:col-span-2">
-                  <label className="block text-2xs font-semibold text-slate-700 mb-1">
-                    {t.matrix_roleNameEn}
+                <div className="sm:col-span-2 space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase text-[var(--text-main)] text-[0.6875rem]">
+                    Role Identifier / Title
                   </label>
                   <input
                     type="text"
                     value={roleName}
                     onChange={(e) => setRoleName(e.target.value)}
                     placeholder="e.g. Floor Shift Supervisor"
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-[#0099B8] outline-none"
+                    className="w-full px-3 py-2 bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)]"
                   />
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-2xs font-semibold text-slate-700 mb-1">
-                    {t.matrix_roleDescription}
+                <div className="sm:col-span-2 space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase text-[var(--text-main)] text-[0.6875rem]">
+                    Role Scope Description
                   </label>
                   <input
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe what staff members with this role can do"
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-[#0099B8] outline-none"
+                    placeholder="Describe authorized tasks for this role"
+                    className="w-full px-3 py-2 bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)]"
                   />
                 </div>
               </div>
 
               {/* Quick Presets Bar */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                <div className="text-2xs font-bold text-slate-600 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#0099B8]" />
-                  <span>{t.matrix_quickPresets}</span>
+              <div className="p-3 bg-[var(--bg-surface-elevated)]/50 border border-[var(--border)] rounded-xl space-y-2">
+                <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Quick Preset Archetypes</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   <button
                     type="button"
                     onClick={() => applyPreset('admin')}
-                    className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
+                    className="px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-main)] text-xs font-medium rounded transition cursor-pointer shadow-xs"
                   >
-                    {t.matrix_presetAdmin}
+                    Admin
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('supervisor')}
-                    className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
+                    className="px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-main)] text-xs font-medium rounded transition cursor-pointer shadow-xs"
                   >
-                    {t.matrix_presetSupervisor}
+                    Supervisor
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('munim')}
-                    className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
+                    className="px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-main)] text-xs font-medium rounded transition cursor-pointer shadow-xs"
                   >
-                    {t.matrix_presetMunim}
+                    Munim
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('operator')}
-                    className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
+                    className="px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-main)] text-xs font-medium rounded transition cursor-pointer shadow-xs"
                   >
-                    {t.matrix_presetOperator}
+                    Operator
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('view_only')}
-                    className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-3xs font-semibold rounded-md transition"
+                    className="px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-main)] text-xs font-medium rounded transition cursor-pointer shadow-xs"
                   >
-                    {t.matrix_presetAuditor}
+                    Auditor
                   </button>
                 </div>
               </div>
 
               {/* Module Action Matrix Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-slate-100 border-b border-slate-200 text-slate-700">
-                        <th className="p-3 font-bold w-1/3">
-                          {t.matrix_systemModule}
-                        </th>
-                        {PERMISSION_ACTIONS.map((pa) => {
-                          const actionLabel =
-                            pa.action === 'view'
-                              ? t.matrix_actionView
-                              : pa.action === 'create'
-                              ? t.matrix_actionCreate
-                              : pa.action === 'edit'
-                              ? t.matrix_actionEdit
-                              : pa.action === 'delete'
-                              ? t.matrix_actionDelete
-                              : t.matrix_actionManage;
-
-                          return (
-                            <th key={pa.action} className="p-3 text-center">
-                              <button
-                                type="button"
-                                onClick={() => toggleActionColumn(pa.action)}
-                                className="group flex flex-col items-center mx-auto hover:opacity-80 transition"
-                              >
-                                <span
-                                  className={`px-2 py-0.5 rounded text-3xs font-bold border ${pa.color}`}
-                                >
-                                  {actionLabel}
-                                </span>
-                                <span className="text-3xs text-slate-400 mt-0.5 group-hover:underline">
-                                  {t.matrix_toggleAll}
-                                </span>
-                              </button>
-                            </th>
-                          );
-                        })}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 bg-white">
-                      {SYSTEM_MODULES.map((m) => {
-                        const activeActions = permissionsMap[m.id] || [];
-                        const isFullySelected = PERMISSION_ACTIONS.every((pa) =>
-                          activeActions.includes(pa.action)
-                        );
-                        const moduleTitle = language === 'gu' && m.nameGu ? m.nameGu : m.name;
-
+              <div className="border border-[var(--border)] rounded-xl overflow-x-auto shadow-xs">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[var(--bg-surface-elevated)] border-b border-[var(--border)] text-[var(--text-muted)] font-semibold text-[0.6875rem] uppercase">
+                      <th className="p-3 w-1/3">
+                        System Module
+                      </th>
+                      {PERMISSION_ACTIONS.map((pa) => {
                         return (
-                          <tr key={m.id} className="hover:bg-slate-50/80 transition">
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleModuleRow(m.id)}
-                                  className={`w-4 h-4 rounded border flex items-center justify-center transition shrink-0 ${
-                                    isFullySelected
-                                      ? 'bg-[#0099B8] border-[#0099B8] text-white'
-                                      : 'border-slate-300 bg-white hover:border-[#0099B8]'
-                                  }`}
-                                  title="Toggle entire row"
-                                >
-                                  {isFullySelected && <Check className="w-3 h-3 stroke-[3]" />}
-                                </button>
-                                <div>
-                                  <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                                    <span>{moduleTitle}</span>
-                                  </div>
-                                  <p className="text-3xs text-slate-400">{m.description}</p>
-                                </div>
-                              </div>
-                            </td>
-
-                            {PERMISSION_ACTIONS.map((pa) => {
-                              const isChecked = activeActions.includes(pa.action);
-                              const isManage = pa.action === 'manage';
-
-                              return (
-                                <td key={pa.action} className="p-3 text-center">
-                                  <label className="inline-flex items-center justify-center cursor-pointer p-1.5 rounded-lg hover:bg-slate-100 transition">
-                                    <input
-                                      type="checkbox"
-                                      checked={isChecked}
-                                      onChange={() => toggleActionPermission(m.id, pa.action)}
-                                      className={`w-4 h-4 rounded border-slate-300 text-[#0099B8] focus:ring-[#0099B8] ${
-                                        isManage ? 'accent-purple-600' : 'accent-[#0099B8]'
-                                      }`}
-                                    />
-                                  </label>
-                                </td>
-                              );
-                            })}
-                          </tr>
+                          <th key={pa.action} className="p-2 text-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleActionColumn(pa.action)}
+                              className="group flex flex-col items-center mx-auto hover:opacity-80 transition cursor-pointer"
+                            >
+                              <span className="font-semibold text-xs text-[var(--text-main)] uppercase">
+                                {pa.action}
+                              </span>
+                              <span className="text-[0.625rem] text-[var(--text-muted)] group-hover:underline">
+                                toggle all
+                              </span>
+                            </button>
+                          </th>
                         );
                       })}
-                    </tbody>
-                  </table>
-                </div>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)] bg-[var(--bg-surface)] font-sans">
+                    {SYSTEM_MODULES.map((m) => {
+                      const activeActions = permissionsMap[m.id] || [];
+                      const isFullySelected = PERMISSION_ACTIONS.every((pa) =>
+                        activeActions.includes(pa.action)
+                      );
+                      const moduleTitle = language === 'gu' && m.nameGu ? m.nameGu : m.name;
+
+                      return (
+                        <tr key={m.id} className="hover:bg-[var(--bg-surface-elevated)]/40 transition">
+                          <td className="p-3">
+                            <div className="flex items-center gap-2.5">
+                              <button
+                                type="button"
+                                onClick={() => toggleModuleRow(m.id)}
+                                className={`w-4 h-4 rounded border flex items-center justify-center transition shrink-0 cursor-pointer ${
+                                  isFullySelected
+                                    ? 'bg-[var(--text-main)] border-[var(--text-main)] text-[var(--bg-surface)]'
+                                    : 'border-[var(--border)] bg-[var(--bg-canvas)]'
+                                }`}
+                                title="Toggle entire module"
+                              >
+                                {isFullySelected && <Check className="w-3 h-3 stroke-[3]" />}
+                              </button>
+                              <div>
+                                <div className="font-semibold text-[var(--text-main)] text-xs">
+                                  <span>{moduleTitle}</span>
+                                </div>
+                                <p className="text-[0.6875rem] text-[var(--text-muted)]">{m.description}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {PERMISSION_ACTIONS.map((pa) => {
+                            const isChecked = activeActions.includes(pa.action);
+
+                            return (
+                              <td key={pa.action} className="p-2 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleActionPermission(m.id, pa.action)}
+                                  className={`w-7 h-7 rounded-md font-bold text-xs inline-flex items-center justify-center transition cursor-pointer ${
+                                    isChecked
+                                      ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800'
+                                      : 'bg-[var(--bg-canvas)] text-[var(--text-muted)]/30 border border-[var(--border)] hover:border-[var(--text-muted)]/50'
+                                  }`}
+                                >
+                                  {isChecked ? '✓' : '—'}
+                                </button>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           ) : (
             /* Selected Role Overview Read-only Matrix */
             selectedRole && (
-              <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 space-y-5 shadow-xs">
+                <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-slate-900 text-base">
-                        {language === 'gu' && selectedRole.nameGu ? selectedRole.nameGu : selectedRole.name}
-                      </h4>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">{selectedRole.description}</p>
+                    <h4 className="font-bold text-[var(--text-main)] text-sm">
+                      {language === 'gu' && selectedRole.nameGu ? selectedRole.nameGu : selectedRole.name}
+                    </h4>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{selectedRole.description}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {!selectedRole.isSystem && (
                       <button
                         onClick={() => deleteRole(selectedRole.id)}
-                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-md transition cursor-pointer"
                         title="Delete Role"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -472,59 +453,49 @@ export const RolesPermissionMatrix: React.FC = () => {
                     )}
                     <button
                       onClick={() => startEdit(selectedRole)}
-                      className="px-3.5 py-1.5 bg-[#0099B8]/10 hover:bg-[#0099B8]/20 text-[#0099B8] text-xs font-bold rounded-lg flex items-center gap-1.5 transition"
+                      className="px-3 py-1.5 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] text-xs font-semibold rounded-md flex items-center gap-1.5 transition cursor-pointer shadow-sm"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      <span>{t.matrix_editMatrix}</span>
+                      <span>Configure Matrix</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Read-Only Summary Table */}
-                <div className="space-y-2">
-                  <div className="text-2xs font-bold uppercase tracking-wider text-slate-400">
-                    {t.matrix_activePermissionsMatrix}
+                <div className="space-y-3">
+                  <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                    Active Privileges Matrix
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {SYSTEM_MODULES.map((m) => {
                       const actions = selectedRole.permissions[m.id] || [];
                       const moduleName = language === 'gu' && m.nameGu ? m.nameGu : m.name;
                       return (
                         <div
                           key={m.id}
-                          className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2"
+                          className="p-3.5 bg-[var(--bg-surface-elevated)]/50 border border-[var(--border)] rounded-xl flex items-center justify-between gap-2 shadow-xs"
                         >
                           <div>
-                            <div className="font-bold text-slate-900 text-xs">{moduleName}</div>
+                            <div className="font-semibold text-[var(--text-main)] text-xs">{moduleName}</div>
                           </div>
-                          <div className="flex flex-wrap gap-1 justify-end max-w-[160px]">
+                          <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
                             {actions.length > 0 ? (
                               actions.map((act) => {
-                                const pa = PERMISSION_ACTIONS.find((p) => p.action === act);
-                                const actLabel =
-                                  act === 'view'
-                                    ? t.matrix_actionView
-                                    : act === 'create'
-                                    ? t.matrix_actionCreate
-                                    : act === 'edit'
-                                    ? t.matrix_actionEdit
-                                    : act === 'delete'
-                                    ? t.matrix_actionDelete
-                                    : t.matrix_actionManage;
-
                                 return (
                                   <span
                                     key={act}
-                                    className={`px-1.5 py-0.5 rounded text-3xs font-bold border ${
-                                      pa?.color || 'bg-slate-100 text-slate-700'
+                                    className={`px-2 py-0.5 rounded text-[0.6875rem] font-semibold ${
+                                      act === 'manage'
+                                        ? 'badge-pastel-green'
+                                        : 'bg-[var(--bg-surface)] text-[var(--text-main)] border border-[var(--border)]'
                                     }`}
                                   >
-                                    {actLabel}
+                                    {act}
                                   </span>
                                 );
                               })
                             ) : (
-                              <span className="text-3xs text-slate-400 italic">{t.matrix_noAccess}</span>
+                              <span className="text-[0.6875rem] text-[var(--text-muted)] italic">No Access</span>
                             )}
                           </div>
                         </div>
@@ -540,3 +511,4 @@ export const RolesPermissionMatrix: React.FC = () => {
     </div>
   );
 };
+

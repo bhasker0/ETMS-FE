@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Check, X, Sparkles } from 'lucide-react';
+import { Mic, Check, Sparkles } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { feedback } from '@/lib/audio-haptic';
 import { MOCK_MACHINES, MOCK_KARIGARS } from '@/lib/mock-data';
@@ -24,7 +24,7 @@ interface VoiceShiftLoggerProps {
 }
 
 export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParsedData }) => {
-  const { t, language } = useI18n();
+  const { language } = useI18n();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [parsedData, setParsedData] = useState<ParsedShiftVoiceData | null>(null);
@@ -167,7 +167,7 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
       }
     }
 
-    // 5. Detect Karigar Name (e.g. "કારીગર મહેશ", "મહેશભાઈ", "कारीगर दिनेश", "Mahesh")
+    // 5. Detect Karigar Name (e.g. "કારીગર મહેશ", "મહેશભાઈ", "कारीગર દિનેશ", "Mahesh")
     for (const k of MOCK_KARIGARS) {
       const firstGu = k.name.split(' ')[0];
       const firstEn = k.nameEn.split(' ')[0].toLowerCase();
@@ -208,19 +208,22 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
 
   return (
     <>
-      {/* Floating Microphone Trigger Button */}
+      {/* Floating Tactical Microphone Trigger */}
       <button
         onClick={startListening}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-[#0099B8] to-[#0E7090] hover:from-[#0E7090] hover:to-[#0E7090] text-white p-4 rounded-full shadow-2xl border-4 border-white active:scale-95 transition-all flex items-center justify-center group cursor-pointer"
-        title={t.voice_triggerTooltip || 'Voice Shift Logger'}
+        className="fixed bottom-6 right-6 z-40 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] border border-[var(--border)] text-[var(--text-main)] px-4 py-3 shadow-lg active:scale-95 transition-all flex items-center gap-2.5 cursor-pointer rounded-full"
+        title="Voice Shift Logger"
       >
         <div className="relative">
-          <Mic className="w-7 h-7" />
-          <span className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          <Mic className="w-4 h-4 text-rose-500" />
+          <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full bg-rose-400 opacity-75 rounded-full"></span>
+            <span className="relative inline-flex h-2 w-2 bg-rose-500 rounded-full"></span>
           </span>
         </div>
+        <span className="text-xs font-semibold text-[var(--text-main)]">
+          Voice Logger
+        </span>
       </button>
 
       {/* Voice Logger Right-Side Drawer */}
@@ -230,9 +233,9 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
           stopListening();
           setIsOpen(false);
         }}
-        title={t.voiceLoggerTitle || 'Voice AI Shift Entry'}
-        subtitle={t.voice_languageBadge || 'Voice AI'}
-        icon={<Sparkles className="w-5 h-5 text-amber-500" />}
+        title="Voice Shift Logger"
+        subtitle="Speech Recognition & NLP Meter Parser"
+        icon={<Sparkles className="w-5 h-5 text-[var(--text-main)]" />}
         footer={
           parsedData ? (
             <div className="flex items-center gap-2 w-full">
@@ -242,17 +245,17 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
                   stopListening();
                   setIsOpen(false);
                 }}
-                className="w-1/3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+                className="w-1/3 py-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-muted)] border border-[var(--border)] text-xs font-medium rounded-lg"
               >
-                {t.cancel || 'Cancel'}
+                Cancel
               </button>
               <button
                 type="button"
                 onClick={handleApply}
-                className="w-2/3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-2/3 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer rounded-lg"
               >
                 <Check className="w-4 h-4" />
-                <span>{t.confirmAndApply || 'Confirm & Save Counter'}</span>
+                <span>Apply Parsed Data</span>
               </button>
             </div>
           ) : (
@@ -263,50 +266,56 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
                   stopListening();
                   setIsOpen(false);
                 }}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+                className="px-4 py-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium rounded-lg"
               >
-                {t.close || 'Close'}
+                Close
               </button>
             </div>
           )
         }
       >
         <div className="space-y-4">
-          {/* Listening Wave Area */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center space-y-4">
-            <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
+          {/* Listening Oscilloscope Waveform Area */}
+          <div className="bg-[var(--bg-canvas)] border border-[var(--border)] p-6 text-center space-y-4 rounded-xl">
+            <span className="text-[0.6875rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider block">
+              Audio Waveform & Sampler
+            </span>
+
+            <div className="relative mx-auto w-20 h-20 flex items-center justify-center mt-2">
               {isListening && (
                 <>
-                  <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
-                  <div className="absolute -inset-2 rounded-full border-2 border-amber-400/40 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-rose-500/20 animate-ping rounded-full"></div>
+                  <div className="absolute -inset-2 border border-rose-500/40 animate-pulse rounded-full"></div>
                 </>
               )}
               <button
                 type="button"
                 onClick={isListening ? stopListening : startListening}
-                className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer ${
+                className={`relative z-10 w-16 h-16 flex items-center justify-center transition-transform active:scale-95 cursor-pointer rounded-full shadow-sm ${
                   isListening
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                    ? 'bg-rose-600 text-white animate-pulse'
+                    : 'bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-bold'
                 }`}
               >
-                <Mic className="w-8 h-8" />
+                <Mic className="w-7 h-7" />
               </button>
             </div>
 
             <div className="space-y-1">
-              <div className="text-xs font-bold text-slate-800">
-                {isListening ? (t.listeningVoice || 'Listening to microphone...') : (t.voice_tapToSpeak || 'Tap microphone to speak')}
+              <div className="text-xs font-semibold text-[var(--text-main)]">
+                {isListening ? 'Listening to speech stream...' : 'Microphone standby • Click to record'}
               </div>
-              <div className="text-2xs text-amber-700 font-mono bg-amber-50 px-2.5 py-1 rounded-lg inline-block border border-amber-200">
-                {t.voiceHint || 'e.g. Machine 2, Night shift, Design 108, 450 meters, Karigar Mahesh'}
+              <div className="text-[0.6875rem] text-[var(--text-muted)] bg-[var(--bg-surface)] px-3 py-1.5 inline-block border border-[var(--border)] rounded-md">
+                Pattern: &ldquo;Machine 4, Night Shift, Design 108, 450 meters, Mahesh&rdquo;
               </div>
             </div>
 
             {/* Live Transcript Bubble */}
             {transcript && (
-              <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-700 text-left font-medium">
-                <span className="text-2xs text-slate-400 block mb-0.5">{t.voice_liveTranscriptLabel || 'Live Speech Transcript:'}</span>
+              <div className="bg-[var(--bg-surface)] p-3 border border-[var(--border)] text-xs text-[var(--text-main)] text-left rounded-lg">
+                <span className="text-[0.6875rem] text-[var(--text-muted)] block mb-1 font-semibold uppercase">
+                  Live Transcription:
+                </span>
                 &ldquo;{transcript}&rdquo;
               </div>
             )}
@@ -314,46 +323,46 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
 
           {/* Parsed Result Card */}
           {parsedData && (
-            <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
-              <div className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-600" />
-                {t.voiceParsedResult || 'Voice AI Output Recognized:'}
+            <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+              <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-500" />
+                <span>Telemetry Parsed Successfully</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                  <span className="text-slate-500 block text-2xs">{t.voice_machineLabel || 'Machine:'}</span>
-                  <span className="font-bold text-slate-800 text-xs">{parsedData.machineName}</span>
+                <div className="bg-[var(--bg-surface-elevated)] p-2.5 rounded-lg border border-[var(--border)]">
+                  <span className="text-[var(--text-muted)] block text-[0.6875rem] uppercase font-semibold">Machine</span>
+                  <span className="font-bold text-[var(--text-main)] text-xs">{parsedData.machineName}</span>
                 </div>
 
-                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                  <span className="text-slate-500 block text-2xs">{t.voice_shiftLabel || 'Shift:'}</span>
-                  <span className="font-bold text-amber-700 text-xs">
-                    {parsedData.shiftType === 'night' ? (t.voice_nightShift || '🌙 Night') : (t.voice_dayShift || '☀️ Day')}
+                <div className="bg-[var(--bg-surface-elevated)] p-2.5 rounded-lg border border-[var(--border)]">
+                  <span className="text-[var(--text-muted)] block text-[0.6875rem] uppercase font-semibold">Shift</span>
+                  <span className="font-bold text-[var(--text-main)] text-xs">
+                    {parsedData.shiftType === 'night' ? 'Night Shift' : 'Day Shift'}
                   </span>
                 </div>
 
-                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                  <span className="text-slate-500 block text-2xs">{t.voice_lotDesignLabel || 'Lot / Design:'}</span>
-                  <span className="font-bold text-slate-800 text-xs">{parsedData.lotNumber}</span>
+                <div className="bg-[var(--bg-surface-elevated)] p-2.5 rounded-lg border border-[var(--border)]">
+                  <span className="text-[var(--text-muted)] block text-[0.6875rem] uppercase font-semibold">Design / Lot</span>
+                  <span className="font-bold text-[var(--text-main)] text-xs">{parsedData.lotNumber}</span>
                 </div>
 
-                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                  <span className="text-slate-500 block text-2xs">{t.voice_metersLabel || 'Meters Output:'}</span>
-                  <span className="font-bold text-emerald-700 text-xs">{parsedData.meters} {t.dash_metersUnit || 'm'}</span>
+                <div className="bg-[var(--bg-surface-elevated)] p-2.5 rounded-lg border border-[var(--border)]">
+                  <span className="text-[var(--text-muted)] block text-[0.6875rem] uppercase font-semibold">Meters Output</span>
+                  <span className="font-bold text-[var(--text-main)] text-xs font-mono tabular-nums">{parsedData.meters} Meters</span>
                 </div>
 
-                <div className="col-span-2 bg-white p-2.5 rounded-xl border border-emerald-100">
-                  <span className="text-slate-500 block text-2xs">{t.voice_karigarLabel || 'Karigar Name:'}</span>
-                  <span className="font-bold text-slate-800 text-xs">{parsedData.karigarName}</span>
+                <div className="col-span-2 bg-[var(--bg-surface-elevated)] p-2.5 rounded-lg border border-[var(--border)]">
+                  <span className="text-[var(--text-muted)] block text-[0.6875rem] uppercase font-semibold">Operating Karigar</span>
+                  <span className="font-bold text-[var(--text-main)] text-xs">{parsedData.karigarName}</span>
                 </div>
               </div>
             </div>
           )}
 
           {/* Quick Demo Test Buttons */}
-          <div className="pt-2 flex justify-between items-center text-xs text-slate-500">
-            <span>{t.voice_orTestSample || 'Or test sample:'}</span>
+          <div className="pt-1 flex justify-between items-center text-xs text-[var(--text-muted)]">
+            <span>Simulation:</span>
             <button
               type="button"
               onClick={() => {
@@ -361,9 +370,9 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
                 setTranscript(sample);
                 parseVoiceTranscript(sample);
               }}
-              className="text-amber-700 hover:underline font-bold cursor-pointer text-xs"
+              className="text-[var(--text-main)] hover:underline font-semibold cursor-pointer text-xs"
             >
-              {t.voice_testSampleBtn || 'Test Voice Sample ➔'}
+              Test Gujarati Speech Sample →
             </button>
           </div>
         </div>
@@ -371,3 +380,4 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
     </>
   );
 };
+

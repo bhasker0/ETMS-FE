@@ -41,7 +41,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0099B8',
+  themeColor: '#141413',
 };
 
 export default function RootLayout({
@@ -54,16 +54,16 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/icons/icon-192x192.svg" type="image/svg+xml" />
       </head>
-      <body className="min-h-screen bg-[#F8FAFC] text-[#1E293B] antialiased selection:bg-[#0099B8] selection:text-white font-sans">
+      <body className="min-h-[100dvh] bg-[var(--bg-canvas)] text-[var(--text-main)] antialiased selection:bg-[#141413] selection:text-white font-sans">
         <ErrorBoundary>
           <AuthProvider>
             <ConfigProvider>
               <I18nProvider>
                 <RoleProvider>
                   <AppDrawerProvider>
-                    <div className="flex min-h-screen flex-col bg-[#F8FAFC]">
+                    <div className="flex min-h-[100dvh] flex-col bg-[var(--bg-canvas)]">
                       <Navbar />
-                      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 pb-20">
+                      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 pb-24">
                         {children}
                       </main>
                       <AppDrawer />

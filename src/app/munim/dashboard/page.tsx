@@ -10,7 +10,6 @@ import {
 import { TallyApi } from '@/lib/api/tally';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
-import { useI18n } from '@/lib/i18n';
 import { formatINR } from '@/lib/utils';
 import {
   FileSpreadsheet,
@@ -19,13 +18,15 @@ import {
   Building2,
   TrendingUp,
   Wallet,
+  Coins,
+  Receipt,
+  FileCode,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function MunimDashboardPage() {
-  const { activeCompany, munimApprovedCompanies, switchCompany } = useAuth();
+  const { activeCompany, switchCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
-  const { t } = useI18n();
 
   const [approvedCompanies, setApprovedCompanies] = useState<MunimClientCompany[]>([]);
   const [daybook, setDaybook] = useState<ConsolidatedDaybook | null>(null);
@@ -66,7 +67,7 @@ export default function MunimDashboardPage() {
   const handleRespond = async (requestId: string, action: 'ACCEPT' | 'REJECT' | 'REVOKE') => {
     try {
       await MunimApi.respondToRequest(requestId, action);
-      toast.success(`Request ${action.toLowerCase()}ed`);
+      toast.success(`[SUCCESS] Request ${action.toLowerCase()}ed`);
       fetchMunimData();
     } catch (err: any) {
       toast.error('Action failed: ' + err.message);
@@ -81,7 +82,7 @@ export default function MunimDashboardPage() {
         endDate,
         onlyUnsynced,
       });
-      toast.success('Tally XML downloaded');
+      toast.success('[DOWNLOADED] Tally Prime XML accounting payload');
     } catch (err: any) {
       toast.error('Export failed: ' + err.message);
     } finally {
@@ -171,89 +172,101 @@ export default function MunimDashboardPage() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    toast.success(`Generated official GSTN GSTR-1 JSON Return for period ${curFp}`);
+    toast.success(`[GENERATED] Official GSTN GSTR-1 JSON return for period ${curFp}`);
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-      {/* Card Header / Page Header */}
-      <div className="p-5 sm:p-6 border-b border-slate-200 space-y-4">
+    <div className="space-y-6">
+      {/* Top Header */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.munim_portalTitle}</span>
+            <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
+              <Coins className="w-3.5 h-3.5 text-[var(--text-main)]" />
+              <span>Munim Financial Telemetry • Multi-Firm Cockpit</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.munim_title}
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
+              Munim Accounting & Khata Cockpit
             </h1>
-            <p className="text-xs text-slate-500">
-              {t.munim_subtitle}
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+              Consolidated cashbook, outstanding client khata ledgers, and government tax returns
             </p>
           </div>
 
           <button
             onClick={() => openDrawer('INVITE_COMPANY', {}, fetchMunimData)}
-            className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
+            className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm shrink-0 cursor-pointer"
           >
             <Send className="w-4 h-4" />
-            <span>+ {t.munim_linkCompany}</span>
+            <span>Link Factory Client Unit</span>
           </button>
         </div>
 
-        {/* Small State Chips in Header */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
-            <Building2 className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.munim_connectedUnits}: <strong className="font-bold text-slate-900">{approvedCompanies.length}</strong></span>
-          </span>
+        {/* Bento KPI Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Connected Factory Units
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight font-mono tabular-nums mt-1">
+              {approvedCompanies.length} <span className="text-xs font-normal text-[var(--text-muted)]">Firms</span>
+            </div>
+          </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{t.munim_aggregateSales} <strong className="font-bold text-emerald-700">{formatINR(daybook?.total_invoices_amount || 0)}</strong></span>
-          </span>
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Aggregate Billed Sales
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight font-mono tabular-nums mt-1">
+              {formatINR(daybook?.total_invoices_amount || 0)}
+            </div>
+          </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-xs text-rose-800">
-            <Wallet className="w-3.5 h-3.5 text-rose-600" />
-            <span>{t.munim_unsettledAdvances} <strong className="font-bold text-rose-700">{formatINR(daybook?.total_uchapat_outstanding || 0)}</strong></span>
-          </span>
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Unsettled Uchapat Advances
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight font-mono tabular-nums mt-1">
+              {formatINR(daybook?.total_uchapat_outstanding || 0)}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="p-5 sm:p-6 space-y-6">
-        {/* Tally XML Integration Bar */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+      {/* Main Content Area */}
+      <div className="space-y-6">
+        {/* Tally XML & GSTR-1 Console */}
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
             <div className="flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
-              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                {t.munim_tallyXmlTitle}
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-sm font-bold text-[var(--text-main)]">
+                Tally Prime & GSTN Returns Export Console
               </h2>
             </div>
-            <span className="text-2xs text-slate-500 font-mono">
-              {t.munim_activeScope} {activeCompany?.name || t.munim_allConnectedFirms}
+            <span className="text-xs text-[var(--text-muted)] font-mono">
+              Scope: {activeCompany?.name || 'All Connected Industrial Units'}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.munim_fromDate}</label>
+            <div className="space-y-1.5">
+              <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">From Date</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900"
+                className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-1.5 text-xs text-[var(--text-main)] font-mono focus:outline-none focus:border-[var(--text-main)]"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.munim_toDate}</label>
+            <div className="space-y-1.5">
+              <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">To Date</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900"
+                className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-1.5 text-xs text-[var(--text-main)] font-mono focus:outline-none focus:border-[var(--text-main)]"
               />
             </div>
 
@@ -263,10 +276,10 @@ export default function MunimDashboardPage() {
                 id="unsynced-only"
                 checked={onlyUnsynced}
                 onChange={(e) => setOnlyUnsynced(e.target.checked)}
-                className="w-4 h-4 text-slate-900 border-slate-300 rounded"
+                className="w-4 h-4 text-primary rounded border-[var(--border)]"
               />
-              <label htmlFor="unsynced-only" className="text-xs text-slate-700 cursor-pointer">
-                {t.munim_onlyUnsynced}
+              <label htmlFor="unsynced-only" className="text-xs text-[var(--text-main)] font-medium cursor-pointer">
+                Only Unsynced
               </label>
             </div>
 
@@ -274,19 +287,19 @@ export default function MunimDashboardPage() {
               <button
                 onClick={handleTallyExport}
                 disabled={exporting}
-                className="w-1/2 py-2 px-3 bg-emerald-700 hover:bg-emerald-600 text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
+                className="flex-1 py-2 px-3 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs rounded-md flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>{exporting ? '...' : t.munim_btnTallyXml}</span>
+                <span>{exporting ? 'Exporting...' : 'Tally XML'}</span>
               </button>
 
               <button
                 onClick={handleGstr1Export}
-                className="w-1/2 py-2 px-3 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
+                className="flex-1 py-2 px-3 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] font-semibold text-xs rounded-md flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
                 title="Export native GSTN JSON return for direct upload to gst.gov.in"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>{t.munim_btnGstr1Json}</span>
+                <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+                <span>GSTR-1 JSON</span>
               </button>
             </div>
           </div>
@@ -296,8 +309,8 @@ export default function MunimDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Approved Clients */}
           <div className="lg:col-span-2 space-y-3">
-            <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              {t.munim_connectedUnitsTitle} ({approvedCompanies.length})
+            <h2 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              Connected Factory Clients ({approvedCompanies.length})
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -306,36 +319,36 @@ export default function MunimDashboardPage() {
                 return (
                   <div
                     key={c.id}
-                    className={`p-4 rounded-xl border transition ${
+                    className={`p-4 border rounded-xl transition ${
                       isCurrent
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-900'
+                        ? 'bg-[var(--bg-surface)] border-emerald-500/50 shadow-xs ring-1 ring-emerald-500/20'
+                        : 'bg-[var(--bg-surface)] border-[var(--border)]'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-bold text-sm">{c.name}</h3>
-                        <p className={`text-2xs font-mono mt-0.5 ${isCurrent ? 'text-slate-300' : 'text-slate-500'}`}>
-                          GSTIN: {c.gstin || t.munim_unregistered}
+                        <h3 className="font-bold text-sm text-[var(--text-main)]">{c.name}</h3>
+                        <p className={`text-xs font-mono mt-0.5 ${isCurrent ? 'text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-muted)]'}`}>
+                          GSTIN: {c.gstin || 'Unregistered'}
                         </p>
                       </div>
                       {isCurrent && (
-                        <span className="px-2 py-0.5 rounded text-2xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                          {t.munim_activeScopeBadge}
+                        <span className="badge-pastel-green px-2 py-0.5 rounded text-[0.6875rem] font-semibold">
+                          Active Scope
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-200/20 flex items-center justify-between">
-                      <span className={`text-2xs ${isCurrent ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <div className="mt-3 pt-3 border-t border-[var(--border)] flex items-center justify-between">
+                      <span className="text-xs text-[var(--text-muted)]">
                         {c.address || 'Surat GIDC'}
                       </span>
                       {!isCurrent && (
                         <button
                           onClick={() => switchCompany(c.id)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-2xs font-semibold transition"
+                          className="px-2.5 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium rounded transition cursor-pointer shadow-xs"
                         >
-                          {t.munim_btnSwitchScope}
+                          Switch Scope
                         </button>
                       )}
                     </div>
@@ -344,8 +357,8 @@ export default function MunimDashboardPage() {
               })}
 
               {approvedCompanies.length === 0 && (
-                <div className="p-8 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-xl sm:col-span-2 text-xs">
-                  {t.munim_noFactoriesConnected}
+                <div className="p-8 text-center text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl sm:col-span-2 text-xs">
+                  No factory units connected to this Munim account yet.
                 </div>
               )}
             </div>
@@ -353,11 +366,11 @@ export default function MunimDashboardPage() {
 
           {/* Pending Requests */}
           <div className="space-y-3">
-            <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              {t.munim_pendingRequestsTitle} ({myRequests.filter((r) => r.status === 'PENDING').length + companyRequests.filter((r) => r.status === 'PENDING').length})
+            <h2 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              Pending Invitations ({myRequests.filter((r) => r.status === 'PENDING').length + companyRequests.filter((r) => r.status === 'PENDING').length})
             </h2>
 
-            {/* 1. Requests relevant to logged-in user as Accountant / Munim */}
+            {/* Requests */}
             {myRequests
               .filter((req) => req.status === 'PENDING')
               .map((req) => {
@@ -365,28 +378,23 @@ export default function MunimDashboardPage() {
                 return (
                   <div
                     key={req.id}
-                    className="bg-white border border-slate-200 p-4 rounded-xl space-y-3 shadow-2xs"
+                    className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4 space-y-3 shadow-xs"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span
-                          className={`inline-flex items-center gap-1 text-2xs font-bold uppercase px-2 py-0.5 rounded border ${
-                            isSentByMe
-                              ? 'text-slate-600 bg-slate-50 border-slate-200'
-                              : 'text-amber-600 bg-amber-50 border-amber-200'
-                          }`}
-                        >
-                          {isSentByMe ? t.munim_requestSentPending : t.munim_companyInvitation}
-                        </span>
-                        <h3 className="font-semibold text-xs text-slate-900 mt-1.5">
-                          {req.company?.name || req.company_name || t.munim_clientFactory}
-                        </h3>
-                        <div className="text-2xs font-mono text-slate-500 mt-0.5">
-                          GSTIN: {req.company?.gstin || req.company_gstin || t.munim_unregistered}
-                        </div>
-                        {req.request_notes && (
-                          <p className="text-2xs text-slate-600 mt-1 italic">&ldquo;{req.request_notes}&rdquo;</p>
-                        )}
+                    <div>
+                      <span
+                        className={`text-[0.6875rem] font-semibold px-2 py-0.5 rounded ${
+                          isSentByMe
+                            ? 'badge-pastel-yellow'
+                            : 'badge-pastel-blue'
+                        }`}
+                      >
+                        {isSentByMe ? 'Request Sent' : 'Invitation Received'}
+                      </span>
+                      <h3 className="font-bold text-xs text-[var(--text-main)] mt-2">
+                        {req.company?.name || req.company_name || 'Client Factory'}
+                      </h3>
+                      <div className="text-xs font-mono text-[var(--text-muted)] mt-0.5">
+                        GSTIN: {req.company?.gstin || req.company_gstin || 'Unregistered'}
                       </div>
                     </div>
 
@@ -394,85 +402,23 @@ export default function MunimDashboardPage() {
                       {isSentByMe ? (
                         <button
                           onClick={() => handleRespond(req.id, 'REVOKE')}
-                          className="flex-1 py-1.5 bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-2xs font-semibold rounded-lg transition"
+                          className="flex-1 py-1 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900 text-xs font-semibold rounded transition cursor-pointer"
                         >
-                          {t.munim_btnWithdrawRequest}
+                          Withdraw
                         </button>
                       ) : (
                         <>
                           <button
                             onClick={() => handleRespond(req.id, 'ACCEPT')}
-                            className="flex-1 py-1.5 bg-[#0099B8] hover:bg-[#0E7090] text-white text-2xs font-semibold rounded-lg transition shadow-xs"
+                            className="flex-1 py-1 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] text-xs font-semibold rounded transition cursor-pointer"
                           >
-                            {t.munim_btnAcceptAccess}
+                            Accept
                           </button>
                           <button
                             onClick={() => handleRespond(req.id, 'REJECT')}
-                            className="flex-1 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-2xs font-semibold rounded-lg transition"
+                            className="flex-1 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-semibold rounded transition cursor-pointer"
                           >
-                            {t.munim_btnDecline}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-            {/* 2. Requests received by the active Company from Accountants */}
-            {companyRequests
-              .filter((req) => req.status === 'PENDING')
-              .map((req) => {
-                const isSentByCompany = req.initiator_type === 'COMPANY_TO_MUNIM';
-                return (
-                  <div
-                    key={req.id}
-                    className="bg-white border border-slate-200 p-4 rounded-xl space-y-3 shadow-2xs"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span
-                          className={`inline-flex items-center gap-1 text-2xs font-bold uppercase px-2 py-0.5 rounded border ${
-                            isSentByCompany
-                              ? 'text-slate-600 bg-slate-50 border-slate-200'
-                              : 'text-sky-600 bg-sky-50 border-sky-200'
-                          }`}
-                        >
-                          {isSentByCompany ? t.munim_invitationSentPending : t.munim_accountantRequestedAccess}
-                        </span>
-                        <h3 className="font-semibold text-xs text-slate-900 mt-1.5">
-                          {req.munimUser?.full_name || req.munim_name || t.munim_accountantCa}
-                        </h3>
-                        <div className="text-2xs font-mono text-slate-500 mt-0.5">
-                          Mobile: {req.munimUser?.mobile || req.munim_mobile || 'N/A'}
-                        </div>
-                        {req.request_notes && (
-                          <p className="text-2xs text-slate-600 mt-1 italic">&ldquo;{req.request_notes}&rdquo;</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 pt-1">
-                      {isSentByCompany ? (
-                        <button
-                          onClick={() => handleRespond(req.id, 'REVOKE')}
-                          className="flex-1 py-1.5 bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-2xs font-semibold rounded-lg transition"
-                        >
-                          {t.munim_btnCancelInvitation}
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleRespond(req.id, 'ACCEPT')}
-                            className="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-2xs font-semibold rounded-lg transition shadow-xs"
-                          >
-                            {t.munim_btnGrantAccess}
-                          </button>
-                          <button
-                            onClick={() => handleRespond(req.id, 'REJECT')}
-                            className="flex-1 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-2xs font-semibold rounded-lg transition"
-                          >
-                            {t.munim_btnReject}
+                            Decline
                           </button>
                         </>
                       )}
@@ -483,8 +429,8 @@ export default function MunimDashboardPage() {
 
             {myRequests.filter((r) => r.status === 'PENDING').length === 0 &&
               companyRequests.filter((r) => r.status === 'PENDING').length === 0 && (
-                <div className="p-6 text-center text-slate-400 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                  {t.munim_noPendingRequests}
+                <div className="p-6 text-center text-[var(--text-muted)] text-xs bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl">
+                  No pending access requests.
                 </div>
               )}
           </div>
@@ -493,3 +439,4 @@ export default function MunimDashboardPage() {
     </div>
   );
 }
+

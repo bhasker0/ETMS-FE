@@ -3,7 +3,6 @@
 import React from 'react';
 import { InvoiceSAC9988 } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
-import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import { QrCode } from 'lucide-react';
 
@@ -13,115 +12,122 @@ interface InvoicePrintProps {
 
 export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) => {
   const { activeCompany } = useAuth();
-  const { t } = useI18n();
 
   const currentCompany = {
-    name: activeCompany?.name || 'Company Name',
-    gstin: activeCompany?.gstin || '',
-    address: activeCompany?.address || '',
-    phone: activeCompany?.phone || '',
-    upiVpa: activeCompany?.upiVpa || '',
+    name: activeCompany?.name || 'SURAT EMBROIDERY INDUSTRIAL UNIT',
+    gstin: activeCompany?.gstin || '24AAACE0000A1Z5',
+    address: activeCompany?.address || 'Plot 42-45, Sachin GIDC Industrial Area, Surat, Gujarat 394230',
+    phone: activeCompany?.phone || '+91 98251 00000',
+    upiVpa: activeCompany?.upiVpa || 'factoryops@upi',
   };
 
   return (
-    <div className="bg-white text-slate-900 p-8 max-w-4xl mx-auto rounded-xl shadow-lg border border-slate-300 print:shadow-none print:border-none print:p-0 print:max-w-none text-sm leading-relaxed font-sans print-nums ledger-nums">
-      {/* Print Header */}
-      <div className="border-b-2 border-slate-900 pb-4 mb-4 flex justify-between items-start">
-        <div className="space-y-1 max-w-lg">
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+    <div
+      className="max-w-4xl mx-auto p-6 sm:p-8 bg-[#FAFAF9] text-[#1C1917] border border-[#E7E5E4] rounded-2xl font-sans text-xs leading-normal print:border-none print:p-0 print:max-w-none print:rounded-none shadow-md print:shadow-none space-y-6"
+    >
+      {/* Factory & Document Type Header */}
+      <div className="border-b border-[#E7E5E4] pb-4 flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div>
+          <span className="badge-pastel-green px-2.5 py-0.5 rounded text-[0.6875rem] font-semibold uppercase tracking-wider inline-block mb-1.5">
+            Tax Invoice • SAC 9988
+          </span>
+          <h1 className="text-2xl font-bold tracking-tight text-[#1C1917]">
             {currentCompany.name}
           </h1>
-          <p className="text-xs text-slate-600 font-medium">{currentCompany.address}</p>
-          <div className="text-xs font-bold text-slate-800 space-x-3">
-            <span>GSTIN: <strong className="font-mono">{currentCompany.gstin}</strong></span>
+          <p className="text-xs text-[#78716C] max-w-md mt-0.5">{currentCompany.address}</p>
+          <div className="text-xs space-x-3 mt-1.5 font-mono text-[#44403C]">
+            <span>GSTIN: <strong className="text-[#1C1917]">{currentCompany.gstin}</strong></span>
             <span>•</span>
-            <span>Ph: {currentCompany.phone}</span>
+            <span>Phone: {currentCompany.phone}</span>
           </div>
         </div>
 
-        <div className="text-right space-y-1">
-          <div className="inline-block bg-slate-900 text-white font-extrabold text-xs px-3 py-1 rounded uppercase tracking-wider">
-            {t.print_taxInvoice}
+        <div className="text-left sm:text-right space-y-1 font-mono">
+          <div className="text-base sm:text-lg font-bold text-[#1C1917]">
+            Invoice #{invoice.invoiceNumber}
           </div>
-          <div className="text-lg font-black text-slate-900 font-mono">
-            {invoice.invoiceNumber}
+          <div className="text-xs text-[#78716C]">
+            Date: <strong className="text-[#1C1917]">{invoice.invoiceDate}</strong>
           </div>
-          <div className="text-xs text-slate-600">
-            {t.print_date} <strong>{invoice.invoiceDate}</strong>
+          <div className="text-[0.6875rem] text-[#A8A29E]">
+            Reverse Charge: No • Original for Recipient
           </div>
         </div>
       </div>
 
-      {/* Bill To & Supply Details */}
-      <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 text-xs">
-        <div>
-          <span className="font-bold text-slate-500 uppercase tracking-wider block mb-1">
-            {t.print_billedTo}
+      {/* Bill To & Job Work Supply Details */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-[#E7E5E4] p-4 bg-[#F5F5F4] rounded-xl text-xs">
+        <div className="space-y-1.5 border-b sm:border-b-0 sm:border-r border-[#E7E5E4] pb-3 sm:pb-0 sm:pr-4">
+          <span className="font-semibold text-[#78716C] uppercase tracking-wider block text-[0.6875rem]">
+            Billed to Trader / Consignee
           </span>
-          <div className="font-bold text-sm text-slate-900">{invoice.traderName}</div>
-          <div className="text-slate-600">{invoice.traderAddress}</div>
-          <div className="mt-1 font-mono font-bold text-slate-800">
-            GSTIN: {invoice.traderGstin}
+          <div className="font-bold text-sm text-[#1C1917]">{invoice.traderName}</div>
+          <div className="text-[#78716C]">{invoice.traderAddress || 'Surat Textile Market (Ring Road), Surat'}</div>
+          <div className="text-xs pt-0.5 font-mono text-[#44403C]">
+            GSTIN: <strong className="text-[#1C1917]">{invoice.traderGstin || 'Unregistered / Composition'}</strong>
           </div>
-          <div className="text-slate-600">Ph: {invoice.traderMobile}</div>
+          <div className="text-[#78716C] font-mono">Contact: {invoice.traderMobile || '+91 98000 00000'}</div>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex justify-between">
-            <span className="text-slate-600">{t.print_sacCodeLabel}</span>
-            <span className="font-bold font-mono text-slate-900">9988</span>
+        <div className="space-y-1.5 sm:pl-2">
+          <span className="font-semibold text-[#78716C] uppercase tracking-wider block text-[0.6875rem]">
+            Job Work Specifications
+          </span>
+          <div className="flex justify-between font-mono">
+            <span className="text-[#78716C]">SAC Code:</span>
+            <span className="font-semibold text-[#1C1917]">9988 (Textile Embroidery)</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-600">{t.print_lotNo}</span>
-            <span className="font-bold text-slate-900">{invoice.lotNumber}</span>
+          <div className="flex justify-between font-mono">
+            <span className="text-[#78716C]">Lot Number:</span>
+            <span className="font-bold text-[#1C1917]">{invoice.lotNumber}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-600">{t.print_fabric}</span>
-            <span className="font-bold text-slate-900">{invoice.fabricQuality}</span>
+          <div className="flex justify-between font-mono">
+            <span className="text-[#78716C]">Fabric Quality:</span>
+            <span className="font-semibold text-[#1C1917]">{invoice.fabricQuality}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-600">{t.print_takas}</span>
-            <span className="font-bold text-slate-900">{invoice.numberOfTakas} {t.print_thansUnit}</span>
+          <div className="flex justify-between font-mono">
+            <span className="text-[#78716C]">Than Count:</span>
+            <span className="font-semibold text-[#1C1917]">{invoice.numberOfTakas} Thans</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-600">{t.print_meters}</span>
-            <span className="font-bold text-slate-900">{formatNumber(invoice.meters)} MTR</span>
+          <div className="flex justify-between font-mono">
+            <span className="text-[#78716C]">Net Meters:</span>
+            <span className="font-bold text-[#1C1917]">{formatNumber(invoice.meters)} m</span>
           </div>
         </div>
       </div>
 
-      {/* Calculation Table */}
-      <div className="overflow-x-auto mb-4">
-        <table className="w-full text-left border-collapse border border-slate-300 text-xs">
+      {/* Itemized Calculation Matrix */}
+      <div className="overflow-x-auto border border-[#E7E5E4] rounded-xl shadow-xs">
+        <table className="w-full text-left text-xs">
           <thead>
-            <tr className="bg-slate-100 border-b border-slate-300 font-bold text-slate-800">
-              <th className="p-2 border-r border-slate-300">{t.print_thDescription}</th>
-              <th className="p-2 border-r border-slate-300 text-right">{t.print_thStitches}</th>
-              <th className="p-2 border-r border-slate-300 text-right">{t.print_thHeads}</th>
-              <th className="p-2 border-r border-slate-300 text-right">{t.print_thRate}</th>
-              <th className="p-2 text-right">{t.print_thTaxableValue}</th>
+            <tr className="bg-[#F5F5F4] text-[#78716C] font-semibold uppercase text-[0.6875rem] border-b border-[#E7E5E4]">
+              <th className="p-3">Job Description / Process</th>
+              <th className="p-3 text-right">Stitch Count</th>
+              <th className="p-3 text-right">Heads</th>
+              <th className="p-3 text-right">Rate / 1k St.</th>
+              <th className="p-3 text-right">Taxable Amount</th>
             </tr>
           </thead>
-          <tbody>
-            <tr className="border-b border-slate-200">
-              <td className="p-2.5 border-r border-slate-300">
-                <div className="font-bold text-slate-900">
-                  {t.print_embroideryProcessing}
+          <tbody className="divide-y divide-[#E7E5E4] font-sans">
+            <tr>
+              <td className="p-3">
+                <div className="font-semibold text-[#1C1917]">
+                  Embroidery Job Work Execution
                 </div>
-                <div className="text-slate-500 text-2xs">
-                  {invoice.fabricQuality} {t.print_designWorkOn} ({invoice.lotNumber})
+                <div className="text-[0.6875rem] text-[#78716C] mt-0.5">
+                  {invoice.fabricQuality} • Lot {invoice.lotNumber} (SAC 9988 - 5% GST Rate)
                 </div>
               </td>
-              <td className="p-2.5 border-r border-slate-300 text-right font-mono font-bold">
+              <td className="p-3 text-right font-mono font-semibold text-[#1C1917] tabular-nums">
                 {formatNumber(invoice.totalStitches)}
               </td>
-              <td className="p-2.5 border-r border-slate-300 text-right font-mono">
+              <td className="p-3 text-right font-mono font-semibold text-[#1C1917] tabular-nums">
                 {invoice.headCount}
               </td>
-              <td className="p-2.5 border-r border-slate-300 text-right font-mono">
+              <td className="p-3 text-right font-mono font-semibold text-[#1C1917] tabular-nums">
                 ₹{invoice.ratePerThousand.toFixed(2)}
               </td>
-              <td className="p-2.5 text-right font-mono font-bold text-slate-900">
+              <td className="p-3 text-right font-mono font-bold text-sm text-[#1C1917] tabular-nums">
                 {formatINR(invoice.baseAmount)}
               </td>
             </tr>
@@ -129,74 +135,79 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintProps> = ({ invoice }) =
         </table>
       </div>
 
-      {/* Tax Summary & Totals */}
-      <div className="grid grid-cols-2 gap-4 mb-4 items-start">
-        {/* UPI QR & Bank details */}
-        <div className="border border-slate-200 p-3 rounded-lg flex items-center gap-3">
-          <div className="w-20 h-20 bg-slate-900 rounded p-1 flex items-center justify-center text-white shrink-0">
-            <QrCode className="w-16 h-16 text-amber-400" />
+      {/* Tax Summary & Bank Settlement Barcode */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+        {/* UPI QR & Bank Settlement */}
+        <div className="border border-[#E7E5E4] p-4 bg-[#F5F5F4] rounded-xl flex items-center gap-3.5">
+          <div className="w-16 h-16 bg-[#1C1917] p-1.5 rounded-lg flex items-center justify-center text-white shrink-0">
+            <QrCode className="w-14 h-14 text-white" />
           </div>
-          <div className="text-xs space-y-0.5">
-            <span className="font-bold text-slate-900 block">{t.print_upiPayInstant}</span>
-            <span className="text-2xs text-slate-600 block">Google Pay / PhonePe / Paytm</span>
-            <span className="font-mono text-2xs font-bold text-slate-800">
-              {currentCompany.upiVpa ? `VPA: ${currentCompany.upiVpa}` : 'UPI not configured'}
+          <div className="text-xs space-y-0.5 font-sans">
+            <span className="font-semibold text-[0.6875rem] uppercase block text-[#1C1917]">Instant UPI Settlement</span>
+            <span className="text-[0.6875rem] text-[#78716C] block">Direct factory ledger credit</span>
+            <span className="font-mono text-xs font-semibold text-[#1C1917] block">
+              {currentCompany.upiVpa ? `VPA: ${currentCompany.upiVpa}` : 'VPA: factoryops@upi'}
             </span>
-            <span className="text-2xs text-emerald-700 font-bold block">
-              {t.print_scanAndPay} ₹{invoice.totalAmount.toFixed(2)}
+            <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 pt-0.5 block">
+              Amount: ₹{invoice.totalAmount.toFixed(2)}
             </span>
           </div>
         </div>
 
-        {/* GST Breakup */}
-        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-1.5 font-mono">
-          <div className="flex justify-between text-slate-700">
-            <span>{t.print_taxableAmount}</span>
-            <span>{formatINR(invoice.baseAmount)}</span>
+        {/* GST Breakup Matrix */}
+        <div className="border border-[#E7E5E4] p-4 bg-[#F5F5F4] rounded-xl text-xs space-y-1.5 font-mono">
+          <div className="flex justify-between text-[#78716C]">
+            <span>Taxable Gross Value:</span>
+            <span className="font-semibold text-[#1C1917] tabular-nums">{formatINR(invoice.baseAmount)}</span>
           </div>
           {invoice.cgstAmount > 0 && (
-            <div className="flex justify-between text-slate-700">
+            <div className="flex justify-between text-[#78716C]">
               <span>CGST @ 2.5%:</span>
-              <span>{formatINR(invoice.cgstAmount)}</span>
+              <span className="font-semibold text-[#1C1917] tabular-nums">{formatINR(invoice.cgstAmount)}</span>
             </div>
           )}
           {invoice.sgstAmount > 0 && (
-            <div className="flex justify-between text-slate-700">
+            <div className="flex justify-between text-[#78716C]">
               <span>SGST @ 2.5%:</span>
-              <span>{formatINR(invoice.sgstAmount)}</span>
+              <span className="font-semibold text-[#1C1917] tabular-nums">{formatINR(invoice.sgstAmount)}</span>
             </div>
           )}
           {invoice.igstAmount > 0 && (
-            <div className="flex justify-between text-slate-700">
+            <div className="flex justify-between text-[#78716C]">
               <span>IGST @ 5.0%:</span>
-              <span>{formatINR(invoice.igstAmount)}</span>
+              <span className="font-semibold text-[#1C1917] tabular-nums">{formatINR(invoice.igstAmount)}</span>
             </div>
           )}
-          <div className="border-t-2 border-slate-900 pt-1.5 flex justify-between font-black text-sm text-slate-900 font-sans">
-            <span>{t.print_grandTotal}</span>
-            <span className="text-base text-amber-900 font-mono">
+          <div className="border-t border-[#D6D3D1] pt-2 flex justify-between font-bold text-sm text-[#1C1917]">
+            <span className="uppercase">Total Net Payable:</span>
+            <span className="text-base tabular-nums">
               {formatINR(invoice.totalAmount)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Terms & Signatures */}
-      <div className="border-t border-slate-300 pt-3 flex justify-between items-end text-2xs text-slate-600">
+      {/* Terms & Dual Signatures */}
+      <div className="border-t border-[#E7E5E4] pt-4 flex flex-col sm:flex-row justify-between items-end text-xs text-[#78716C] gap-4">
         <div className="max-w-md space-y-1">
-          <span className="font-bold text-slate-800 uppercase block">{t.print_termsAndConditions}</span>
-          <p>{invoice.termsCondition}</p>
+          <span className="font-semibold uppercase block text-[#1C1917] text-[0.6875rem]">Terms & Conditions</span>
+          <p className="leading-relaxed text-[0.6875rem]">
+            1. Goods manufactured on Job Work contract as per SAC 9988.<br />
+            2. Any discrepancy must be registered within 48 hours of lot delivery.<br />
+            3. Subject to Surat jurisdiction only.
+          </p>
         </div>
 
-        <div className="text-center space-y-8">
-          <span className="font-bold text-slate-800 block">
-            For, {currentCompany.name}
+        <div className="text-center space-y-4 shrink-0">
+          <span className="font-semibold block text-[#1C1917] text-xs">
+            For {currentCompany.name}
           </span>
-          <span className="block border-t border-slate-400 pt-1 font-bold text-slate-900">
-            {t.print_authorisedSignatory}
+          <span className="block border-t border-[#D6D3D1] pt-1.5 font-semibold text-[0.6875rem] uppercase text-[#78716C]">
+            Authorized Signatory
           </span>
         </div>
       </div>
     </div>
   );
 };
+

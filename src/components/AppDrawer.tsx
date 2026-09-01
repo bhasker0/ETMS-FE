@@ -137,7 +137,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               if (form) form.requestSubmit();
             }}
             disabled={submitting || !!mobileError}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
           >
             {submitting ? t.saving : editingItem ? t.karigar_btnSaveChanges : t.karigar_btnCreate}
           </button>
@@ -190,7 +190,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               onClick={() => setWageType('PIECE_RATE')}
               className={`p-2.5 rounded-lg border text-xs font-semibold transition text-center ${
                 wageType === 'PIECE_RATE'
-                  ? 'border-[#0099B8] bg-[#0099B8] text-white shadow-xs'
+                  ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-xs'
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -201,7 +201,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               onClick={() => setWageType('FIXED_MONTHLY')}
               className={`p-2.5 rounded-lg border text-xs font-semibold transition text-center ${
                 wageType === 'FIXED_MONTHLY'
-                  ? 'border-[#0099B8] bg-[#0099B8] text-white shadow-xs'
+                  ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-xs'
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -212,7 +212,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               onClick={() => setWageType('FIXED_PLUS_INCENTIVE')}
               className={`p-2.5 rounded-lg border text-xs font-semibold transition text-center ${
                 wageType === 'FIXED_PLUS_INCENTIVE'
-                  ? 'border-[#0099B8] bg-[#0099B8] text-white shadow-xs'
+                  ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-xs'
                   : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -251,7 +251,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         )}
 
         {wageType === 'FIXED_PLUS_INCENTIVE' && (
-          <div className="space-y-3 bg-cyan-50/50 p-4 rounded-xl border border-cyan-200">
+          <div className="space-y-3 bg-[var(--bg-surface-elevated)]/50 p-4 rounded-xl border border-[var(--border)]">
             <div className="space-y-1">
               <label className="text-xs text-slate-800 font-semibold">{t.karigar_labelMonthlySalary} *</label>
               <input
@@ -264,7 +264,7 @@ const KarigarDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               <span className="text-2xs text-slate-500">Base: ₹{Math.round(defaultMonthlySalary / 2)} / fortnight</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-cyan-200/60">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[var(--border)]/60">
               <div className="space-y-1">
                 <label className="text-xs text-slate-800 font-medium">{t.karigar_labelIncentiveThreshold}</label>
                 <input
@@ -406,7 +406,7 @@ const MachineDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               if (form) form.requestSubmit();
             }}
             disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
             {submitting ? t.saving : editingMachine ? t.machine_btnSave : t.machine_btnCreate}
           </button>
@@ -558,7 +558,7 @@ const UchapatDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               if (form) form.requestSubmit();
             }}
             disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
             {submitting ? t.uchapat_recording : t.uchapat_btnRecord}
           </button>
@@ -703,7 +703,7 @@ const InviteCompanyDrawerForm: React.FC<{ instance: DrawerInstance; level: numbe
               if (form) form.requestSubmit();
             }}
             disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
             {submitting ? t.saving : t.munim_btnSendRequest}
           </button>
@@ -841,7 +841,7 @@ const HisabDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             type="button"
             onClick={handleCalculate}
             disabled={calculating}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-1.5"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-1.5"
           >
             <Calculator className="w-4 h-4" />
             <span>{calculating ? t.hisab_computing : t.hisab_btnCompute}</span>
@@ -1093,7 +1093,7 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
               if (form) form.requestSubmit();
             }}
             disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs cursor-pointer"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs cursor-pointer"
           >
             {submitting ? (t.shift_drawerRegistering || 'Registering...') : (t.shift_saveBtn || 'Save Shift Log')}
           </button>
@@ -1180,7 +1180,7 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             <span className="text-xs font-bold text-slate-900 uppercase tracking-tight">
               {t.shift_fabricLotsTitle || 'Fabric Lots & Cloth Allocation'}
             </span>
-            <span className="text-2xs bg-cyan-100 text-cyan-800 font-semibold px-2 py-0.5 rounded-full">
+            <span className="text-2xs bg-[var(--bg-surface-elevated)] text-[var(--text-main)] font-semibold px-2 py-0.5 rounded-full">
               1 Lot • 1 Design per Shift
             </span>
           </div>
@@ -1209,13 +1209,13 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
 
             {inwardChallanId && pendingDesigns.length > 0 && (
               <div className="space-y-1">
-                <label className="text-xs text-cyan-950 font-bold">
+                <label className="text-xs text-[var(--text-main)] font-bold">
                   {t.shift_drawerSelectActiveDesign || 'Select Active Design / Cloth'} *
                 </label>
                 <select
                   value={designNo}
                   onChange={(e) => handleDesignChange(e.target.value)}
-                  className="w-full bg-white border border-cyan-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-semibold"
+                  className="w-full bg-white border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-slate-900 font-semibold"
                 >
                   {pendingDesigns.map((d, idx) => {
                     const percentDone = d.allocated_meters > 0
@@ -1232,14 +1232,14 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             )}
 
             {inwardChallanId && selectedDesign && (
-              <div className="p-2.5 bg-cyan-50 border border-cyan-200 rounded-lg text-xs space-y-1.5 font-mono">
-                <div className="flex items-center justify-between text-cyan-950 font-bold">
+              <div className="p-2.5 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg text-xs space-y-1.5 font-mono">
+                <div className="flex items-center justify-between text-[var(--text-main)] font-bold">
                   <span>{t.shift_drawerSelectedCloth || 'Selected Cloth:'} {selectedDesign.design_no}</span>
                   <span>{formatNumber(selectedDesign.remaining_meters)}m remaining</span>
                 </div>
-                <div className="w-full bg-cyan-200 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[var(--border)] h-2 rounded-full overflow-hidden">
                   <div
-                    className="bg-cyan-600 h-full rounded-full transition-all"
+                    className="bg-[var(--primary)] h-full rounded-full transition-all"
                     style={{
                       width: `${
                         selectedDesign.allocated_meters > 0
@@ -1249,7 +1249,7 @@ const ShiftDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
                     }}
                   />
                 </div>
-                <div className="flex justify-between text-2xs text-cyan-800">
+                <div className="flex justify-between text-2xs text-[var(--text-main)]">
                   <span>{t.shift_drawerProduced || 'Produced:'} {formatNumber(selectedDesign.produced_meters)}m</span>
                   <span>{t.shift_drawerAllocatedQuota || 'Allocated Quota:'} {formatNumber(selectedDesign.allocated_meters)}m</span>
                 </div>
@@ -1525,7 +1525,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               if (form) form.requestSubmit();
             }}
             disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
             {submitting ? t.saving : t.challan_saveBtn}
           </button>
@@ -1600,7 +1600,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                 id={`multi-design-${instance.id}`}
                 checked={isMultiDesign}
                 onChange={(e) => setIsMultiDesign(e.target.checked)}
-                className="w-4 h-4 text-[#0099B8] rounded border-slate-300"
+                className="w-4 h-4 text-[var(--primary)] rounded border-slate-300"
               />
               <label htmlFor={`multi-design-${instance.id}`} className="text-xs font-medium text-slate-800 cursor-pointer">
                 {t.challan_labelMultiDesignToggle}
@@ -1705,15 +1705,15 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
             </div>
           </div>
         ) : (
-          <div className="p-4 bg-cyan-50/50 border border-cyan-200 rounded-xl space-y-3">
+          <div className="p-4 bg-[var(--bg-surface-elevated)]/50 border border-[var(--border)] rounded-xl space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-2xs font-bold uppercase tracking-wider text-cyan-900">
+              <span className="text-2xs font-bold uppercase tracking-wider text-[var(--text-main)]">
                 {t.challan_multiDesignBreakdown}
               </span>
               <button
                 type="button"
                 onClick={addDesignItem}
-                className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] flex items-center gap-1 bg-white px-2.5 py-1 rounded-md border border-cyan-200 shadow-2xs"
+                className="text-xs font-semibold text-[var(--primary)] hover:text-[#9494ff] flex items-center gap-1 bg-white px-2.5 py-1 rounded-md border border-[var(--border)] shadow-2xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{t.challan_addDesignRow}</span>
@@ -1722,7 +1722,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
 
             <div className="space-y-3">
               {designItems.map((item, idx) => (
-                <div key={idx} className="p-3 bg-white border border-cyan-200 rounded-lg space-y-2 relative">
+                <div key={idx} className="p-3 bg-white border border-[var(--border)] rounded-lg space-y-2 relative">
                   <div className="flex items-center justify-between">
                     <span className="text-2xs font-bold text-slate-700">{t.challan_designNumber}{idx + 1}</span>
                     {designItems.length > 1 && (
@@ -1813,7 +1813,7 @@ const ChallanDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               ))}
             </div>
 
-            <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-cyan-200 text-xs font-mono">
+            <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-[var(--border)] text-xs font-mono">
               <span className="text-slate-600 font-sans font-medium">{t.challan_lotTotals}</span>
               <span className="font-bold text-slate-900">
                 {designItems.reduce((acc, i) => acc + Number(i.than_count || 0), 0)} Than • {designItems.reduce((acc, i) => acc + Number(i.meters || 0), 0)} Meters
@@ -1985,7 +1985,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               if (form) form.requestSubmit();
             }}
             disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs"
           >
             {submitting ? t.saving : t.invoice_btnGenerate}
           </button>
@@ -2030,10 +2030,10 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         </div>
 
         {/* Multi-Lot Inward Consolidation Section */}
-        <div className="p-4 bg-cyan-50/50 border border-cyan-200 rounded-xl space-y-3">
+        <div className="p-4 bg-[var(--bg-surface-elevated)]/50 border border-[var(--border)] rounded-xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="text-2xs font-bold uppercase tracking-wider text-cyan-900 block">
+              <span className="text-2xs font-bold uppercase tracking-wider text-[var(--text-main)] block">
                 {t.invoice_multiLotTitle}
               </span>
               <span className="text-3xs text-slate-500">
@@ -2044,7 +2044,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
               <button
                 type="button"
                 onClick={handleSelectAllLots}
-                className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] bg-white px-2.5 py-1 rounded-md border border-cyan-200 shadow-2xs"
+                className="text-xs font-semibold text-[var(--primary)] hover:text-[#9494ff] bg-white px-2.5 py-1 rounded-md border border-[var(--border)] shadow-2xs"
               >
                 {selectedLotIds.length === partyLots.length ? t.invoice_deselectAllLots : t.invoice_selectAllLots}
               </button>
@@ -2060,7 +2060,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                     key={c.id}
                     className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition ${
                       isSelected
-                        ? 'bg-white border-[#0099B8] shadow-xs'
+                        ? 'bg-white border-[var(--primary)] shadow-xs'
                         : 'bg-slate-50/60 border-slate-200 hover:bg-white'
                     }`}
                   >
@@ -2068,7 +2068,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleToggleLot(c.id)}
-                      className="w-4 h-4 mt-0.5 text-[#0099B8] rounded border-slate-300"
+                      className="w-4 h-4 mt-0.5 text-[var(--primary)] rounded border-slate-300"
                     />
                     <div className="flex-1 text-xs">
                       <div className="flex items-center justify-between">
@@ -2077,7 +2077,7 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
                       </div>
                       <div className="text-2xs text-slate-600 flex items-center gap-2 pt-0.5">
                         <span>{c.fabric_quality}</span>
-                        {c.design_no && <span className="font-mono text-cyan-800 font-semibold">• {c.design_no}</span>}
+                        {c.design_no && <span className="font-mono text-[var(--text-main)] font-semibold">• {c.design_no}</span>}
                         <span>• {c.than_count} Thans</span>
                       </div>
                     </div>
@@ -2092,11 +2092,11 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
           )}
 
           {selectedLotIds.length > 0 && (
-            <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-cyan-200 text-xs font-mono">
+            <div className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-[var(--border)] text-xs font-mono">
               <span className="text-slate-600 font-sans font-medium">
                 {t.invoice_consolidatedLots} {selectedLotIds.length}:
               </span>
-              <span className="font-bold text-[#0099B8] text-sm">
+              <span className="font-bold text-[var(--primary)] text-sm">
                 {billedMeters} Meters Total
               </span>
             </div>
@@ -2255,7 +2255,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
               if (form) form.requestSubmit();
             }}
             disabled={submitting}
-            className="w-1/2 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
+            className="w-1/2 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold rounded-lg text-xs transition shadow-xs disabled:opacity-50"
           >
             {submitting ? t.saving : editingItem ? t.party_btnUpdate : t.party_btnRegister}
           </button>
@@ -2385,7 +2385,7 @@ const PartyDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> = (
             id={`party-active-${instance.id}`}
             checked={isActive}
             onChange={(e) => setIsActive(e.target.checked)}
-            className="rounded text-[#0099B8] focus:ring-[#0099B8]"
+            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
           />
           <label htmlFor={`party-active-${instance.id}`} className="text-xs text-slate-700 font-medium">
             {t.party_labelActiveToggle}

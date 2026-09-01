@@ -3,7 +3,6 @@
 import React from 'react';
 import { FortnightHisab, Karigar } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
-import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import { Printer, Share2 } from 'lucide-react';
 
@@ -21,97 +20,97 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
   onShareWhatsApp,
 }) => {
   const { activeCompany } = useAuth();
-  const { t } = useI18n();
 
   const currentCompany = {
-    name: activeCompany?.name || 'Company Name',
-    address: activeCompany?.address || '',
+    name: activeCompany?.name || 'SURAT EMBROIDERY INDUSTRIAL UNIT',
+    address: activeCompany?.address || 'PLOT 14-B, GIDC INDUSTRIAL ESTATE, SURAT - 395008',
   };
 
   return (
-    <div className="bg-white text-slate-900 p-6 rounded-2xl shadow-xl border-2 border-slate-300 max-w-2xl mx-auto space-y-4 print:shadow-none print:border-none print:p-2 print-nums ledger-nums">
-      {/* Header */}
-      <div className="border-b-2 border-slate-900 pb-3 flex justify-between items-start">
+    <div
+      className="bg-[#FAFAF9] text-[#1C1917] p-6 sm:p-8 border border-[#E7E5E4] rounded-2xl max-w-2xl mx-auto space-y-5 font-sans shadow-md print:shadow-none print:border-black print:p-4 print:max-w-none print:w-full print:rounded-none"
+    >
+      {/* Factory & Document Header */}
+      <div className="border-b border-[#E7E5E4] pb-4 flex flex-col sm:flex-row justify-between items-start gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">
+          <span className="badge-pastel-green px-2.5 py-0.5 rounded text-[0.6875rem] font-semibold uppercase tracking-wider inline-block mb-1.5">
+            Fortnight Wage Settlement Voucher
+          </span>
+          <h2 className="text-xl font-bold text-[#1C1917] tracking-tight">
             {currentCompany.name.split('(')[0]}
           </h2>
-          <p className="text-xs text-slate-600">{currentCompany.address}</p>
-          <div className="inline-block bg-amber-500 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded mt-1">
-            {t.slip_voucherTitle}
-          </div>
+          <p className="text-xs text-[#78716C] mt-0.5">{currentCompany.address}</p>
         </div>
 
-        <div className="text-right text-xs space-y-0.5 font-mono">
-          <div className="font-bold text-slate-800">{t.slip_hisabNo} {hisab.id}</div>
-          <div className="text-slate-600">
-            {t.slip_period} <strong>{hisab.periodStart}</strong> {t.slip_to} <strong>{hisab.periodEnd}</strong>
+        <div className="sm:text-right text-xs space-y-1 font-mono">
+          <div className="font-bold text-[#1C1917]">Slip #{hisab.id}</div>
+          <div className="text-[0.6875rem] text-[#78716C]">
+            Period: <span className="font-semibold text-[#1C1917]">{hisab.periodStart}</span> to <span className="font-semibold text-[#1C1917]">{hisab.periodEnd}</span>
+          </div>
+          <div className="text-[0.6875rem] text-[#A8A29E]">
+            Issued: {new Date().toISOString().split('T')[0]}
           </div>
         </div>
       </div>
 
-      {/* Karigar Bio Card */}
-      <div className="bg-slate-100 p-3 rounded-xl flex items-center justify-between border border-slate-200 text-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-200 text-slate-900 rounded-full flex items-center justify-center text-lg font-bold">
-            {karigar.avatar || '👨‍🔧'}
-          </div>
-          <div>
-            <div className="font-extrabold text-sm text-slate-900">{karigar.name}</div>
-            <div className="text-slate-600 font-mono">Ph: {karigar.phone}</div>
-          </div>
+      {/* Karigar Specimen */}
+      <div className="bg-[#F5F5F4] p-4 rounded-xl border border-[#E7E5E4] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div>
+          <span className="text-[0.6875rem] text-[#78716C] uppercase font-semibold block">Operating Karigar</span>
+          <div className="font-bold text-base text-[#1C1917]">{karigar.name}</div>
+          <div className="text-xs text-[#78716C] font-mono mt-0.5">Phone: {karigar.phone} • ID: {karigar.id}</div>
         </div>
-        <div className="text-right">
-          <span className="text-slate-500 block text-2xs">{t.slip_shiftsWorked}</span>
-          <span className="font-bold text-sm text-slate-900">
-            {hisab.totalShifts} {t.shift_shifts} ({hisab.dayShifts} {t.slip_dayShift} / {hisab.nightShifts} {t.slip_nightShift})
+        <div className="sm:text-right font-mono">
+          <span className="text-[0.6875rem] text-[#78716C] uppercase font-semibold block">Shifts Logged</span>
+          <span className="font-bold text-sm text-[#1C1917]">
+            {hisab.totalShifts} Shifts ({hisab.dayShifts} Day / {hisab.nightShifts} Night)
           </span>
         </div>
       </div>
 
-      {/* Production & Wage Breakdown Table */}
-      <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+      {/* Accounting Breakdown Matrix */}
+      <div className="border border-[#E7E5E4] rounded-xl overflow-hidden text-xs shadow-xs">
         <table className="w-full text-left">
-          <thead className="bg-slate-800 text-white font-bold">
+          <thead className="bg-[#F5F5F4] text-[#78716C] font-semibold border-b border-[#E7E5E4] uppercase text-[0.6875rem]">
             <tr>
-              <th className="p-2.5">{t.slip_thParticulars}</th>
-              <th className="p-2.5 text-right">{t.slip_thAmount}</th>
+              <th className="p-3">Accounting Particulars</th>
+              <th className="p-3 text-right">Value / Amount</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-[#E7E5E4] font-sans">
             <tr>
-              <td className="p-2.5 font-medium text-slate-700">{t.hisab_stitchesCount}</td>
-              <td className="p-2.5 text-right font-mono font-bold text-slate-900">
-                {formatNumber(hisab.totalStitches)}
+              <td className="p-3 font-medium text-[#1C1917]">Total Stitches Count</td>
+              <td className="p-3 text-right font-mono font-semibold text-[#1C1917] tabular-nums">
+                {formatNumber(hisab.totalStitches)} Stitches
               </td>
             </tr>
             <tr>
-              <td className="p-2.5 font-medium text-slate-700">{t.hisab_metersCount}</td>
-              <td className="p-2.5 text-right font-mono text-slate-900">
-                {formatNumber(hisab.totalMeters)} MTR
+              <td className="p-3 font-medium text-[#1C1917]">Total Fabric Meters</td>
+              <td className="p-3 text-right font-mono font-semibold text-[#1C1917] tabular-nums">
+                {formatNumber(hisab.totalMeters)} m
               </td>
             </tr>
             <tr>
-              <td className="p-2.5 font-medium text-slate-700">{t.slip_ratePerThousand}</td>
-              <td className="p-2.5 text-right font-mono text-slate-900">
+              <td className="p-3 font-medium text-[#1C1917]">Piece-Rate (per 1k Stitches / Meter)</td>
+              <td className="p-3 text-right font-mono font-semibold text-[#1C1917] tabular-nums">
                 ₹{Number(karigar.ratePerThousand || 0).toFixed(2)}
               </td>
             </tr>
-            <tr className="bg-slate-50 font-bold">
-              <td className="p-2.5 text-slate-900">{t.hisab_grossEarnings}</td>
-              <td className="p-2.5 text-right font-mono text-slate-900 text-sm">
+            <tr className="bg-[#F5F5F4]/70 font-semibold">
+              <td className="p-3 text-[#1C1917]">Gross Wage Earnings</td>
+              <td className="p-3 text-right font-mono text-[#1C1917] text-sm font-bold tabular-nums">
                 {formatINR(hisab.grossEarnings)}
               </td>
             </tr>
-            <tr className="text-red-700 bg-red-50/50">
-              <td className="p-2.5 font-bold">{t.hisab_totalUchapatDeductions}</td>
-              <td className="p-2.5 text-right font-mono font-bold text-sm">
+            <tr className="bg-rose-50/70 dark:bg-rose-950/20 text-[#1C1917]">
+              <td className="p-3 font-semibold text-rose-800">Deduction: Uchapat Cash Advances</td>
+              <td className="p-3 text-right font-mono font-bold text-sm text-rose-700 tabular-nums">
                 - {formatINR(hisab.totalAdvanceDeducted)}
               </td>
             </tr>
-            <tr className="bg-emerald-100 text-emerald-950 font-black text-sm">
-              <td className="p-3">{t.hisab_netPayable} (₹)</td>
-              <td className="p-3 text-right font-mono text-base text-emerald-900">
+            <tr className="bg-[#1C1917] text-white font-bold text-sm">
+              <td className="p-3.5 uppercase tracking-wide">Net Payable Disbursement</td>
+              <td className="p-3.5 text-right font-mono text-base font-bold text-white tabular-nums">
                 {formatINR(hisab.netPayable)}
               </td>
             </tr>
@@ -119,40 +118,41 @@ export const FortnightHisabSlip: React.FC<FortnightHisabProps> = ({
         </table>
       </div>
 
-      {/* Signature Box */}
-      <div className="pt-6 grid grid-cols-2 gap-8 text-xs text-slate-700">
-        <div className="border-t-2 border-slate-400 pt-2 text-center">
-          <span className="font-bold block">{t.slip_signatureKarigar}</span>
-          <span className="text-2xs text-slate-500">{t.slip_signatureReceipt}</span>
+      {/* Dual Signature & Timestamp Strip */}
+      <div className="pt-6 grid grid-cols-2 gap-8 text-xs text-[#1C1917]">
+        <div className="border-t border-[#D6D3D1] pt-2 text-center">
+          <span className="font-semibold block uppercase text-[0.6875rem]">Karigar Signature / Thumb</span>
+          <span className="text-[0.6875rem] text-[#78716C]">Acknowledged & Received</span>
         </div>
-        <div className="border-t-2 border-slate-400 pt-2 text-center">
-          <span className="font-bold block">{t.slip_signatureManager}</span>
-          <span className="text-2xs text-slate-500">For {currentCompany.name.split('(')[0]}</span>
+        <div className="border-t border-[#D6D3D1] pt-2 text-center">
+          <span className="font-semibold block uppercase text-[0.6875rem]">Factory Manager Signature</span>
+          <span className="text-[0.6875rem] text-[#78716C]">For {currentCompany.name.split('(')[0]}</span>
         </div>
       </div>
 
-      {/* Actions (Hidden on Print) */}
-      <div className="pt-2 flex justify-end gap-2 print:hidden">
+      {/* Actions (Hidden on Thermal/A4 Print) */}
+      <div className="pt-3 flex justify-end gap-2.5 print:hidden">
         {onShareWhatsApp && (
           <button
             onClick={onShareWhatsApp}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow"
+            className="px-4 py-2 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)] border border-[var(--border)] font-semibold text-xs flex items-center gap-1.5 cursor-pointer rounded-lg transition shadow-xs"
           >
-            <Share2 className="w-4 h-4" />
-            {t.slip_btnWhatsApp}
+            <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Share WhatsApp</span>
           </button>
         )}
         {onPrint && (
           <button
             onClick={onPrint}
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow"
+            className="px-4 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center gap-1.5 cursor-pointer rounded-lg transition shadow-sm"
           >
-            <Printer className="w-4 h-4" />
-            {t.slip_btnPrint}
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print Hisab Slip</span>
           </button>
         )}
       </div>
     </div>
   );
 };
+
 

@@ -2,23 +2,19 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { PartiesApi, PartyStatementResult } from '@/lib/api/parties';
 import { useAuth } from '@/lib/auth-context';
-import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import {
   Briefcase,
   ArrowLeft,
   Calendar,
-  Download,
   Share2,
   Printer,
   FileText,
   Truck,
   TrendingUp,
   AlertCircle,
-  CheckCircle2,
   Clock,
   Phone,
   MapPin,
@@ -31,7 +27,6 @@ export default function PartyStatementPage() {
   const router = useRouter();
   const partyId = params?.id as string;
   const { activeCompany } = useAuth();
-  const { t } = useI18n();
 
   const [statement, setStatement] = useState<PartyStatementResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,8 +79,8 @@ export default function PartyStatementPage() {
     if (!statement) return;
     const p = statement.party;
     const m = statement.metrics;
-    const text = `*Jobwork Ledger Statement: ${p.name}*
-*Factory:* ${activeCompany?.name || 'Radhe Krishna Embroidery'}
+    const text = `*JOBWORK LEDGER STATEMENT: ${p.name.toUpperCase()}*
+*Factory Unit:* ${activeCompany?.name || 'Radhe Krishna Embroidery'}
 *GSTIN:* ${p.gstin || 'URP / Unregistered'}
 ------------------------------------
 *Total Inward Lots:* ${m.total_inward_lots} (${formatNumber(m.total_inward_meters)}m)
@@ -107,24 +102,24 @@ Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
 
   if (loading && !statement) {
     return (
-      <div className="p-12 text-center text-slate-400 bg-white border border-slate-200 rounded-2xl">
-        <div className="animate-spin w-8 h-8 border-3 border-[#0099B8] border-t-transparent rounded-full mx-auto mb-3" />
-        <p className="text-xs font-medium">Loading Party Statement & Ledger...</p>
+      <div className="p-12 text-center text-muted-foreground bg-card border border-border font-mono">
+        <p className="text-xs font-bold uppercase">{"/// LOADING PARTY STATEMENT & RUNNING KHATA LEDGER..."}</p>
       </div>
     );
   }
 
   if (!statement) {
     return (
-      <div className="p-12 text-center bg-white border border-slate-200 rounded-2xl space-y-3">
-        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
-        <h3 className="text-sm font-bold text-slate-800">Party Record Not Found</h3>
-        <p className="text-xs text-slate-500">The requested party ledger does not exist or has been removed.</p>
+      <div className="p-12 text-center bg-card border border-border space-y-3 font-mono">
+        <AlertCircle className="w-10 h-10 text-destructive mx-auto" />
+        <h3 className="text-sm font-black text-foreground uppercase">{"/// PARTY RECORD NOT FOUND"}</h3>
+        <p className="text-xs text-muted-foreground">The requested party ledger does not exist or has been removed.</p>
         <button
           onClick={() => router.push('/parties')}
-          className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold"
+          className="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-xs font-bold uppercase cursor-pointer"
+          style={{ borderRadius: 0 }}
         >
-          Back to Parties Directory
+          [BACK TO DIRECTORY]
         </button>
       </div>
     );
@@ -135,51 +130,51 @@ Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <button
               onClick={() => router.push('/parties')}
-              className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg transition shrink-0 mt-0.5"
+              className="p-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] rounded-lg transition shrink-0 mt-0.5 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-2xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                  <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                  {t.ledger_title}
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
+                  <Briefcase className="w-3.5 h-3.5 text-[var(--text-main)]" />
+                  <span>Trader Khata Statement • SAC 9988</span>
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-2xs font-bold ${
+                  className={`px-2.5 py-0.5 rounded text-[0.6875rem] font-semibold uppercase ${
                     party.is_active
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-slate-100 text-slate-500 border border-slate-200'
+                      ? 'badge-pastel-green'
+                      : 'badge-pastel-yellow'
                   }`}
                 >
-                  {party.is_active ? t.party_active : t.party_inactive}
+                  {party.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">{party.name}</h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 mt-1.5">
-                <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-2xs text-slate-700 border border-slate-200">
-                  GSTIN: {party.gstin || t.party_unregistered}
+              <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight mt-1">{party.name}</h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--text-muted)] mt-1">
+                <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                  GSTIN: {party.gstin || 'Unregistered'}
                 </span>
                 {party.mobile && (
-                  <span className="flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-slate-400" />
+                  <span className="flex items-center gap-1 font-mono">
+                    <Phone className="w-3 h-3 text-[var(--text-muted)]" />
                     {party.mobile}
                   </span>
                 )}
                 {party.city && (
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-slate-400" />
+                    <MapPin className="w-3 h-3 text-[var(--text-muted)]" />
                     {party.city} {party.address ? `• ${party.address}` : ''}
                   </span>
                 )}
-                <span className="flex items-center gap-1 text-slate-500">
-                  <CreditCard className="w-3 h-3 text-slate-400" />
-                  {t.ledger_creditTerm} {party.credit_period_days || 15} {t.party_daysUnit}
+                <span className="flex items-center gap-1 font-mono">
+                  <CreditCard className="w-3 h-3 text-[var(--text-muted)]" />
+                  Credit Term: {party.credit_period_days || 15} Days
                 </span>
               </div>
             </div>
@@ -188,167 +183,163 @@ Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handlePrint}
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition shadow-xs"
+              className="px-3 py-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-main)] font-semibold text-xs rounded-md flex items-center gap-1.5 transition cursor-pointer shadow-xs"
             >
               <Printer className="w-4 h-4" />
-              <span>{t.ledger_printPdf}</span>
+              <span>Print Ledger</span>
             </button>
             <button
               onClick={handleShareWhatsApp}
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5 transition shadow-xs"
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-md flex items-center gap-1.5 transition cursor-pointer shadow-sm"
             >
               <Share2 className="w-4 h-4" />
-              <span>{t.ledger_whatsappKhata}</span>
+              <span>WhatsApp Khata</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Total Billed */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-2xs font-bold uppercase tracking-wider">{t.ledger_totalBilled}</span>
-            <FileText className="w-4 h-4 text-sky-600" />
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4 shadow-xs">
+          <div className="text-[0.6875rem] font-semibold uppercase text-[var(--text-muted)] tracking-wider">
+            Total Billed (SAC 9988)
           </div>
-          <div className="text-2xl font-black text-slate-900 font-mono">
+          <div className="text-xl sm:text-2xl font-bold text-[var(--text-main)] font-mono tabular-nums mt-1">
             {formatINR(metrics.total_billed_amount)}
           </div>
-          <div className="text-2xs text-slate-500">
-            {metrics.total_invoices_count} {t.ledger_invoicesGen} • {formatNumber(metrics.total_outward_meters)} {t.ledger_meters}
+          <div className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+            {metrics.total_invoices_count} Invoices • {formatNumber(metrics.total_outward_meters)} m
           </div>
         </div>
 
         {/* Closing Balance / Outstanding */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-2xs font-bold uppercase tracking-wider">{t.ledger_outstanding}</span>
-            <TrendingUp className="w-4 h-4 text-rose-600" />
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4 shadow-xs">
+          <div className="text-[0.6875rem] font-semibold uppercase text-[var(--text-muted)] tracking-wider">
+            Current Outstanding
           </div>
-          <div className="text-2xl font-black text-rose-700 font-mono">
+          <div className="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400 font-mono tabular-nums mt-1">
             {formatINR(metrics.closing_balance)}
           </div>
-          <div className="text-2xs text-slate-500">
-            {t.ledger_includesOpening} {formatINR(metrics.opening_balance)}
+          <div className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+            Incl. Opening: {formatINR(metrics.opening_balance)}
           </div>
         </div>
 
         {/* Inward Lots */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-2xs font-bold uppercase tracking-wider">{t.ledger_totalInward}</span>
-            <Truck className="w-4 h-4 text-emerald-600" />
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4 shadow-xs">
+          <div className="text-[0.6875rem] font-semibold uppercase text-[var(--text-muted)] tracking-wider">
+            Total Inward Cloth
           </div>
-          <div className="text-2xl font-black text-slate-900 font-mono">
+          <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono tabular-nums mt-1">
             {formatNumber(metrics.total_inward_meters)} m
           </div>
-          <div className="text-2xs text-slate-500">
-            {metrics.total_inward_lots} {t.ledger_challansRegistered}
+          <div className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+            {metrics.total_inward_lots} Lot Challans
           </div>
         </div>
 
         {/* Fabric In Process */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-2xs font-bold uppercase tracking-wider">{t.ledger_fabricInProcess}</span>
-            <Clock className="w-4 h-4 text-amber-600" />
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4 shadow-xs">
+          <div className="text-[0.6875rem] font-semibold uppercase text-[var(--text-muted)] tracking-wider">
+            Gray Fabric In Process
           </div>
-          <div className="text-2xl font-black text-amber-600 font-mono">
+          <div className="text-xl sm:text-2xl font-bold text-[var(--text-main)] font-mono tabular-nums mt-1">
             {formatNumber(metrics.fabric_in_process_meters)} m
           </div>
-          <div className="text-2xs text-slate-500">
-            {t.ledger_pendingJobwork}
+          <div className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+            Floor Production Quota
           </div>
         </div>
       </div>
 
       {/* Payment Aging Breakdown */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-slate-500" />
-            <span>{t.ledger_agingBreakdown}</span>
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+          <h2 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+            <Clock className="w-4 h-4 text-emerald-600" />
+            <span>Payment Aging & Receivable Cycle</span>
           </h2>
-          <span className="text-2xs text-slate-500">{t.ledger_creditTerm} {party.credit_period_days || 15} {t.party_daysUnit}</span>
+          <span className="text-xs text-[var(--text-muted)] font-mono">Credit Term: {party.credit_period_days || 15} Days</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-            <div className="text-2xs font-bold uppercase text-emerald-800">{t.ledger_current15}</div>
-            <div className="text-lg font-bold text-emerald-900 font-mono">
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg space-y-1">
+            <div className="text-[0.6875rem] font-semibold uppercase text-emerald-700 dark:text-emerald-400">0-15 Days Current</div>
+            <div className="text-lg font-bold text-[var(--text-main)] font-mono tabular-nums">
               {formatINR(metrics.aging.within_15_days)}
             </div>
-            <div className="text-2xs text-emerald-700">{t.ledger_standardCycle}</div>
+            <div className="text-[0.6875rem] text-[var(--text-muted)]">Standard Settlement</div>
           </div>
 
-          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
-            <div className="text-2xs font-bold uppercase text-amber-800">{t.ledger_due30}</div>
-            <div className="text-lg font-bold text-amber-900 font-mono">
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg space-y-1">
+            <div className="text-[0.6875rem] font-semibold uppercase text-amber-700 dark:text-amber-400">16-30 Days Due</div>
+            <div className="text-lg font-bold text-[var(--text-main)] font-mono tabular-nums">
               {formatINR(metrics.aging.days_16_to_30)}
             </div>
-            <div className="text-2xs text-amber-700">{t.ledger_followupRecommended}</div>
+            <div className="text-[0.6875rem] text-[var(--text-muted)]">Reminder Queued</div>
           </div>
 
-          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1">
-            <div className="text-2xs font-bold uppercase text-rose-800">{t.ledger_overdue30}</div>
-            <div className="text-lg font-bold text-rose-900 font-mono">
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-lg space-y-1">
+            <div className="text-[0.6875rem] font-semibold uppercase text-rose-700 dark:text-rose-400">&gt;30 Days Overdue</div>
+            <div className="text-lg font-bold text-rose-700 dark:text-rose-400 font-mono tabular-nums">
               {formatINR(metrics.aging.above_30_days)}
             </div>
-            <div className="text-2xs text-rose-700">{t.ledger_criticalOverdue}</div>
+            <div className="text-[0.6875rem] text-rose-600/80">Critical Collection</div>
           </div>
         </div>
       </div>
 
       {/* Date Filter & Statement Timeline */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--bg-surface-elevated)]/50">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <h2 className="text-sm font-bold text-slate-900">
-              {t.ledger_chronologicalEntries} ({timeline.length})
+            <Calendar className="w-4 h-4 text-[var(--text-main)]" />
+            <h2 className="text-sm font-bold text-[var(--text-main)]">
+              Chronological Khata Ledger ({timeline.length} Transactions)
             </h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg p-1 text-xs">
+            <div className="flex items-center gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-2.5 py-1 text-xs">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent text-xs text-slate-800 focus:outline-none"
+                className="bg-transparent text-xs text-[var(--text-main)] font-mono focus:outline-none"
               />
-              <span className="text-slate-400">{t.ledger_to}</span>
+              <span className="text-[var(--text-muted)] font-bold">→</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent text-xs text-slate-800 focus:outline-none"
+                className="bg-transparent text-xs text-[var(--text-main)] font-mono focus:outline-none"
               />
             </div>
 
             <div className="flex items-center gap-1">
               <button
                 onClick={() => handlePreset('ALL_TIME')}
-                className={`px-2.5 py-1 rounded text-2xs font-semibold border transition ${
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md border transition cursor-pointer ${
                   !startDate && !endDate
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)]'
+                    : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border)] hover:text-[var(--text-main)]'
                 }`}
               >
-                {t.ledger_presetAllTime}
+                All Time
               </button>
               <button
                 onClick={() => handlePreset('THIS_MONTH')}
-                className="px-2.5 py-1 rounded text-2xs font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition"
+                className="px-2.5 py-1 text-xs font-semibold bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-main)] rounded-md transition cursor-pointer"
               >
-                {t.ledger_presetThisMonth}
+                This Month
               </button>
               <button
                 onClick={() => handlePreset('LAST_30')}
-                className="px-2.5 py-1 rounded text-2xs font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition"
+                className="px-2.5 py-1 text-xs font-semibold bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border)] hover:text-[var(--text-main)] rounded-md transition cursor-pointer"
               >
-                {t.ledger_presetLast30}
+                Last 30D
               </button>
             </div>
           </div>
@@ -356,74 +347,74 @@ Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
 
         {/* Timeline Table */}
         {timeline.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-xs">
-            {t.ledger_noTransactions}
+          <div className="p-12 text-center text-[var(--text-muted)] text-xs">
+            No transactions recorded in selected date range.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse font-sans">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-2xs uppercase tracking-wider text-slate-500 font-semibold">
-                  <th className="p-3.5">{t.ledger_thDate}</th>
-                  <th className="p-3.5">{t.ledger_thType}</th>
-                  <th className="p-3.5">{t.ledger_thRefNo}</th>
-                  <th className="p-3.5">{t.ledger_thParticulars}</th>
-                  <th className="p-3.5">{t.ledger_thQuantity}</th>
-                  <th className="p-3.5 text-right">{t.ledger_thDebit}</th>
-                  <th className="p-3.5 text-right">{t.ledger_thCredit}</th>
-                  <th className="p-3.5 text-right">{t.ledger_thRunningBalance}</th>
+                <tr className="bg-[var(--bg-surface-elevated)] border-b border-[var(--border)] text-[0.6875rem] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                  <th className="p-3.5">Date</th>
+                  <th className="p-3.5">Type</th>
+                  <th className="p-3.5">Ref No</th>
+                  <th className="p-3.5">Particulars</th>
+                  <th className="p-3.5">Quantity / Spec</th>
+                  <th className="p-3.5 text-right">Debit (+)</th>
+                  <th className="p-3.5 text-right">Credit (-)</th>
+                  <th className="p-3.5 text-right">Running Balance</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-[var(--border)] text-[var(--text-main)]">
                 {/* Opening Balance Row */}
-                <tr className="bg-slate-50/50 font-semibold">
-                  <td className="p-3.5 font-mono text-slate-500">—</td>
+                <tr className="bg-[var(--bg-surface-elevated)]/40 font-semibold">
+                  <td className="p-3.5 font-mono text-[var(--text-muted)]">—</td>
                   <td className="p-3.5">
-                    <span className="px-2 py-0.5 rounded text-2xs bg-slate-200 text-slate-700 font-bold">
-                      {t.ledger_openingRow}
+                    <span className="badge-pastel-yellow px-2 py-0.5 rounded text-[0.6875rem] font-semibold">
+                      Opening
                     </span>
                   </td>
-                  <td className="p-3.5 font-mono text-slate-500">—</td>
-                  <td className="p-3.5">{t.ledger_openingDesc}</td>
-                  <td className="p-3.5 text-slate-400">—</td>
-                  <td className="p-3.5 text-right font-mono font-bold text-slate-900">
+                  <td className="p-3.5 font-mono text-[var(--text-muted)]">—</td>
+                  <td className="p-3.5">Opening Balance Recorded</td>
+                  <td className="p-3.5 text-[var(--text-muted)]">—</td>
+                  <td className="p-3.5 text-right font-mono font-semibold tabular-nums">
                     {metrics.opening_balance > 0 ? formatINR(metrics.opening_balance) : '—'}
                   </td>
-                  <td className="p-3.5 text-right font-mono text-slate-400">—</td>
-                  <td className="p-3.5 text-right font-mono font-bold text-slate-900">
+                  <td className="p-3.5 text-right font-mono text-[var(--text-muted)]">—</td>
+                  <td className="p-3.5 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                     {formatINR(metrics.opening_balance)}
                   </td>
                 </tr>
 
                 {/* Event Rows */}
                 {timeline.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                    <td className="p-3.5 font-mono whitespace-nowrap">{item.date}</td>
+                  <tr key={item.id} className="hover:bg-[var(--bg-surface-elevated)]/50 transition">
+                    <td className="p-3.5 font-mono whitespace-nowrap text-[var(--text-muted)]">{item.date}</td>
                     <td className="p-3.5 whitespace-nowrap">
                       {item.type === 'INWARD_LOT' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-2xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.6875rem] font-semibold badge-pastel-blue">
                           <Truck className="w-3 h-3" />
-                          {t.ledger_typeInwardLot}
+                          <span>Inward Lot</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-2xs font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.6875rem] font-semibold badge-pastel-green">
                           <FileText className="w-3 h-3" />
-                          {t.ledger_typeInvoice}
+                          <span>Invoice</span>
                         </span>
                       )}
                     </td>
-                    <td className="p-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">
+                    <td className="p-3.5 font-mono font-semibold text-[var(--text-main)] whitespace-nowrap">
                       {item.ref_no}
                     </td>
                     <td className="p-3.5 max-w-xs">{item.particulars}</td>
-                    <td className="p-3.5 font-mono whitespace-nowrap text-slate-600">{item.quantity_info}</td>
-                    <td className="p-3.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                    <td className="p-3.5 font-mono whitespace-nowrap text-[var(--text-muted)]">{item.quantity_info}</td>
+                    <td className="p-3.5 text-right font-mono font-semibold text-[var(--text-main)] whitespace-nowrap tabular-nums">
                       {item.debit > 0 ? formatINR(item.debit) : '—'}
                     </td>
-                    <td className="p-3.5 text-right font-mono text-slate-400 whitespace-nowrap">
+                    <td className="p-3.5 text-right font-mono text-emerald-600 dark:text-emerald-400 whitespace-nowrap tabular-nums">
                       {item.credit > 0 ? formatINR(item.credit) : '—'}
                     </td>
-                    <td className="p-3.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                    <td className="p-3.5 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap tabular-nums">
                       {formatINR(item.running_balance)}
                     </td>
                   </tr>
@@ -436,3 +427,5 @@ Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
     </div>
   );
 }
+
+

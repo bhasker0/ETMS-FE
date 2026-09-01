@@ -73,40 +73,35 @@ export const OfflineSyncBanner: React.FC = () => {
 
   return (
     <div
-      className={`fixed top-4 right-4 z-40 flex items-center gap-2 px-3 py-2 rounded-2xl shadow-lg border backdrop-blur-md transition-all duration-300 animate-in fade-in slide-in-from-top-4 ${
-        !isOnline
-          ? 'bg-slate-900/95 text-white border-slate-800 shadow-slate-950/20'
-          : conflicts.length > 0
-          ? 'bg-rose-950/95 text-rose-100 border-rose-800 shadow-rose-950/20'
-          : 'bg-amber-950/95 text-amber-100 border-amber-800 shadow-amber-950/20'
-      }`}
+      className="fixed top-16 right-4 z-40 flex items-center gap-2.5 px-3.5 py-2 border shadow-lg text-xs rounded-lg animate-in fade-in slide-in-from-top-2 backdrop-blur-xs"
+      style={{
+        backgroundColor: !isOnline ? '#FDEBEC' : conflicts.length > 0 ? '#FDEBEC' : '#FBF3DB',
+        borderColor: !isOnline ? '#F5C2C4' : conflicts.length > 0 ? '#F5C2C4' : '#F5E6B8',
+        color: !isOnline ? '#8A1C14' : conflicts.length > 0 ? '#8A1C14' : '#744210',
+      }}
     >
-      <div className="flex items-center gap-2 text-xs font-semibold">
+      <div className="flex items-center gap-2 font-medium">
         {isOnline ? (
-          <Wifi className="w-4 h-4 text-emerald-400" />
+          <Wifi className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
         ) : (
-          <WifiOff className="w-4 h-4 text-red-400" />
+          <WifiOff className="w-4 h-4 text-rose-600 dark:text-rose-400 animate-pulse" />
         )}
 
-        <span className="hidden sm:inline">
-          {isOnline ? t.online : t.offline}
+        <span>
+          {!isOnline
+            ? `Offline mode: ${pendingCount} mutations queued`
+            : conflicts.length > 0
+            ? `${conflicts.length} Sync conflicts detected`
+            : `Online • ${pendingCount} pending sync`}
         </span>
-
-        {pendingCount > 0 && (
-          <span className="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-full text-2xs font-extrabold ml-0.5">
-            {pendingCount} {t.pendingSync}
-          </span>
-        )}
 
         {conflicts.length > 0 && (
           <button
             onClick={openConflictDrawer}
-            className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-0.5 rounded-full text-2xs font-extrabold ml-1 flex items-center gap-1 cursor-pointer transition shadow-xs"
+            className="bg-rose-700 hover:bg-rose-800 text-white px-2 py-0.5 text-[0.6875rem] font-semibold rounded ml-1 flex items-center gap-1 cursor-pointer transition"
           >
             <AlertTriangle className="w-3 h-3" />
-            <span>
-              {conflicts.length} {conflicts.length > 1 ? (t.conflictPlural || 'Conflicts') : (t.conflictSingular || 'Conflict')}
-            </span>
+            <span>Resolve</span>
           </button>
         )}
       </div>
@@ -115,13 +110,14 @@ export const OfflineSyncBanner: React.FC = () => {
         <button
           onClick={triggerSync}
           disabled={isSyncing}
-          className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1 shadow transition cursor-pointer"
+          className="px-2.5 py-1 bg-amber-800 hover:bg-amber-900 text-white font-semibold text-[0.6875rem] rounded flex items-center gap-1 transition cursor-pointer"
           title={t.offlineSyncNow || 'Sync Now'}
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span className="hidden md:inline">{isSyncing ? (t.offlineSyncing || 'Syncing...') : (t.offlineSyncNow || 'Sync')}</span>
+          <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+          <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
         </button>
       )}
     </div>
   );
 };
+

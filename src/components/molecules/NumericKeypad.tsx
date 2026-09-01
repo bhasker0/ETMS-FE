@@ -57,18 +57,20 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
   ];
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white border border-[#E2E8F0] rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
+    <div className="w-full max-w-md mx-auto bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-5 space-y-4 shadow-sm">
       {/* Display Screen */}
-      <div className="bg-[#1E293B] border-2 border-[#0099B8] rounded-2xl p-4 text-right shadow-inner">
-        {label && <div className="text-xs text-[#0099B8] font-bold mb-1 tracking-wider">{label}</div>}
-        <div className="font-mono text-3xl sm:text-4xl font-extrabold text-white tracking-widest min-h-[48px] flex items-center justify-end overflow-x-auto">
-          {value || <span className="text-[#64748B] font-normal">0</span>}
+      <div className="bg-[var(--bg-canvas)] border border-[var(--border)] p-4 text-right relative rounded-xl">
+        <span className="absolute top-2 left-3 text-[0.6875rem] text-[var(--text-muted)] font-medium uppercase tracking-wider">
+          {label || 'Digital Keypad Input'}
+        </span>
+        <div className="font-mono text-3xl sm:text-4xl font-bold text-[var(--text-main)] tabular-nums min-h-[48px] flex items-center justify-end overflow-x-auto pt-4">
+          {value || <span className="text-[var(--text-muted)] font-normal">0</span>}
         </div>
-        {helperText && <div className="text-xs text-[#E0F2FE] mt-1">{helperText}</div>}
+        {helperText && <div className="text-[0.6875rem] text-[var(--text-muted)] mt-1 font-mono">{helperText}</div>}
       </div>
 
-      {/* Keypad Grid */}
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+      {/* Keypad Grid (64px Touch Height) */}
+      <div className="grid grid-cols-3 gap-2">
         {keys.map((row, rIdx) => (
           <React.Fragment key={rIdx}>
             {row.map((k) => (
@@ -76,7 +78,7 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
                 key={k}
                 type="button"
                 onClick={() => handleDigit(k)}
-                className="h-16 sm:h-20 bg-[#F8FAFC] hover:bg-[#E0F2FE] active:bg-[#0099B8] active:text-white border border-[#E2E8F0] rounded-2xl text-2xl sm:text-3xl font-black text-[#1E293B] shadow-xs active:scale-95 transition-all flex items-center justify-center select-none"
+                className="h-16 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] active:scale-[0.97] border border-[var(--border)] text-2xl font-mono font-bold text-[var(--text-main)] transition-all flex items-center justify-center select-none cursor-pointer rounded-xl shadow-xs"
               >
                 {k}
               </button>
@@ -86,33 +88,35 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
       </div>
 
       {/* Action Row: Clear, Backspace, Next/Done */}
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-3 pt-1">
+      <div className="grid grid-cols-3 gap-2 pt-1">
         <button
           type="button"
           onClick={handleClear}
-          className="h-14 sm:h-16 bg-[#FEF2F2] hover:bg-[#FEE2E2] active:bg-[#EF4444] border border-[#FECACA] text-[#EF4444] active:text-white font-bold rounded-2xl flex items-center justify-center gap-1 text-xs sm:text-sm shadow-xs active:scale-95 transition"
+          className="h-14 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 active:scale-[0.97] border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 font-semibold flex items-center justify-center gap-1.5 text-xs uppercase cursor-pointer rounded-xl transition-all"
         >
           <RotateCcw className="w-4 h-4" />
-          <span>સાફ / Clear</span>
+          <span>Clear</span>
         </button>
 
         <button
           type="button"
           onClick={handleBackspace}
-          className="h-14 sm:h-16 bg-[#F8FAFC] hover:bg-[#E2E8F0] active:bg-[#0099B8] active:text-white border border-[#E2E8F0] text-[#0099B8] font-bold rounded-2xl flex items-center justify-center text-lg shadow-xs active:scale-95 transition"
+          className="h-14 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] active:scale-[0.97] border border-[var(--border)] text-[var(--text-main)] font-semibold flex items-center justify-center gap-1.5 text-xs uppercase cursor-pointer rounded-xl transition-all"
         >
-          <Delete className="w-6 h-6" />
+          <Delete className="w-4 h-4" />
+          <span>Back</span>
         </button>
 
         <button
           type="button"
           onClick={onEnter}
-          className="h-14 sm:h-16 bg-[#0099B8] hover:bg-[#0E7090] active:bg-[#0E7090] border border-[#0099B8] text-white font-bold rounded-2xl flex items-center justify-center gap-1.5 text-xs sm:text-sm shadow-md active:scale-95 transition"
+          className="h-14 bg-[var(--text-main)] hover:opacity-90 active:scale-[0.97] text-[var(--bg-surface)] font-bold flex items-center justify-center gap-1.5 text-xs uppercase cursor-pointer rounded-xl transition-all shadow-sm"
         >
-          <span>આગળ / Next</span>
+          <span>Enter</span>
           <CornerDownLeft className="w-4 h-4" />
         </button>
       </div>
     </div>
   );
 };
+

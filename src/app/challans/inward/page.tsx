@@ -6,13 +6,14 @@ import { InwardChallansApi, CreateInwardChallanDto } from '@/lib/api/challans';
 import { PartiesApi, PartyApiItem } from '@/lib/api/parties';
 import { useAppDrawer } from '@/lib/app-drawer-context';
 import { useAuth } from '@/lib/auth-context';
-import { useI18n } from '@/lib/i18n';
 import {
   Truck,
   Save,
   ArrowLeft,
-  Briefcase,
   Plus,
+  ShieldCheck,
+  MapPin,
+  Layers,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,7 +21,6 @@ export default function InwardChallanFormPage() {
   const router = useRouter();
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
-  const { t } = useI18n();
 
   const [parties, setParties] = useState<PartyApiItem[]>([]);
   const [traderName, setTraderName] = useState('');
@@ -63,7 +63,7 @@ export default function InwardChallanFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!traderName.trim() || !lotNo.trim()) {
-      toast.error('Trader Name and Lot Number are required');
+      toast.error('[ERROR] Trader Name and Lot Number are mandatory');
       return;
     }
 
@@ -82,7 +82,7 @@ export default function InwardChallanFormPage() {
       };
 
       await InwardChallansApi.create(payload);
-      toast.success(`Inward Lot ${lotNo} registered`);
+      toast.success(`[COMMITTED] Inward Lot ${lotNo} registered to inventory`);
       router.push('/challans');
     } catch (err: any) {
       toast.error('Failed to create challan: ' + err.message);
@@ -92,34 +92,46 @@ export default function InwardChallanFormPage() {
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg transition"
+            className="p-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] rounded-lg transition cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
-              <Truck className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.challan_headerBadge}</span>
+            <div className="flex items-center gap-1.5 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-0.5">
+              <Truck className="w-3.5 h-3.5 text-[var(--text-main)]" />
+              <span>Fabric Registration • Blueprint</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.challan_inwardPageTitle}
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
+              Register Inward Gray Fabric Lot
             </h1>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
+      <form onSubmit={handleSubmit} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 space-y-5 shadow-xs">
+        {/* Verification Strip */}
+        <div className="p-3.5 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span>Inward Gate // Sachin GIDC Receiving Bay 3</span>
+          </div>
+          <div className="flex items-center gap-2 text-[var(--text-muted)] font-mono">
+            <MapPin className="w-3.5 h-3.5 text-[var(--text-main)]" />
+            <span>Fabric Batch: <strong className="text-[var(--text-main)]">{lotNo}</strong></span>
+          </div>
+        </div>
+
         {/* Quick fill traders */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="text-2xs font-semibold text-slate-500 uppercase tracking-wider">
-              {t.challan_selectRegisteredTrader}
+        <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg space-y-2.5">
+          <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+            <label className="text-[0.6875rem] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              Registered Trader Directory
             </label>
             <button
               type="button"
@@ -130,13 +142,13 @@ export default function InwardChallanFormPage() {
                   if (newParty.gstin) setTraderGstin(newParty.gstin);
                 })
               }
-              className="text-xs font-semibold text-[#0099B8] hover:text-[#0E7090] inline-flex items-center gap-1"
+              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{t.party_addNew}</span>
+              <span>+ Add Trader Account</span>
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {parties.map((p) => (
               <button
                 key={p.id}
@@ -145,10 +157,10 @@ export default function InwardChallanFormPage() {
                   setTraderName(p.name);
                   setTraderGstin(p.gstin || '');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+                className={`px-3 py-1 text-xs font-medium rounded-md border transition cursor-pointer ${
                   traderName === p.name
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    ? 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)] shadow-xs'
+                    : 'bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 {p.name}
@@ -157,84 +169,97 @@ export default function InwardChallanFormPage() {
           </div>
         </div>
 
+        {/* Form Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelTrader}</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Trader Name *</label>
             <input
               type="text"
               required
               value={traderName}
               onChange={(e) => setTraderName(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs font-semibold text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)]"
             />
           </div>
 
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Trader GSTIN</label>
+            <input
+              type="text"
+              value={traderGstin}
+              onChange={(e) => setTraderGstin(e.target.value.toUpperCase())}
+              placeholder="e.g. 24ABCDE1234F1Z5"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs font-mono uppercase text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)]"
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardDate}</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Inward Date *</label>
             <input
               type="date"
               required
               value={challanDate}
               onChange={(e) => setChallanDate(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 focus:outline-none focus:border-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs font-mono text-[var(--text-main)] font-semibold focus:outline-none focus:border-[var(--text-main)]"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelGstin}</label>
-            <input
-              type="text"
-              value={traderGstin}
-              onChange={(e) => setTraderGstin(e.target.value.toUpperCase())}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono uppercase focus:outline-none focus:border-slate-900"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelLotNo}</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Lot Number *</label>
             <input
               type="text"
               required
               value={lotNo}
               onChange={(e) => setLotNo(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 font-bold"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold focus:outline-none focus:border-[var(--text-main)]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Design Pattern / Code</label>
+            <input
+              type="text"
+              placeholder="e.g. DSG-108-ZARI"
+              value={designNo}
+              onChange={(e) => setDesignNo(e.target.value)}
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs text-[var(--text-main)] font-mono uppercase focus:outline-none focus:border-[var(--text-main)]"
             />
           </div>
         </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelThanCount}</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Total Thans / Rolls *</label>
             <input
               type="number"
               required
               min="1"
               value={thanCount}
               onChange={(e) => setThanCount(parseInt(e.target.value, 10) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs font-mono text-[var(--text-main)] font-semibold focus:outline-none focus:border-[var(--text-main)]"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelInwardMeters}</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Total Inward Meters *</label>
             <input
               type="number"
               required
               min="1"
               value={inwardMeters}
               onChange={(e) => setInwardMeters(parseInt(e.target.value, 10) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 focus:outline-none focus:border-[var(--text-main)]"
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelQuality}</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Fabric Quality Specification *</label>
             <select
               value={fabricQuality}
               onChange={(e) => setFabricQuality(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs text-[var(--text-main)] font-semibold focus:outline-none focus:border-[var(--text-main)]"
             >
               {fabricPresets.map((f) => (
                 <option key={f} value={f}>
@@ -243,26 +268,15 @@ export default function InwardChallanFormPage() {
               ))}
             </select>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.challan_labelDesignNo}</label>
-            <input
-              type="text"
-              placeholder="e.g. DSG-108, BUTTA-22"
-              value={designNo}
-              onChange={(e) => setDesignNo(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
-            />
-          </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs text-slate-700 font-medium">{t.challan_notes}</label>
+        <div className="space-y-1.5">
+          <label className="text-xs text-[var(--text-main)] font-semibold uppercase text-[0.6875rem]">Transporter & Tempo Dispatch Notes</label>
           <input
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+            className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] rounded-md px-3 py-2 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)]"
           />
         </div>
 
@@ -270,13 +284,14 @@ export default function InwardChallanFormPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-medium rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-2"
+            className="w-full py-3 bg-[var(--text-main)] hover:opacity-90 active:scale-[0.99] text-[var(--bg-surface)] font-semibold text-xs rounded-lg transition shadow-sm flex items-center justify-center gap-2 cursor-pointer"
           >
             <Save className="w-4 h-4" />
-            <span>{submitting ? t.saving : t.challan_saveBtn}</span>
+            <span>{submitting ? 'Recording Lot to Inventory...' : 'Commit Inward Challan Record'}</span>
           </button>
         </div>
       </form>
     </div>
   );
 }
+

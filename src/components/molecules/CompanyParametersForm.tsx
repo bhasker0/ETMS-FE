@@ -3,77 +3,77 @@
 import React from 'react';
 import { useConfig } from '@/lib/config-context';
 import { useI18n } from '@/lib/i18n';
-import { Sliders, ShieldAlert, Check, Save, RotateCcw, Building, CreditCard, Cpu, MessageSquare } from 'lucide-react';
+import { Sliders, ShieldAlert, CreditCard, Cpu, Building, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const CompanyParametersForm: React.FC = () => {
   const { companyParameters, updateParameter } = useConfig();
-  const { t, language } = useI18n();
+  const { language } = useI18n();
 
   // Filter ONLY Company Parameters (strictly hide Super Admin / Support params)
   const visibleCompanyParams = companyParameters.filter((p) => !p.isSuperAdminOnly);
   const hiddenSuperAdminCount = companyParameters.filter((p) => p.isSuperAdminOnly).length;
 
   const categories = [
-    { key: 'billing', label: t.config_catBillingParams, icon: <CreditCard className="w-4 h-4 text-[#0099B8]" /> },
-    { key: 'production', label: t.config_catProductionParams, icon: <Cpu className="w-4 h-4 text-emerald-600" /> },
-    { key: 'integration', label: t.config_catIntegrationParams, icon: <Building className="w-4 h-4 text-purple-600" /> },
-    { key: 'general', label: t.config_catGeneralParams, icon: <MessageSquare className="w-4 h-4 text-amber-600" /> },
+    { key: 'billing', label: 'BILLING & INVOICING PARAMETERS', icon: <CreditCard className="w-4 h-4 text-primary" /> },
+    { key: 'production', label: 'PRODUCTION & MACHINE PARAMETERS', icon: <Cpu className="w-4 h-4 text-accent" /> },
+    { key: 'integration', label: 'TALLY & GST INTEGRATION SPECS', icon: <Building className="w-4 h-4 text-primary" /> },
+    { key: 'general', label: 'SYSTEM LOCALIZATION & GENERAL', icon: <MessageSquare className="w-4 h-4 text-accent" /> },
   ];
 
   const handleValueChange = (key: string, value: any) => {
     updateParameter(key, value);
-    toast.success(t.config_paramUpdated);
+    toast.success(`[SAVED] Parameter "${key}" updated`);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-mono">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background p-3.5 border border-border" style={{ borderRadius: 0 }}>
         <div>
-          <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-[#0099B8]" />
-            {t.config_operationalParamsTitle}
+          <h3 className="font-black text-foreground text-xs uppercase flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-primary" />
+            {"/// FACTORY OPERATIONAL PARAMETERS"}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {t.config_operationalParamsDesc}
+          <p className="text-2xs text-muted-foreground mt-0.5">
+            Real-time business logic variables controlling stitch rounding, tax precision, and wage fortnight rules
           </p>
         </div>
       </div>
 
       {/* Exclusion Notice Banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-        <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-900 leading-relaxed">
-          <span className="font-bold">{t.config_superAdminNoticeTitle}:</span>
-          <br />
-          {hiddenSuperAdminCount} {t.config_superAdminNoticeDesc}
+      {hiddenSuperAdminCount > 0 && (
+        <div className="bg-background border border-accent/40 p-3 flex items-start gap-2.5 text-xs text-foreground" style={{ borderRadius: 0 }}>
+          <ShieldAlert className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+          <div className="text-2xs leading-relaxed text-muted-foreground">
+            <span className="font-bold text-accent uppercase">[PLATFORM ENCLAVE ACTIVE]:</span> {hiddenSuperAdminCount} multi-tenant root partition parameters are locked under Super Admin scope.
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Parameters Grouped by Category */}
-      <div className="space-y-6">
+      <div className="space-y-3">
         {categories.map((cat) => {
           const categoryParams = visibleCompanyParams.filter((p) => p.category === cat.key);
           if (categoryParams.length === 0) return null;
 
           return (
-            <div key={cat.key} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
-              <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+            <div key={cat.key} className="bg-background border border-border" style={{ borderRadius: 0 }}>
+              <div className="bg-card px-3.5 py-2.5 border-b border-border flex items-center gap-2">
                 {cat.icon}
-                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                <h4 className="font-black text-foreground text-xs uppercase tracking-wider">
                   {cat.label}
                 </h4>
               </div>
 
-              <div className="p-4 sm:p-5 space-y-4 divide-y divide-slate-100">
+              <div className="p-3.5 space-y-3 divide-y divide-border/40">
                 {categoryParams.map((param) => (
-                  <div key={param.key} className="pt-4 first:pt-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                  <div key={param.key} className="pt-3 first:pt-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                     <div className="md:col-span-7">
-                      <div className="font-bold text-slate-900 text-xs flex items-center gap-2">
+                      <div className="font-black text-foreground text-xs uppercase flex items-center gap-2">
                         <span>{language === 'gu' && param.labelGu ? param.labelGu : param.label}</span>
                       </div>
-                      <p className="text-2xs text-slate-500 mt-0.5">{param.description}</p>
+                      <p className="text-2xs text-muted-foreground font-mono mt-0.5">{param.description}</p>
                     </div>
 
                     <div className="md:col-span-5 flex items-center justify-end gap-2">
@@ -81,15 +81,14 @@ export const CompanyParametersForm: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleValueChange(param.key, !param.value)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            param.value ? 'bg-[#0099B8]' : 'bg-slate-200'
+                          className={`px-2.5 py-1 text-2xs font-extrabold uppercase border transition cursor-pointer ${
+                            param.value
+                              ? 'bg-accent/15 text-accent border-accent'
+                              : 'bg-card text-muted-foreground border-border'
                           }`}
+                          style={{ borderRadius: 0 }}
                         >
-                          <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                              param.value ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                          />
+                          {param.value ? '[ENABLED / YES]' : '[DISABLED / NO]'}
                         </button>
                       ) : typeof param.value === 'number' ? (
                         <div className="flex items-center gap-1.5 w-full max-w-[200px]">
@@ -98,10 +97,11 @@ export const CompanyParametersForm: React.FC = () => {
                             step="any"
                             value={param.value}
                             onChange={(e) => handleValueChange(param.key, parseFloat(e.target.value) || 0)}
-                            className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#0099B8] outline-none"
+                            className="w-full px-2.5 py-1 bg-card border border-border text-xs font-mono font-bold text-foreground focus:outline-none"
+                            style={{ borderRadius: 0 }}
                           />
                           {param.unit && (
-                            <span className="text-2xs font-semibold text-slate-500 whitespace-nowrap">
+                            <span className="text-2xs font-bold text-muted-foreground whitespace-nowrap uppercase">
                               {param.unit}
                             </span>
                           )}
@@ -111,14 +111,16 @@ export const CompanyParametersForm: React.FC = () => {
                           rows={2}
                           value={param.value as string}
                           onChange={(e) => handleValueChange(param.key, e.target.value)}
-                          className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:ring-2 focus:ring-[#0099B8] outline-none"
+                          className="w-full px-2.5 py-1 bg-card border border-border text-xs font-mono text-foreground focus:outline-none"
+                          style={{ borderRadius: 0 }}
                         />
                       ) : (
                         <input
                           type="text"
                           value={param.value as string}
                           onChange={(e) => handleValueChange(param.key, e.target.value)}
-                          className="w-full max-w-[240px] px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:ring-2 focus:ring-[#0099B8] outline-none"
+                          className="w-full max-w-[240px] px-2.5 py-1 bg-card border border-border text-xs font-mono text-foreground focus:outline-none"
+                          style={{ borderRadius: 0 }}
                         />
                       )}
                     </div>
@@ -132,3 +134,4 @@ export const CompanyParametersForm: React.FC = () => {
     </div>
   );
 };
+

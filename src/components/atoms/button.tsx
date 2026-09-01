@@ -10,13 +10,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-[#0099B8] text-white hover:bg-[#0E7090] shadow-sm',
-        secondary: 'bg-[#0E7090] text-white hover:bg-[#0099B8] shadow-sm',
-        accent: 'bg-[#F58220] text-white hover:bg-[#D97706] shadow-sm',
-        outline: 'border border-[#E2E8F0] bg-white text-[#1E293B] hover:bg-[#F8FAFC]',
-        ghost: 'hover:bg-[#F8FAFC] text-[#1E293B]',
-        destructive: 'bg-[#EF4444] text-white hover:bg-[#EF4444]/90',
-        link: 'text-[#0099B8] underline-offset-4 hover:underline',
+        default: 'bg-[var(--primary)] text-white hover:bg-[#9494ff] shadow-xs active:scale-[0.98]',
+        secondary: 'bg-[var(--bg-surface-elevated)] text-[var(--text-main)] hover:bg-[#9494ff]/20 border border-[var(--border)] shadow-xs',
+        accent: 'bg-[#9494ff] text-white hover:bg-[#b3b3ff] shadow-xs',
+        outline: 'border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-main)] hover:bg-[var(--bg-surface-elevated)]',
+        ghost: 'hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)]',
+        destructive: 'bg-[#EF4444] text-white hover:bg-[#EF4444]/90 shadow-xs',
+        link: 'text-[var(--primary)] underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-10 px-4 py-2',

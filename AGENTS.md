@@ -47,9 +47,15 @@ Usage notes:
 </skill>
 
 <skill>
-<name>industrial-brutalist-ui</name>
-<description>Raw mechanical interfaces fusing Swiss typographic print with military terminal aesthetics. Rigid grids, extreme type scale contrast, utilitarian color, analog degradation effects. For factory floor terminals, machine telemetry, production dispatch, and embroidery job cards.</description>
-<location>.agent/skills/brutalist-skill/SKILL.md</location>
+<name>minimalist-ui</name>
+<description>Clean editorial-style interfaces. Warm monochrome palette, typographic contrast, flat bento grids, muted pastels. No gradients, no heavy shadows.</description>
+<location>.agent/skills/minimalist-skill/SKILL.md</location>
+</skill>
+
+<skill>
+<name>redesign-existing-projects</name>
+<description>Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.</description>
+<location>.agent/skills/redesign-skill/SKILL.md</location>
 </skill>
 
 </available_skills>

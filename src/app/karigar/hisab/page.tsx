@@ -5,7 +5,6 @@ import { WageHisabApi, WageHisabCalculationResult } from '@/lib/api/wage-hisab';
 import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
-import { useI18n } from '@/lib/i18n';
 import { formatINR, formatNumber } from '@/lib/utils';
 import {
   Calculator,
@@ -19,7 +18,6 @@ import { toast } from 'sonner';
 export default function WageHisabPage() {
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
-  const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [selectedKarigarId, setSelectedKarigarId] = useState('');
   const [startDate, setStartDate] = useState('2026-09-01');
@@ -78,8 +76,7 @@ export default function WageHisabPage() {
         deduction_reason: calculationResult.deduction_reason || deductionReason,
         net_payable: calculationResult.net_payable,
       });
-      toast.success('Wage Hisab finalized & advances marked settled in database!');
-      // Re-calculate to show updated balance
+      toast.success('[SETTLED] Wage Hisab finalized & advances marked settled');
       const updated = await WageHisabApi.calculate({
         karigar_id: calculationResult.karigar_id,
         startDate: calculationResult.startDate,
@@ -133,225 +130,194 @@ export default function WageHisabPage() {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-      {/* Card Header / Page Header */}
-      <div className="p-5 sm:p-6 border-b border-slate-200 space-y-4">
+    <div className="space-y-6">
+      {/* Top Header */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
-              <Calculator className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.uchapat_btnFortnightHisab}</span>
+            <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
+              <Calculator className="w-3.5 h-3.5 text-[var(--text-main)]" />
+              <span>Fortnightly Payroll • Piece-Rate Settlement</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.settleHisab}
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
+              Fortnight Hisab & Wage Ledger
             </h1>
-            <p className="text-xs text-slate-500">
-              {t.hisab_formulaSubtitle}
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+              Automated piece-rate calculation, Uchapat deductions, and Swiss payslip generation
             </p>
           </div>
 
           <button
             onClick={handleOpenComputeDrawer}
-            className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs shrink-0"
+            className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ {t.hisab_btnCompute}</span>
+            <span>Compute Hisab Period</span>
           </button>
         </div>
 
-        {/* Small State Chips in Header */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
-            <Calculator className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.navKarigars}: <strong className="font-bold text-slate-900">{karigars.length}</strong></span>
-          </span>
+        {/* Bento Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Registered Operators
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight font-mono tabular-nums mt-1">
+              {karigars.length} <span className="text-xs font-normal text-[var(--text-muted)]">Karigars</span>
+            </div>
+          </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-            <span>{t.customFortnight}</span>
-          </span>
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Settlement Cadence
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight font-mono tabular-nums mt-1">
+              Fortnight <span className="text-xs font-normal text-[var(--text-muted)]">(15-Day Cycle)</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="p-5 sm:p-6 space-y-6">
+      {/* Main Content Area */}
+      <div className="space-y-4">
         {calculationResult ? (
-          <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-6 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/60 pb-3 gap-2">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 space-y-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--border)] pb-4 gap-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                <span className="text-[0.6875rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Calculated Payslip</span>
+                <h2 className="text-xl font-bold text-[var(--text-main)] tracking-tight">
                   {calculationResult.karigar_name}
                 </h2>
-                <div className="text-xs text-slate-500 font-mono">
-                  {t.slip_period} {calculationResult.startDate} {t.slip_to} {calculationResult.endDate} • {calculationResult.total_shifts} {t.shift_shifts}
+                <div className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+                  Period: {calculationResult.startDate} → {calculationResult.endDate} • {calculationResult.total_shifts} shifts logged
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleOpenComputeDrawer}
-                  className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
+                  className="px-3 py-1.5 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium rounded-md transition cursor-pointer shadow-xs flex items-center gap-1.5"
                 >
-                  <Calculator className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{t.hisab_btnCompute}</span>
+                  <Calculator className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Recompute</span>
                 </button>
 
                 <button
                   onClick={handleDownloadPdf}
-                  className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
+                  className="px-3 py-1.5 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium rounded-md transition cursor-pointer shadow-xs flex items-center gap-1.5"
                 >
-                  <Download className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{t.hisab_btnDownloadPdf}</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>PDF Payslip</span>
                 </button>
 
                 <button
                   onClick={handleWhatsAppDispatch}
-                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
+                  className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 text-xs font-medium rounded-md transition cursor-pointer flex items-center gap-1.5"
                   title="Send WhatsApp Slip"
                 >
                   <Share2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{t.hisab_btnWhatsApp}</span>
+                  <span>WhatsApp</span>
                 </button>
 
                 <button
                   onClick={handleSettle}
                   disabled={settling}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition"
+                  className="px-3.5 py-1.5 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center gap-1.5 shadow-sm rounded-md transition cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{t.hisab_btnSettle}</span>
+                  <span>Commit & Settle</span>
                 </button>
               </div>
             </div>
 
-            {/* Wage Model & Calculation Basis Banner */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-              <div className="space-y-1">
-                <span className="text-slate-500 font-semibold uppercase text-2xs">{t.karigar_labelWageStructure}</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900 text-sm">
-                    {calculationResult.wage_type === 'FIXED_PLUS_INCENTIVE'
-                      ? t.karigar_typeFixedIncentive
-                      : calculationResult.wage_type === 'FIXED_MONTHLY'
-                      ? t.karigar_typeFixedMonthly
-                      : t.karigar_typePieceRate}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-2xs font-semibold bg-cyan-100 text-cyan-800">
-                    {calculationResult.wage_type}
-                  </span>
+            {/* Wage Model & Telemetry Bar */}
+            <div className="bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-0.5">
+                <span className="text-[var(--text-muted)] font-semibold uppercase text-[0.6875rem]">Wage Model</span>
+                <div className="font-bold text-[var(--text-main)] text-sm">
+                  {calculationResult.wage_type.replace(/_/g, ' ')}
                 </div>
-                <p className="text-slate-600 text-xs">
-                  {calculationResult.wage_type === 'FIXED_PLUS_INCENTIVE'
-                    ? `${t.customFortnight}: ₹${formatNumber(calculationResult.base_salary || 0)} + ${t.karigar_labelIncentiveBonusRate}: ₹${formatNumber(calculationResult.incentive_commission || 0)}`
-                    : calculationResult.wage_type === 'FIXED_MONTHLY'
-                    ? `${t.karigar_labelMonthlySalary}: ₹${formatNumber((calculationResult.base_salary || 0) * 2)} / ${t.karigar_perMonth}`
-                    : `${t.karigar_typePieceRate}`}
-                </p>
               </div>
 
-              <div className="flex items-center gap-3 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 shrink-0">
+              <div className="flex items-center gap-4 bg-[var(--bg-surface)] px-4 py-2 rounded-lg border border-[var(--border)] shrink-0">
                 <div className="text-center">
-                  <div className="text-2xs text-slate-500">{t.karigar_unitMeters}</div>
-                  <div className="font-mono font-bold text-slate-900">{formatNumber(calculationResult.total_meters)} m</div>
+                  <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold">Meters</div>
+                  <div className="font-mono font-bold text-[var(--text-main)] tabular-nums">{formatNumber(calculationResult.total_meters)} m</div>
                 </div>
-                <div className="w-px h-6 bg-slate-200" />
+                <div className="w-px h-6 bg-[var(--border)]" />
                 <div className="text-center">
-                  <div className="text-2xs text-slate-500">{t.hisab_stitchesCount}</div>
-                  <div className="font-mono font-bold text-slate-900">{formatNumber(calculationResult.total_stitches || 0)}</div>
+                  <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold">Stitches</div>
+                  <div className="font-mono font-bold text-[var(--text-main)] tabular-nums">{formatNumber(calculationResult.total_stitches || 0)}</div>
                 </div>
-                <div className="w-px h-6 bg-slate-200" />
+                <div className="w-px h-6 bg-[var(--border)]" />
                 <div className="text-center">
-                  <div className="text-2xs text-slate-500">{t.shift_shifts}</div>
-                  <div className="font-mono font-bold text-slate-900">{calculationResult.total_shifts}</div>
+                  <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold">Shifts</div>
+                  <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{calculationResult.total_shifts}</div>
                 </div>
-                {calculationResult.attendance && (
-                  <>
-                    <div className="w-px h-6 bg-slate-200" />
-                    <div className="text-center">
-                      <div className="text-2xs text-emerald-600 font-semibold">Attended</div>
-                      <div className="font-mono font-bold text-emerald-700">{calculationResult.attendance.attended_days}d</div>
-                    </div>
-                    <div className="w-px h-6 bg-slate-200" />
-                    <div className="text-center">
-                      <div className="text-2xs text-rose-600 font-semibold">Absent</div>
-                      <div className="font-mono font-bold text-rose-700">{calculationResult.attendance.absent_days}d</div>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
 
-            {/* Wage Calculation Summary Table */}
-            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden text-xs">
+            {/* Wage Calculation Matrix */}
+            <div className="border border-[var(--border)] rounded-xl overflow-hidden text-xs shadow-xs">
               <table className="w-full text-left">
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50/80">
-                    <td className="p-3 text-slate-600 font-medium">{t.hisab_metersCount}</td>
-                    <td className="p-3 text-right font-mono font-semibold text-slate-900">
-                      {formatNumber(calculationResult.total_meters)} {t.karigar_unitMeters} ({formatNumber(calculationResult.total_stitches || 0)} {t.karigar_unitStitches})
+                <tbody className="divide-y divide-[var(--border)] font-sans">
+                  <tr className="hover:bg-[var(--bg-surface-elevated)]/50">
+                    <td className="p-3.5 text-[var(--text-muted)] font-medium">Production Metric</td>
+                    <td className="p-3.5 text-right font-mono font-semibold text-[var(--text-main)] tabular-nums">
+                      {formatNumber(calculationResult.total_meters)} Meters ({formatNumber(calculationResult.total_stitches || 0)} stitches)
                     </td>
                   </tr>
 
-                  {calculationResult.attendance && calculationResult.attendance.absent_days > 0 && calculationResult.attendance.daily_base_salary > 0 && (
-                    <tr className="hover:bg-slate-50/80 bg-rose-50/20">
-                      <td className="p-3 text-rose-700 font-medium">
-                        Attendance: <span className="font-bold">{calculationResult.attendance.attended_days} days attended</span>, <span className="font-bold text-rose-600">{calculationResult.attendance.absent_days} days absent</span> (@ ₹{calculationResult.attendance.daily_base_salary}/day)
-                      </td>
-                      <td className="p-3 text-right font-mono text-xs font-semibold text-rose-600">
-                        Absent: {calculationResult.attendance.absent_days}d ({formatINR(calculationResult.attendance.suggested_absent_deduction)})
-                      </td>
-                    </tr>
-                  )}
-
                   {calculationResult.base_salary !== undefined && calculationResult.base_salary > 0 && (
-                    <tr className="hover:bg-slate-50/80">
-                      <td className="p-3 text-slate-600 font-medium">{t.karigar_labelMonthlySalary}</td>
-                      <td className="p-3 text-right font-mono text-slate-900 font-semibold">
+                    <tr className="hover:bg-[var(--bg-surface-elevated)]/50">
+                      <td className="p-3.5 text-[var(--text-muted)] font-medium">Base Monthly Salary</td>
+                      <td className="p-3.5 text-right font-mono text-[var(--text-main)] font-semibold tabular-nums">
                         {formatINR(calculationResult.base_salary)}
                       </td>
                     </tr>
                   )}
 
                   {calculationResult.incentive_commission !== undefined && calculationResult.incentive_commission > 0 && (
-                    <tr className="hover:bg-slate-50/80">
-                      <td className="p-3 text-cyan-700 font-medium">{t.karigar_labelIncentiveBonusRate}</td>
-                      <td className="p-3 text-right font-mono text-cyan-800 font-bold">
+                    <tr className="hover:bg-[var(--bg-surface-elevated)]/50">
+                      <td className="p-3.5 text-emerald-600 dark:text-emerald-400 font-medium">Incentive Commission Bonus</td>
+                      <td className="p-3.5 text-right font-mono text-emerald-600 dark:text-emerald-400 font-bold tabular-nums">
                         + {formatINR(calculationResult.incentive_commission)}
                       </td>
                     </tr>
                   )}
 
-                  <tr className="bg-slate-50/80 font-semibold">
-                    <td className="p-3 text-slate-900">{t.hisab_grossEarnings}</td>
-                    <td className="p-3 text-right font-mono font-bold text-emerald-700 text-sm">
+                  <tr className="bg-[var(--bg-surface-elevated)]/60 font-semibold">
+                    <td className="p-3.5 text-[var(--text-main)]">Gross Production Earnings</td>
+                    <td className="p-3.5 text-right font-mono font-bold text-[var(--text-main)] text-sm tabular-nums">
                       {formatINR(calculationResult.gross_earnings)}
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-slate-50/80">
-                    <td className="p-3 text-rose-600 font-medium">
-                      {t.hisab_totalUchapatDeductions}
+                  <tr className="bg-rose-50/50 dark:bg-rose-950/20">
+                    <td className="p-3.5 text-rose-800 dark:text-rose-300 font-medium">
+                      Deduction: Uchapat Advance Cash
                     </td>
-                    <td className="p-3 text-right font-mono font-bold text-rose-600 text-sm">
+                    <td className="p-3.5 text-right font-mono font-bold text-rose-700 dark:text-rose-400 text-sm tabular-nums">
                       - {formatINR(calculationResult.total_uchapat_advances)}
                     </td>
                   </tr>
 
                   {calculationResult.deductions > 0 && (
-                    <tr className="hover:bg-slate-50/80">
-                      <td className="p-3 text-slate-600 font-medium">
-                        {t.hisab_customDeductions} ({calculationResult.deduction_reason || '-'})
+                    <tr className="bg-rose-50/30 dark:bg-rose-950/10">
+                      <td className="p-3.5 text-rose-800 dark:text-rose-300 font-medium">
+                        Other Deduction ({calculationResult.deduction_reason || 'Misc'})
                       </td>
-                      <td className="p-3 text-right font-mono font-bold text-rose-600">
+                      <td className="p-3.5 text-right font-mono font-semibold text-rose-700 dark:text-rose-400 tabular-nums">
                         - {formatINR(calculationResult.deductions)}
                       </td>
                     </tr>
                   )}
 
-                  <tr className="bg-slate-100 border-t-2 border-slate-300 font-bold">
-                    <td className="p-4 text-xs text-slate-900 uppercase">
-                      {t.hisab_netPayable} (₹)
+                  <tr className="bg-[var(--text-main)] text-[var(--bg-surface)] font-bold">
+                    <td className="p-4 text-xs uppercase tracking-wide">
+                      Net Payable Cash Disbursement
                     </td>
-                    <td className="p-4 text-right font-mono text-base text-slate-900 font-black">
+                    <td className="p-4 text-right font-mono text-lg font-bold tabular-nums">
                       {formatINR(calculationResult.net_payable)}
                     </td>
                   </tr>
@@ -359,44 +325,44 @@ export default function WageHisabPage() {
               </table>
             </div>
 
-            {/* Shift & Design Production Breakdown */}
+            {/* Shift & Design Breakdown */}
             {calculationResult.shifts && calculationResult.shifts.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden text-xs space-y-2">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 font-bold text-slate-800 flex items-center justify-between">
-                  <span>{t.shift_shiftRecords}</span>
-                  <span className="text-2xs font-mono font-normal text-slate-500">{calculationResult.shifts.length} {t.shift_shifts}</span>
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-hidden text-xs shadow-xs space-y-2">
+                <div className="px-4 py-3 bg-[var(--bg-surface-elevated)] border-b border-[var(--border)] font-bold text-[var(--text-main)] flex items-center justify-between">
+                  <span>Shift Specification Breakdown</span>
+                  <span className="text-[0.6875rem] font-mono text-[var(--text-muted)] font-normal">{calculationResult.shifts.length} Shifts</span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-100/75 text-slate-700 font-semibold border-b border-slate-200">
+                  <table className="w-full text-left font-sans">
+                    <thead className="bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] font-semibold border-b border-[var(--border)] uppercase text-[0.6875rem]">
                       <tr>
-                        <th className="p-2.5">{t.uchapat_thDate}</th>
-                        <th className="p-2.5">{t.shift_thShiftMachine}</th>
-                        <th className="p-2.5">{t.shift_thDesign}</th>
-                        <th className="p-2.5 text-right">{t.shift_thStitches}</th>
-                        <th className="p-2.5 text-right">{t.shift_thMeters}</th>
-                        <th className="p-2.5 text-right">{t.karigar_thRateSalary}</th>
-                        <th className="p-2.5 text-right">{t.shift_thWageEarned}</th>
+                        <th className="p-3">Date</th>
+                        <th className="p-3">Shift & Machine</th>
+                        <th className="p-3">Design</th>
+                        <th className="p-3 text-right">Stitches</th>
+                        <th className="p-3 text-right">Meters</th>
+                        <th className="p-3 text-right">Applied Basis</th>
+                        <th className="p-3 text-right">Wage Earned</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-mono">
+                    <tbody className="divide-y divide-[var(--border)]">
                       {calculationResult.shifts.map((s, idx) => (
-                        <tr key={s.id || idx} className="hover:bg-slate-50">
-                          <td className="p-2.5 text-slate-800 font-medium">{s.shift_date}</td>
-                          <td className="p-2.5 text-slate-600">
-                            <span className="font-sans font-semibold text-slate-800">{s.shift_type}</span> • {s.machine_no}
+                        <tr key={s.id || idx} className="hover:bg-[var(--bg-surface-elevated)]/50 transition">
+                          <td className="p-3 font-mono font-medium text-[var(--text-main)]">{s.shift_date}</td>
+                          <td className="p-3 text-[var(--text-muted)]">
+                            <span className="font-semibold text-[var(--text-main)]">{s.shift_type}</span> • {s.machine_no}
                           </td>
-                          <td className="p-2.5">
-                            <span className="font-bold text-[#0099B8] bg-cyan-50 px-2 py-0.5 rounded text-2xs border border-cyan-200">
+                          <td className="p-3">
+                            <span className="badge-pastel-blue px-2 py-0.5 rounded text-[0.6875rem] font-mono font-semibold">
                               {s.design_no || 'Standard'}
                             </span>
                           </td>
-                          <td className="p-2.5 text-right text-slate-700">{formatNumber(s.total_stitches)}</td>
-                          <td className="p-2.5 text-right text-slate-900 font-semibold">{formatNumber(s.total_meters)} m</td>
-                          <td className="p-2.5 text-right text-slate-600 text-2xs font-sans">
-                            <div className="font-medium text-slate-800">{s.applied_basis || 'Default Rate'}</div>
+                          <td className="p-3 text-right font-mono tabular-nums text-[var(--text-main)]">{formatNumber(s.total_stitches)}</td>
+                          <td className="p-3 text-right font-mono font-semibold text-[var(--text-main)] tabular-nums">{formatNumber(s.total_meters)} m</td>
+                          <td className="p-3 text-right text-[var(--text-muted)] text-[0.6875rem]">
+                            {s.applied_basis || 'Default Rate'}
                           </td>
-                          <td className="p-2.5 text-right text-emerald-700 font-bold">
+                          <td className="p-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                             {formatINR(s.shift_earnings || 0)}
                           </td>
                         </tr>
@@ -408,20 +374,20 @@ export default function WageHisabPage() {
             )}
           </div>
         ) : (
-          <div className="bg-slate-50/70 border border-slate-200 border-dashed rounded-xl p-12 text-center text-slate-400 space-y-3">
-            <Calculator className="w-8 h-8 text-slate-300 mx-auto" />
-            <div className="text-sm font-medium text-slate-600">
-              {t.hisab_noCalculationYet}
+          <div className="bg-[var(--bg-surface)] border border-dashed border-[var(--border)] rounded-xl p-12 text-center text-[var(--text-muted)] space-y-3">
+            <Calculator className="w-8 h-8 text-[var(--text-muted)] mx-auto" />
+            <div className="text-sm font-bold text-[var(--text-main)]">
+              No Hisab Calculation Loaded
             </div>
-            <p className="text-2xs text-slate-400 max-w-sm mx-auto">
-              {t.hisab_formulaSubtitle}
+            <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
+              Select an operator and trigger fortnightly compute to audit piece-rates and Uchapat advances
             </p>
             <button
               onClick={handleOpenComputeDrawer}
-              className="px-4 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs inline-flex items-center gap-1.5 transition shadow-xs mt-2"
+              className="px-4 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs inline-flex items-center gap-1.5 transition rounded-md shadow-sm mt-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ {t.hisab_btnCompute}</span>
+              <span>Compute Hisab Period</span>
             </button>
           </div>
         )}
@@ -429,3 +395,4 @@ export default function WageHisabPage() {
     </div>
   );
 }
+

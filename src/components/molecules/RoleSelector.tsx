@@ -21,18 +21,18 @@ export const RoleSelector: React.FC = () => {
       id: 'owner',
       label: t.roleOwner,
       icon: <Factory className="w-4 h-4" />,
-      color: 'bg-[#0099B8] text-white',
+      color: 'bg-[var(--primary)] text-white',
     },
     {
       id: 'munim',
       label: t.roleMunim,
       icon: <FileSpreadsheet className="w-4 h-4" />,
-      color: 'bg-[#1D4ED8] text-white',
+      color: 'bg-[var(--primary)] text-white',
     },
   ];
 
   return (
-    <div className="flex bg-[#F8FAFC] p-1 rounded-xl border border-[#E2E8F0] shadow-xs overflow-x-auto">
+    <div className="flex bg-[var(--bg-canvas)] p-1 rounded-xl border border-[var(--border)] shadow-xs overflow-x-auto">
       {roles.map((r) => {
         const isActive = role === r.id;
         return (
@@ -42,7 +42,7 @@ export const RoleSelector: React.FC = () => {
             className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[42px] rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
               isActive
                 ? `${r.color} shadow-sm font-extrabold scale-102`
-                : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white'
             }`}
           >
             {r.icon}

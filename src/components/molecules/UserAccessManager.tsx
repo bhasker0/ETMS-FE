@@ -31,7 +31,7 @@ export const UserAccessManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
         <div>
           <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-            <UserCheck className="w-5 h-5 text-[#0099B8]" />
+            <UserCheck className="w-5 h-5 text-[var(--primary)]" />
             {t.access_title}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -75,7 +75,7 @@ export const UserAccessManager: React.FC = () => {
                         <select
                           value={selectedRoleId}
                           onChange={(e) => setSelectedRoleId(e.target.value)}
-                          className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-[#0099B8] outline-none"
+                          className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-[var(--primary)] outline-none"
                         >
                           {roles.map((r) => {
                             const rName = language === 'gu' && r.nameGu ? r.nameGu : r.name;
@@ -100,7 +100,7 @@ export const UserAccessManager: React.FC = () => {
                         <select
                           value={selectedGroupId}
                           onChange={(e) => setSelectedGroupId(e.target.value)}
-                          className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-[#0099B8] outline-none"
+                          className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-[var(--primary)] outline-none"
                         >
                           <option value="">{t.access_noneGroup}</option>
                           {permissionGroups.map((g) => {
@@ -134,7 +134,7 @@ export const UserAccessManager: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleSave(u.userId)}
-                            className="px-3 py-1 bg-[#0099B8] text-white text-2xs font-bold rounded shadow-xs transition"
+                            className="px-3 py-1 bg-[var(--primary)] text-white text-2xs font-bold rounded shadow-xs transition"
                           >
                             {t.save}
                           </button>

@@ -6,7 +6,6 @@ import { UchapatApi, UchapatApiItem, KarigarUchapatSummary } from '@/lib/api/uch
 import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
-import { useI18n } from '@/lib/i18n';
 import { formatINR } from '@/lib/utils';
 import {
   Wallet,
@@ -18,7 +17,6 @@ import {
 export default function KarigarUchapatPage() {
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
-  const { t } = useI18n();
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [selectedKarigarId, setSelectedKarigarId] = useState<string>('');
   const [transactions, setTransactions] = useState<UchapatApiItem[]>([]);
@@ -70,24 +68,24 @@ export default function KarigarUchapatPage() {
     .reduce((acc, tx) => acc + Number(tx.amount), 0);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-      {/* Card Header / Page Header */}
-      <div className="p-5 sm:p-6 border-b border-slate-200 space-y-4">
+    <div className="space-y-6">
+      {/* Top Header */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
-              <Wallet className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.uchapatTitle}</span>
+            <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
+              <Wallet className="w-3.5 h-3.5 text-[var(--text-main)]" />
+              <span>Cash Advance • Passbook & Ledger</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.uchapatTitle}
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
+              Uchapat Advances & Recovery Log
             </h1>
-            <p className="text-xs text-slate-500">
-              {t.uchapat_passbookSubtitle}
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+              Cash advances, UPI payouts, and fortnightly deductions per karigar
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
               onClick={() =>
                 openDrawer('ADD_KARIGAR', {}, async (createdKarigar?: any) => {
@@ -98,59 +96,73 @@ export default function KarigarUchapatPage() {
                   }
                 })
               }
-              className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
+              className="px-3 py-1.5 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] font-medium text-xs flex items-center gap-1.5 rounded-md transition cursor-pointer shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{t.uchapat_btnNewKarigar}</span>
+              <span>+ Operator</span>
             </button>
 
             <Link
               href="/karigar/hisab"
-              className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-lg text-xs flex items-center gap-1.5 transition"
+              className="px-3 py-1.5 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] font-medium text-xs flex items-center gap-1.5 rounded-md transition cursor-pointer shadow-xs"
             >
-              <span>{t.uchapat_btnFortnightHisab}</span>
+              <span>Fortnight Hisab</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
             <button
               onClick={() => openDrawer('ADD_UCHAPAT', { karigarId: selectedKarigarId }, () => loadKarigarData(selectedKarigarId))}
-              className="px-3.5 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
+              className="px-3.5 py-1.5 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>{t.uchapat_btnGiveAdvance}</span>
+              <span>Issue Cash Advance</span>
             </button>
           </div>
         </div>
 
-        {/* Small State Chips in Header */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs text-sky-800">
-            <Wallet className="w-3.5 h-3.5 text-[#0284C7]" />
-            <span>{t.uchapat_selectedKarigarChip} <strong className="font-bold text-slate-900">{selectedKarigar?.name || 'None'}</strong></span>
-          </span>
+        {/* Bento Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Selected Operator
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight truncate mt-1">
+              {selectedKarigar?.name || 'None'}
+            </div>
+          </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-xs text-rose-800">
-            <span>{t.uchapat_unsettledChip} <strong className="font-bold text-rose-700">{formatINR(totalUnsettledSum)}</strong></span>
-          </span>
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Unsettled Uchapat Balance
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight font-mono tabular-nums mt-1">
+              {formatINR(totalUnsettledSum)}
+            </div>
+          </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-700">
-            <span>{t.uchapat_wageModelChip} <strong className="font-bold text-slate-900">{selectedKarigar?.wage_type || 'PIECE_RATE'}</strong></span>
-          </span>
+          <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg">
+            <div className="text-[0.6875rem] text-[var(--text-muted)] uppercase font-semibold tracking-wider">
+              Operating Wage Model
+            </div>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight mt-1">
+              {selectedKarigar?.wage_type ? selectedKarigar.wage_type.replace(/_/g, ' ') : 'PIECE RATE'}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="p-5 sm:p-6 space-y-5">
+      {/* Main Content Area */}
+      <div className="space-y-4">
         {/* Karigar Switcher Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200/80">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {karigars.map((k) => (
             <button
               key={k.id}
               onClick={() => setSelectedKarigarId(k.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+              className={`px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition cursor-pointer rounded-lg ${
                 selectedKarigarId === k.id
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  ? 'bg-[var(--text-main)] text-[var(--bg-surface)] shadow-xs'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border)]'
               }`}
             >
               {k.name}
@@ -160,11 +172,11 @@ export default function KarigarUchapatPage() {
 
         {/* Empty state if no karigars */}
         {karigars.length === 0 && (
-          <div className="p-12 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-            <Wallet className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-sm font-bold text-slate-800">{t.karigar_noKarigars}</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              {t.karigar_directorySubtitle}
+          <div className="p-12 text-center bg-[var(--bg-surface)] border border-[var(--border)] border-dashed rounded-xl space-y-3">
+            <Wallet className="w-10 h-10 text-[var(--text-muted)] mx-auto" />
+            <h3 className="text-sm font-bold text-[var(--text-main)]">No Operators Registered</h3>
+            <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
+              Add embroidery machine operators and karigars to initiate cash passbooks and advance ledgers
             </p>
             <button
               onClick={() =>
@@ -176,93 +188,92 @@ export default function KarigarUchapatPage() {
                   }
                 })
               }
-              className="px-4 py-2 bg-[#0099B8] hover:bg-[#0E7090] text-white font-medium rounded-lg text-xs inline-flex items-center gap-1.5 transition shadow-xs"
+              className="px-4 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs inline-flex items-center gap-1.5 transition rounded-md shadow-sm cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>{t.uchapat_btnNewKarigar}</span>
+              <span>Add Operator</span>
             </button>
           </div>
         )}
 
         {/* Ledger Table */}
         {selectedKarigar && (
-          <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-200">
-                  <tr>
-                    <th className="p-3.5">{t.uchapat_thDate}</th>
-                    <th className="p-3.5">{t.uchapat_thAmount}</th>
-                    <th className="p-3.5">{t.uchapat_thPaymentMode}</th>
-                    <th className="p-3.5">{t.uchapat_thReason}</th>
-                    <th className="p-3.5">{t.uchapat_thStatus}</th>
-                    <th className="p-3.5 text-right">{t.karigar_thActions}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-sans">
-                  {transactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-50/80 transition">
-                      <td className="p-3.5 font-mono text-slate-600">
-                        {new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </td>
-                      <td className="p-3.5 font-mono font-bold text-rose-600 text-sm">
-                        - {formatINR(tx.amount)}
-                      </td>
-                      <td className="p-3.5">
-                        <span className="px-2 py-0.5 rounded text-2xs font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                          {tx.payment_mode}
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-x-auto shadow-xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] font-semibold border-b border-[var(--border)] uppercase text-[0.6875rem]">
+                <tr>
+                  <th className="p-3.5">Date</th>
+                  <th className="p-3.5">Advance Debit</th>
+                  <th className="p-3.5">Payment Mode</th>
+                  <th className="p-3.5">Purpose / Note</th>
+                  <th className="p-3.5">Settlement Status</th>
+                  <th className="p-3.5 text-right">Receipt Dispatch</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)] font-sans">
+                {transactions.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-[var(--bg-surface-elevated)]/50 transition">
+                    <td className="p-3.5 font-mono font-medium text-[var(--text-main)]">
+                      {new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="p-3.5 font-mono font-bold text-rose-600 dark:text-rose-400 text-sm tabular-nums">
+                      - {formatINR(tx.amount)}
+                    </td>
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-0.5 rounded text-[0.6875rem] font-mono font-semibold bg-[var(--bg-surface-elevated)] text-[var(--text-main)] border border-[var(--border)]">
+                        {tx.payment_mode}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-[var(--text-muted)]">
+                      {tx.reason || '-'}
+                    </td>
+                    <td className="p-3.5">
+                      {tx.is_settled ? (
+                        <span className="badge-pastel-green px-2 py-0.5 rounded text-[0.6875rem] font-semibold inline-flex items-center gap-1">
+                          Settled
                         </span>
-                      </td>
-                      <td className="p-3.5 text-slate-700">
-                        {tx.reason || '-'}
-                      </td>
-                      <td className="p-3.5">
-                        {tx.is_settled ? (
-                          <span className="px-2 py-0.5 rounded-full text-2xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            {t.uchapat_statusSettled}
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-full text-2xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                            {t.uchapat_statusPending}
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <a
-                          href={`https://wa.me/?text=${encodeURIComponent(
-                            `*${activeCompany?.name || 'Embroidery Factory'}*\n\n` +
-                            `*${t.navKarigars}:* ${selectedKarigar.name}\n` +
-                            `*${t.uchapat_thDate}:* ${new Date(tx.date).toLocaleDateString('en-GB')}\n` +
-                            `*${t.uchapat_thAmount}:* ₹${Number(tx.amount || 0).toFixed(2)}\n` +
-                            `*${t.uchapat_thPaymentMode}:* ${tx.payment_mode}\n` +
-                            `*${t.uchapat_thReason}:* ${tx.reason || '-'}\n\n` +
-                            `ETMS`
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-1.5 hover:bg-emerald-50 text-emerald-700 rounded-md transition inline-flex items-center gap-1 text-2xs font-medium"
-                          title="Share on WhatsApp"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
+                      ) : (
+                        <span className="badge-pastel-yellow px-2 py-0.5 rounded text-[0.6875rem] font-semibold inline-flex items-center gap-1">
+                          Pending Deduction
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          `*${activeCompany?.name || 'Embroidery Factory'}*\n\n` +
+                          `*OPERATOR:* ${selectedKarigar.name}\n` +
+                          `*DATE:* ${new Date(tx.date).toLocaleDateString('en-GB')}\n` +
+                          `*AMOUNT:* ₹${Number(tx.amount || 0).toFixed(2)}\n` +
+                          `*PAYMENT MODE:* ${tx.payment_mode}\n` +
+                          `*NOTE:* ${tx.reason || '-'}\n\n` +
+                          `ETMS FORENSIC CASH LEDGER`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2.5 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-emerald-700 dark:text-emerald-400 border border-[var(--border)] transition inline-flex items-center gap-1 text-xs font-medium rounded shadow-xs"
+                        title="Share on WhatsApp"
+                      >
+                        <Share2 className="w-3 h-3 text-emerald-600" />
+                        <span>WhatsApp Slip</span>
+                      </a>
+                    </td>
+                  </tr>
+                ))}
 
-                  {transactions.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-400">
-                        {t.uchapat_noTransactions}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                {transactions.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-[var(--text-muted)]">
+                      No advance transactions logged for current operator.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
     </div>
   );
 }
+

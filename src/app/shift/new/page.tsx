@@ -8,7 +8,6 @@ import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { InwardChallansApi, ActivePendingLotItem, PendingDesignItem } from '@/lib/api/challans';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
-import { useI18n } from '@/lib/i18n';
 import { formatNumber } from '@/lib/utils';
 import {
   Clock,
@@ -20,6 +19,7 @@ import {
   ShieldCheck,
   Plus,
   Wrench,
+  Gauge,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,7 +27,6 @@ export default function NewShiftLogPage() {
   const router = useRouter();
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
-  const { t } = useI18n();
 
   const [machines, setMachines] = useState<MachineApiItem[]>([]);
   const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
@@ -118,17 +117,17 @@ export default function NewShiftLogPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!machineId || !karigarId) {
-      toast.error('Machine and Karigar are required');
+      toast.error('[ERROR] Machine and Karigar are required for production log');
       return;
     }
 
     if (endCounter <= startCounter) {
-      toast.error('End counter must be greater than start counter');
+      toast.error('[ERROR] End counter must be greater than start counter');
       return;
     }
 
     if (inwardChallanId && !designNo) {
-      toast.error('Please select an active cloth design for this inward lot');
+      toast.error('[ERROR] Please select an active cloth design for this inward lot');
       return;
     }
 
@@ -149,7 +148,7 @@ export default function NewShiftLogPage() {
       };
 
       await ShiftLogsApi.create(payload);
-      toast.success('Production shift logged successfully');
+      toast.success('[COMMITTED] Production shift record created successfully');
       router.push('/shift');
     } catch (err: any) {
       toast.error('Failed to log shift: ' + (err.response?.data?.message || err.message));
@@ -159,58 +158,58 @@ export default function NewShiftLogPage() {
   };
 
   const downtimeOptions = [
-    { value: 'None', label: t.shift_dtNone || 'None' },
-    { value: 'Thread Breakage', label: t.shift_dtThreadBreakage || 'Thread Breakage' },
-    { value: 'Needle Replacement', label: t.shift_dtNeedleReplacement || 'Needle Replacement' },
-    { value: 'Bobbin Refill', label: t.shift_dtBobbinRefill || 'Bobbin / Zari Refill' },
-    { value: 'Power Outage', label: t.shift_dtPowerOutage || 'Power Outage / GIDC Load Shedding' },
-    { value: 'Mechanical Jam', label: t.shift_dtMechanicalJam || 'Mechanical Jam / Oil Issue' },
+    { value: 'None', label: '[NONE] - ZERO DOWNTIME' },
+    { value: 'Thread Breakage', label: '[THREAD BREAKAGE] - SENSOR HALT' },
+    { value: 'Needle Replacement', label: '[NEEDLE REPLACEMENT] - SPINDLE STOP' },
+    { value: 'Bobbin Refill', label: '[BOBBIN REFILL] - ZARI CHANGE' },
+    { value: 'Power Outage', label: '[POWER OUTAGE] - GIDC LOAD SHED' },
+    { value: 'Mechanical Jam', label: '[MECHANICAL JAM] - GEAR OIL ISSUE' },
   ];
 
   const currentLot = activeLots.find((l) => l.id === inwardChallanId);
   const pendingDesigns = currentLot?.pending_designs || [];
 
   return (
-    <div className="w-full space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
-        <div className="flex items-center gap-3">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Top Header */}
+      <div className="flex items-center justify-between bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 shadow-xs">
+        <div className="flex items-center gap-3.5">
           <button
             onClick={() => router.back()}
-            className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg transition cursor-pointer"
+            className="p-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] transition cursor-pointer rounded-lg shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-2xs font-semibold uppercase tracking-wider mb-0.5">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>{t.shift_dailyCounterTag || 'Daily Production Counter'}</span>
+            <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
+              <Clock className="w-3.5 h-3.5 text-[var(--text-main)]" />
+              <span>Production Entry • Daily Spec Sheet</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              {t.shift_logShiftTitle || 'Log Production Shift'}
+            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
+              Record Production Shift
             </h1>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
+      <form onSubmit={handleSubmit} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-6 space-y-6 shadow-xs">
         {/* Geofence & Subnet Verification Strip */}
-        <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-2xs">
-          <div className="flex items-center gap-2 text-emerald-800 font-medium">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{t.shift_geofenceVerified || 'Factory Geofence Gate: Verified Inside Premises (Surat GIDC Plot 14-B)'}</span>
+        <div className="p-3.5 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span>Geofence Verified • Surat GIDC Plot 14-B</span>
           </div>
-          <div className="flex items-center gap-2 text-emerald-700 font-mono">
-            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="flex items-center gap-2 text-[var(--text-muted)] font-mono text-[0.6875rem]">
+            <MapPin className="w-3.5 h-3.5 text-[var(--text-main)]" />
             <span>21.1702° N, 72.8311° E • Subnet: 103.21.244.x</span>
           </div>
         </div>
 
         {/* Machine & Shift Type */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-1 sm:col-span-2">
+          <div className="space-y-1.5 sm:col-span-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-slate-700 font-medium">{t.shift_selectMachine || 'Select Machine'} *</label>
+              <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Select Machine *</label>
               <button
                 type="button"
                 onClick={() =>
@@ -223,90 +222,51 @@ export default function NewShiftLogPage() {
                     }
                   })
                 }
-                className="text-2xs text-[#0099B8] hover:text-[#0E7090] font-semibold flex items-center gap-1 transition cursor-pointer"
+                className="text-xs text-[var(--text-main)] hover:underline font-semibold flex items-center gap-1 transition cursor-pointer"
               >
-                <Wrench className="w-3 h-3" />
-                <span>{t.shift_addMachine || '+ Add Machine'}</span>
+                <Wrench className="w-3.5 h-3.5" />
+                <span>+ Register Machine</span>
               </button>
             </div>
             <select
               value={machineId}
               onChange={(e) => setMachineId(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900 font-medium"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-xs text-[var(--text-main)] rounded-lg focus:outline-none focus:border-[var(--text-main)] font-mono font-medium"
             >
               {machines.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {t.dash_machinePrefix || 'Machine'} #{m.machine_no} ({m.head_count} {t.shift_headsUnit || 'Heads'} • {m.rpm || 850} RPM)
+                  Machine #{m.machine_no} ({m.head_count} Heads • {m.rpm || 850} RPM)
                 </option>
               ))}
             </select>
-            {(() => {
-              const selectedM = machines.find((m) => m.id === machineId);
-              if (!selectedM) return null;
-              const isRunning = selectedM.status === 'RUNNING' || !selectedM.status;
-              const isMaintenance = selectedM.status === 'MAINTENANCE';
-              return (
-                <div className="flex items-center justify-between text-2xs pt-1 px-1 text-slate-600 font-mono">
-                  <span className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        isMaintenance
-                          ? 'bg-rose-500'
-                          : isRunning
-                          ? 'bg-emerald-500 animate-pulse'
-                          : 'bg-amber-500'
-                      }`}
-                    />
-                    <span>
-                      {t.shift_statusLabel || 'Status:'}{' '}
-                      <strong
-                        className={`font-bold ${
-                          isMaintenance
-                            ? 'text-rose-700'
-                            : isRunning
-                            ? 'text-emerald-700'
-                            : 'text-amber-700'
-                        }`}
-                      >
-                        {selectedM.status || 'RUNNING'}
-                      </strong>
-                    </span>
-                  </span>
-                  <span>
-                    {t.shift_floorTelemetry || 'Floor Telemetry:'} <strong>{selectedM.rpm || 850} RPM</strong> •{' '}
-                    <strong>{selectedM.head_count || 32} {t.shift_headsUnit || 'Heads'}</strong>
-                  </span>
-                </div>
-              );
-            })()}
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.shift_shiftTypeLabel || 'Shift Type'} *</label>
-            <div className="grid grid-cols-2 gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Shift Timing *</label>
+            <div className="grid grid-cols-2 gap-1.5 bg-[var(--bg-canvas)] p-1 rounded-lg border border-[var(--border)]">
               <button
                 type="button"
                 onClick={() => setShiftType('DAY')}
-                className={`py-1.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1 transition cursor-pointer ${
+                className={`py-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition rounded-md ${
                   shiftType === 'DAY'
-                    ? 'bg-[#0099B8] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[var(--text-main)] text-[var(--bg-surface)] shadow-xs'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 <Sun className="w-3.5 h-3.5" />
-                <span>{t.shift_day || 'Day'}</span>
+                <span>Day</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShiftType('NIGHT')}
-                className={`py-1.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1 transition cursor-pointer ${
+                className={`py-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition rounded-md ${
                   shiftType === 'NIGHT'
-                    ? 'bg-[#0099B8] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[var(--text-main)] text-[var(--bg-surface)] shadow-xs'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 <Moon className="w-3.5 h-3.5" />
-                <span>{t.shift_night || 'Night'}</span>
+                <span>Night</span>
               </button>
             </div>
           </div>
@@ -314,20 +274,20 @@ export default function NewShiftLogPage() {
 
         {/* Date & Karigar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.shift_shiftDate || 'Shift Date'}</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Shift Date *</label>
             <input
               type="date"
               required
               value={shiftDate}
               onChange={(e) => setShiftDate(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-xs text-[var(--text-main)] rounded-lg font-mono"
             />
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-slate-700 font-medium">{t.shift_operatingKarigar || 'Operating Karigar'} *</label>
+              <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Operating Karigar *</label>
               <button
                 type="button"
                 onClick={() =>
@@ -340,16 +300,16 @@ export default function NewShiftLogPage() {
                     }
                   })
                 }
-                className="text-2xs text-[#0099B8] hover:text-[#0E7090] font-semibold flex items-center gap-0.5 transition cursor-pointer"
+                className="text-xs text-[var(--text-main)] hover:underline font-semibold flex items-center gap-1 transition cursor-pointer"
               >
-                <Plus className="w-3 h-3" />
-                <span>{t.shift_addKarigar || '+ Add Karigar'}</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add Karigar</span>
               </button>
             </div>
             <select
               value={karigarId}
               onChange={(e) => setKarigarId(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-xs text-[var(--text-main)] rounded-lg font-medium"
             >
               {karigars.map((k) => (
                 <option key={k.id} value={k.id}>
@@ -360,48 +320,43 @@ export default function NewShiftLogPage() {
           </div>
         </div>
 
-        {/* Single Lot & Single Design Allocation Section */}
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-900 uppercase tracking-tight">
-              {t.shift_fabricLotsTitle || 'Fabric Lots & Cloth Allocation'}
+        {/* Fabric Lots & Cloth Allocation */}
+        <div className="p-4 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+            <span className="text-xs font-bold text-[var(--text-main)] uppercase tracking-tight">
+              Lot Allocation & Design Specification
             </span>
-            <span className="text-2xs bg-cyan-100 text-cyan-800 font-semibold px-2.5 py-0.5 rounded-full">
+            <span className="badge-pastel-blue px-2.5 py-0.5 rounded text-[0.6875rem] font-semibold">
               1 Lot • 1 Design per Shift
             </span>
           </div>
 
           <div className="space-y-3">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-700 font-medium">{t.shift_drawerSelectActiveLot || 'Select Active Inward Lot'} *</label>
+            <div className="space-y-1.5">
+              <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Active Inward Lot *</label>
               <select
                 value={inwardChallanId}
                 onChange={(e) => handleLotChange(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border)] px-3.5 py-2.5 text-xs text-[var(--text-main)] rounded-lg font-medium"
               >
-                <option value="">{t.shift_optionalGeneralShift || '-- Optional General Shift (No Lot) --'}</option>
+                <option value="">-- General Production (No Linked Inward Lot) --</option>
                 {activeLots.map((lot) => (
                   <option key={lot.id} value={lot.id}>
-                    Lot #{lot.lot_no} • {lot.trader_name} ({lot.fabric_quality} • {lot.pending_designs.length} pending designs)
+                    Lot #{lot.lot_no} • {lot.trader_name} ({lot.fabric_quality} • {lot.pending_designs.length} designs pending)
                   </option>
                 ))}
               </select>
-              {activeLots.length === 0 && (
-                <p className="text-2xs text-amber-600 font-medium mt-1">
-                  {t.shift_drawerAllLotsCompleted || 'All registered inward lots are currently completed! Create a new inward lot or run a general shift.'}
-                </p>
-              )}
             </div>
 
             {inwardChallanId && pendingDesigns.length > 0 && (
-              <div className="space-y-1">
-                <label className="text-xs text-cyan-950 font-bold">
-                  {t.shift_drawerSelectActiveDesign || 'Select Active Design / Cloth'} *
+              <div className="space-y-1.5">
+                <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">
+                  Active Design Pattern *
                 </label>
                 <select
                   value={designNo}
                   onChange={(e) => handleDesignChange(e.target.value)}
-                  className="w-full bg-white border border-cyan-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-semibold"
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border)] px-3.5 py-2.5 text-xs text-[var(--text-main)] rounded-lg font-medium font-mono"
                 >
                   {pendingDesigns.map((d, idx) => {
                     const percentDone = d.allocated_meters > 0
@@ -409,7 +364,7 @@ export default function NewShiftLogPage() {
                       : 0;
                     return (
                       <option key={idx} value={d.design_no}>
-                        {d.design_no} • {formatNumber(d.remaining_meters)}m {t.shift_drawerRemainingOf || 'remaining of'} {formatNumber(d.allocated_meters)}m ({percentDone}% {t.shift_drawerDone || 'done'} • ₹{Number(d.commission_rate || 0).toFixed(2)} {t.shift_drawerComm || 'comm'})
+                        {d.design_no} • {formatNumber(d.remaining_meters)}m remaining ({percentDone}% complete)
                       </option>
                     );
                   })}
@@ -417,40 +372,15 @@ export default function NewShiftLogPage() {
               </div>
             )}
 
-            {inwardChallanId && selectedDesign && (
-              <div className="p-3 bg-cyan-50 border border-cyan-200 rounded-lg text-xs space-y-2 font-mono">
-                <div className="flex items-center justify-between text-cyan-950 font-bold">
-                  <span>{t.shift_drawerSelectedCloth || 'Selected Cloth:'} {selectedDesign.design_no}</span>
-                  <span>{formatNumber(selectedDesign.remaining_meters)}m remaining</span>
-                </div>
-                <div className="w-full bg-cyan-200 h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-cyan-600 h-full rounded-full transition-all"
-                    style={{
-                      width: `${
-                        selectedDesign.allocated_meters > 0
-                          ? Math.min(100, Math.round((selectedDesign.produced_meters / selectedDesign.allocated_meters) * 100))
-                          : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between text-2xs text-cyan-800">
-                  <span>{t.shift_drawerProduced || 'Produced:'} {formatNumber(selectedDesign.produced_meters)}m</span>
-                  <span>{t.shift_drawerAllocatedQuota || 'Allocated Quota:'} {formatNumber(selectedDesign.allocated_meters)}m</span>
-                </div>
-              </div>
-            )}
-
             {!inwardChallanId && (
-              <div className="space-y-1">
-                <label className="text-xs text-slate-700 font-medium">{t.shift_designCode || 'Design Code'}</label>
+              <div className="space-y-1.5">
+                <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Design Code / Name</label>
                 <input
                   type="text"
                   value={designNo}
                   onChange={(e) => setDesignNo(e.target.value)}
-                  placeholder="e.g. DSG-SAMPLE-01"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono"
+                  placeholder="e.g. DSG-108-ZARI"
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border)] px-3.5 py-2.5 text-xs text-[var(--text-main)] rounded-lg font-mono font-medium"
                 />
               </div>
             )}
@@ -458,77 +388,74 @@ export default function NewShiftLogPage() {
         </div>
 
         {/* Counters & Output */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.shift_startingCounter || 'Starting Counter'} *</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Start Counter (Meter) *</label>
             <input
               type="number"
               required
               value={startCounter}
               onChange={(e) => setStartCounter(parseInt(e.target.value, 10) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-sm font-mono font-semibold text-[var(--text-main)] rounded-lg"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.shift_endingCounter || 'Ending Counter'} *</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">End Counter (Meter) *</label>
             <input
               type="number"
               required
               value={endCounter}
               onChange={(e) => setEndCounter(parseInt(e.target.value, 10) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400 rounded-lg"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.shift_totalMetersOutput || 'Total Meters Output'} *</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Total Meters Output *</label>
             <input
               type="number"
               required
               min="1"
               value={totalMeters}
               onChange={(e) => setTotalMeters(parseInt(e.target.value, 10) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-emerald-700"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-sm font-mono font-bold text-[var(--text-main)] rounded-lg"
             />
           </div>
         </div>
 
-        {/* Live Stitches Computed Card */}
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 flex items-center justify-between">
-          <span className="text-xs text-slate-600 font-medium">
-            {t.shift_calculatedNetStitches || 'Calculated Net Stitches:'}
-          </span>
-          <span className="text-sm font-mono font-bold text-slate-900">
-            {formatNumber(netStitches)} {t.dash_stitchesUnit || 'st.'}
+        {/* Live Stitches Computed Banner */}
+        <div className="bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-xl p-4 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <Gauge className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-xs text-[var(--text-muted)] font-medium">
+              Calculated Net Production Stitches:
+            </span>
+          </div>
+          <span className="text-lg sm:text-xl font-mono font-bold text-[var(--text-main)] tabular-nums">
+            {formatNumber(netStitches)} Stitches
           </span>
         </div>
 
-        {selectedDesign && selectedDesign.remaining_meters > 0 && totalMeters >= selectedDesign.remaining_meters && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 font-semibold">
-            ✓ {t.shift_drawerFulfillsQuota || 'Output fulfills the remaining quota. This design will be marked 100% completed and retired from future shifts!'}
-          </div>
-        )}
-
         {/* Downtime Tracking */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.shift_downtimeMinutes || 'Downtime Minutes'}</label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Downtime Duration (Minutes)</label>
             <input
               type="number"
               min="0"
               value={downtimeMinutes}
               onChange={(e) => setDowntimeMinutes(parseInt(e.target.value, 10) || 0)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-xs font-mono font-medium text-[var(--text-main)] rounded-lg"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-slate-700 font-medium">{t.shift_downtimeReason || 'Downtime Reason'}</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[var(--text-main)] font-semibold uppercase tracking-wider">Downtime Cause</label>
             <select
               value={downtimeReason}
               onChange={(e) => setDowntimeReason(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
+              className="w-full bg-[var(--bg-canvas)] border border-[var(--border)] px-3.5 py-2.5 text-xs text-[var(--text-main)] rounded-lg font-medium"
             >
               {downtimeOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -543,15 +470,16 @@ export default function NewShiftLogPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 bg-[#0099B8] hover:bg-[#0E7090] active:scale-98 text-white font-medium rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3.5 bg-[var(--text-main)] hover:opacity-90 active:scale-[0.99] text-[var(--bg-surface)] font-bold text-xs uppercase transition shadow-sm flex items-center justify-center gap-2 cursor-pointer rounded-xl"
           >
             <Save className="w-4 h-4" />
-            <span>{submitting ? (t.shift_savingBtn || 'Saving...') : (t.shift_saveBtn || 'Save Shift Log')}</span>
+            <span>{submitting ? 'Committing Shift Log...' : 'Commit Production Shift Entry'}</span>
           </button>
         </div>
       </form>
     </div>
   );
 }
+
 
 

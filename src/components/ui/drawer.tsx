@@ -53,6 +53,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   closeOnBackdropClick = true,
 }) => {
   const { t } = useI18n();
+
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (isOpen && level === 0) {
@@ -82,39 +83,43 @@ export const Drawer: React.FC<DrawerProps> = ({
   const widthClass = sizeClasses[size] || 'max-w-md';
 
   return (
-    <div className={cn('fixed inset-0 overflow-hidden', zConfig.backdrop)}>
+    <div className={cn('fixed inset-0 overflow-hidden font-sans', zConfig.backdrop)}>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-300 ease-in-out"
+        className="fixed inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-xs transition-opacity duration-200 ease-in-out"
         onClick={() => {
           if (closeOnBackdropClick) onClose();
         }}
         aria-hidden="true"
       />
 
-      {/* Slide-Over Drawer Container (Appears from the Right side, Ant UI / Tailwind style) */}
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      {/* Slide-Over Drawer Container (Appears from the Right side with smooth modern styling) */}
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
         <div
           className={cn(
-            'w-screen bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out border-l border-slate-200',
+            'w-screen bg-[var(--bg-surface)] text-[var(--text-main)] flex flex-col transform transition-transform duration-200 ease-in-out border-l border-[var(--border)] shadow-2xl rounded-l-2xl overflow-hidden',
             widthClass,
             className
           )}
         >
           {/* Drawer Header */}
-          <div className="p-5 border-b border-slate-200 bg-white flex items-center justify-between gap-4 shrink-0 shadow-2xs">
+          <div
+            className="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--bg-surface-elevated)]/50 flex items-center justify-between gap-4 shrink-0"
+          >
             <div className="flex items-center gap-3 min-w-0">
               {icon && (
-                <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
+                <div
+                  className="w-8 h-8 bg-[var(--bg-surface)] text-[var(--text-main)] flex items-center justify-center shrink-0 border border-[var(--border)] rounded-lg shadow-xs"
+                >
                   {icon}
                 </div>
               )}
               <div className="truncate">
-                <h2 className="text-base font-bold text-slate-900 tracking-tight truncate">
+                <h2 className="text-sm sm:text-base font-bold text-[var(--text-main)] tracking-tight truncate">
                   {title}
                 </h2>
                 {subtitle && (
-                  <div className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                  <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
                     {subtitle}
                   </div>
                 )}
@@ -124,22 +129,24 @@ export const Drawer: React.FC<DrawerProps> = ({
             <button
               onClick={onClose}
               type="button"
-              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition shrink-0"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--bg-surface)] hover:bg-[var(--border)] border border-[var(--border)] rounded-lg transition shrink-0 cursor-pointer shadow-xs"
               title={t.drawerClose || 'Close'}
               aria-label={t.drawerClose || 'Close'}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Drawer Body */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[var(--bg-surface)]">
             {children}
           </div>
 
           {/* Drawer Footer (Sticky Actions at Bottom) */}
           {footer && (
-            <div className="p-4 sm:px-6 border-t border-slate-200 bg-white shrink-0 flex items-center justify-end gap-2">
+            <div
+              className="p-3 sm:px-6 sm:py-4 border-t border-[var(--border)] bg-[var(--bg-surface-elevated)]/50 shrink-0 flex items-center justify-end gap-2"
+            >
               {footer}
             </div>
           )}
@@ -148,3 +155,4 @@ export const Drawer: React.FC<DrawerProps> = ({
     </div>
   );
 };
+
