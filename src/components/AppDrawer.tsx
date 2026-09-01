@@ -1856,10 +1856,21 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    const prefillChallan = instance.payload?.challan;
+    const prefillChallanId = instance.payload?.challanId || prefillChallan?.id;
+
     InwardChallansApi.getAll()
       .then((data) => {
         setChallans(data);
-        if (data.length > 0) {
+        if (prefillChallanId) {
+          const match = data.find((c) => c.id === prefillChallanId) || prefillChallan;
+          if (match) {
+            setSelectedLotIds([match.id]);
+            setBilledMeters(Number(match.inward_meters) || 1000);
+            if (match.trader_name) setTraderName(match.trader_name);
+            if (match.trader_gstin) setTraderGstin(match.trader_gstin);
+          }
+        } else if (data.length > 0) {
           setSelectedLotIds([data[0].id]);
           setBilledMeters(Number(data[0].inward_meters) || 1000);
         }
@@ -1869,7 +1880,20 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
     PartiesApi.getAll()
       .then((data) => {
         setParties(data);
-        if (data.length > 0) {
+        if (prefillChallan?.trader_name) {
+          const matchedParty = data.find(
+            (p) => p.name.toLowerCase() === prefillChallan.trader_name.toLowerCase() ||
+                   (p.gstin && prefillChallan.trader_gstin && p.gstin.toUpperCase() === prefillChallan.trader_gstin.toUpperCase())
+          );
+          if (matchedParty) {
+            setSelectedPartyId(matchedParty.id);
+            setTraderName(matchedParty.name);
+            if (matchedParty.gstin) setTraderGstin(matchedParty.gstin);
+          } else {
+            setTraderName(prefillChallan.trader_name);
+            if (prefillChallan.trader_gstin) setTraderGstin(prefillChallan.trader_gstin);
+          }
+        } else if (data.length > 0) {
           setSelectedPartyId(data[0].id);
           setTraderName(data[0].name);
           if (data[0].gstin) setTraderGstin(data[0].gstin);
@@ -1879,10 +1903,15 @@ const InvoiceDrawerForm: React.FC<{ instance: DrawerInstance; level: number }> =
         }
       })
       .catch(() => {
-        setTraderName('Ambaji Fashion Surat');
-        setTraderGstin('24BBCDE5678G1Z3');
+        if (prefillChallan?.trader_name) {
+          setTraderName(prefillChallan.trader_name);
+          if (prefillChallan.trader_gstin) setTraderGstin(prefillChallan.trader_gstin);
+        } else {
+          setTraderName('Ambaji Fashion Surat');
+          setTraderGstin('24BBCDE5678G1Z3');
+        }
       });
-  }, []);
+  }, [instance.payload]);
 
   const partyLots = challans.filter((c) => {
     if (!traderName.trim()) return true;

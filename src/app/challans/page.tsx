@@ -242,13 +242,14 @@ export default function ChallansListPage() {
                       <span>{inspectedLots[c.lot_no] ? `${inspectedLots[c.lot_no].meters}m Defect` : 'QA Check'}</span>
                     </button>
 
-                    <Link
-                      href={`/invoices/new?lot=${c.lot_no}&challanId=${c.id}`}
-                      className="px-2.5 py-1 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] text-xs font-medium inline-flex items-center gap-1 rounded transition shadow-xs"
+                    <button
+                      type="button"
+                      onClick={() => openDrawer('CREATE_INVOICE', { challan: c, challanId: c.id, lotNo: c.lot_no }, fetchChallans)}
+                      className="px-2.5 py-1 bg-[var(--primary)] hover:bg-[#9494ff] text-white text-xs font-medium inline-flex items-center gap-1 rounded transition shadow-xs cursor-pointer active:scale-95"
                     >
                       <span>Generate Bill</span>
                       <ArrowRight className="w-3 h-3" />
-                    </Link>
+                    </button>
                   </td>
                 </tr>
               ))}
