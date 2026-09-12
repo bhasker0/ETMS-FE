@@ -9,13 +9,13 @@ import {
   CustomRole,
   RolePermissionsMap,
 } from '@/lib/config-context';
-import { ShieldCheck, Plus, Check, Trash2, Edit3, Lock, Info, Sparkles } from 'lucide-react';
+import { ShieldCheck, Plus, Check, Trash2, Edit3, Info, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useI18n } from '@/lib/i18n';
 
 export const RolesPermissionMatrix: React.FC = () => {
   const { roles, addRole, updateRole, deleteRole } = useConfig();
-  const { t, language } = useI18n();
+  const { language } = useI18n();
   const [selectedRole, setSelectedRole] = useState<CustomRole | null>(roles[0] || null);
   const [isEditing, setIsEditing] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);

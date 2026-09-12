@@ -88,16 +88,17 @@ export const PartyPicker: React.FC<PartyPickerProps> = ({
 
   const handleOpenAddParty = () => {
     setIsOpen(false);
-    openDrawer('ADD_PARTY', {}, async (newParty?: any) => {
+    openDrawer('ADD_PARTY', {}, async (newParty?: unknown) => {
       await fetchParties();
-      if (newParty && newParty.name) {
+      const party = newParty as { id?: string; name?: string; gstin?: string; mobile?: string } | undefined;
+      if (party && party.name) {
         onSelect({
-          id: newParty.id,
-          name: newParty.name,
-          gstin: newParty.gstin,
-          mobile: newParty.mobile,
+          id: party.id,
+          name: party.name,
+          gstin: party.gstin,
+          mobile: party.mobile,
         });
-        setQuery(newParty.name);
+        setQuery(party.name);
       }
     });
   };

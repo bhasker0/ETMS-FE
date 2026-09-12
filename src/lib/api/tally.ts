@@ -6,7 +6,7 @@ export const TallyApi = {
       params,
       responseType: 'blob',
     });
-    const blob = new Blob([response as any], { type: 'application/xml' });
+    const blob = new Blob([response as unknown as BlobPart], { type: 'application/xml' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -16,8 +16,8 @@ export const TallyApi = {
     link.remove();
   },
 
-  markAsSynced: async (invoiceIds: string[]): Promise<any> => {
-    const res: any = await apiClient.post('/api/v1/tally/sync-status', { invoiceIds });
-    return res?.data;
+  markAsSynced: async (invoiceIds: string[]): Promise<{ updatedCount?: number }> => {
+    const res = await apiClient.post<{ success?: boolean; data?: { updatedCount?: number } }>('/api/v1/tally/sync-status', { invoiceIds }) as unknown as { success?: boolean; data?: { updatedCount?: number } };
+    return res?.data || {};
   },
 };

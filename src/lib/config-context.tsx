@@ -71,6 +71,34 @@ export const SYSTEM_MODULES: SystemModule[] = [
     category: 'finance',
   },
   {
+    id: 'karigars',
+    name: 'Karigars Master & Directory',
+    nameGu: 'કારીગર માસ્ટર અને રોસ્ટર',
+    description: 'Operator directory, wage models (piece-rate/monthly), and contact info',
+    category: 'core',
+  },
+  {
+    id: 'parties',
+    name: 'Parties & Traders Khata',
+    nameGu: 'વેપારીઓ અને ખાતાવહી',
+    description: 'Trader directory, GSTIN mapping, running balance, and party ledgers',
+    category: 'core',
+  },
+  {
+    id: 'whatsapp',
+    name: 'WhatsApp API & OpenWA',
+    nameGu: 'વોટ્સએપ API અને ઓપનવા',
+    description: 'Headless WhatsApp dispatch for instant PDF invoices and wage payslips',
+    category: 'finance',
+  },
+  {
+    id: 'print_templates',
+    name: 'Printing Templates & Layouts',
+    nameGu: 'પ્રિન્ટિંગ ટેમ્પલેટ્સ અને લેઆઉટ',
+    description: 'Customizable company thermal slips, SAC 9988 tax invoices, and copy formatting',
+    category: 'admin',
+  },
+  {
     id: 'company_settings',
     name: 'Company Parameters & Profile',
     nameGu: 'કંપની પેરામીટર્સ અને પ્રોફાઇલ',
@@ -159,7 +187,7 @@ interface ConfigContextType {
 
   // Parameters
   companyParameters: CompanyParameter[];
-  updateParameter: (key: string, value: any) => void;
+  updateParameter: (key: string, value: unknown) => void;
   
   // Users Access
   userAccessList: CompanyUserAccess[];
@@ -370,6 +398,67 @@ const INITIAL_COMPANY_PARAMETERS: CompanyParameter[] = [
     category: 'billing',
     isSuperAdminOnly: false,
   },
+  {
+    id: 'param-print-header-title',
+    key: 'print_header_title',
+    label: 'Printing Template Header Trade Name',
+    labelGu: 'પ્રિન્ટિંગ હેડર વેપાર નામ',
+    value: 'Radhe Krishna Embroidery Works',
+    description: 'Primary business name displayed at top of Tax Invoices and Slips',
+    category: 'billing',
+    isSuperAdminOnly: false,
+  },
+  {
+    id: 'param-print-thermal-width',
+    key: 'print_thermal_width',
+    label: 'Thermal Slip Printer Width (mm)',
+    labelGu: 'થર્મલ સ્લિપ પ્રિન્ટર પહોળાઈ (mm)',
+    value: 80,
+    unit: 'mm',
+    description: 'Target roll paper width for production slips and hisab receipts (80mm standard)',
+    category: 'general',
+    isSuperAdminOnly: false,
+  },
+  {
+    id: 'param-print-show-bank',
+    key: 'print_show_bank_details',
+    label: 'Print Bank Account Details on Invoices',
+    labelGu: 'ઇનવોઇસ પર બેંક વિગતો પ્રિન્ટ કરો',
+    value: true,
+    description: 'Include Bank Name, Account Number and IFSC Code on outward tax invoices',
+    category: 'billing',
+    isSuperAdminOnly: false,
+  },
+  {
+    id: 'param-print-show-upi',
+    key: 'print_show_upi_qr',
+    label: 'Print UPI Payment QR Code',
+    labelGu: 'ઇનવોઇસ પર UPI QR કોડ પ્રિન્ટ કરો',
+    value: true,
+    description: 'Render instant scan-to-pay dynamic UPI QR on printed invoice footer',
+    category: 'billing',
+    isSuperAdminOnly: false,
+  },
+  {
+    id: 'param-openwa-url',
+    key: 'openwa_api_url',
+    label: 'OpenWA WhatsApp Gateway Endpoint',
+    labelGu: 'ઓપનવા વોટ્સએપ ગેટવે URL',
+    value: 'http://localhost:2785',
+    description: 'Headless WhatsApp automated document delivery REST server connection',
+    category: 'integration',
+    isSuperAdminOnly: false,
+  },
+  {
+    id: 'param-openwa-api-key',
+    key: 'openwa_api_key',
+    label: 'OpenWA API Key',
+    labelGu: 'ઓપનવા API કી',
+    value: 'owa_k1_8b891fbe26151557e088c36d0952bb42eea8429d41f62e9c4d7ad9317af7e5f5',
+    description: 'Authentication token for OpenWA REST API and Dashboard',
+    category: 'integration',
+    isSuperAdminOnly: false,
+  },
 
   // --- RESTRICTED SAAS SUPER ADMIN / SUPPORT PARAMETERS (HIDDEN FROM COMPANY DRAWER) ---
   {
@@ -495,7 +584,32 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (savedGroups) setPermissionGroups(JSON.parse(savedGroups));
 
       const savedParams = localStorage.getItem('etms_company_parameters');
-      if (savedParams) setCompanyParameters(JSON.parse(savedParams));
+      if (savedParams) {
+        const parsed = JSON.parse(savedParams) as CompanyParameter[];
+        // Ensure stale 8080/8088 URLs auto-migrate to 2785 and missing keys are filled
+        const migrated = parsed.map((p: CompanyParameter) => {
+          if (
+            p.key === 'openwa_api_url' &&
+            (p.value === 'http://localhost:8080' || p.value === 'http://localhost:8088' || !p.value)
+          ) {
+            return { ...p, value: 'http://localhost:2785' };
+          }
+          return p;
+        });
+        if (!migrated.some((p: CompanyParameter) => p.key === 'openwa_api_key')) {
+          migrated.push({
+            id: 'param-openwa-api-key',
+            key: 'openwa_api_key',
+            label: 'OpenWA API Key',
+            labelGu: 'ઓપનવા API કી',
+            value: 'owa_k1_8b891fbe26151557e088c36d0952bb42eea8429d41f62e9c4d7ad9317af7e5f5',
+            description: 'Authentication token for OpenWA REST API and Dashboard',
+            category: 'integration',
+            isSuperAdminOnly: false,
+          });
+        }
+        setCompanyParameters(migrated);
+      }
 
       const savedUsers = localStorage.getItem('etms_user_access_list');
       if (savedUsers) setUserAccessList(JSON.parse(savedUsers));
@@ -505,7 +619,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   // Save changes to localStorage
-  const saveState = (key: string, data: any) => {
+  const saveState = (key: string, data: unknown) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(key, JSON.stringify(data));
     }
@@ -558,8 +672,10 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     saveState('etms_permission_groups', nextGroups);
   };
 
-  const updateParameter = (key: string, value: any) => {
-    const nextParams = companyParameters.map((p) => (p.key === key ? { ...p, value } : p));
+  const updateParameter = (key: string, value: string | number | boolean | unknown) => {
+    const nextParams: CompanyParameter[] = companyParameters.map((p) =>
+      p.key === key ? { ...p, value: value as string | number | boolean } : p
+    );
     setCompanyParameters(nextParams);
     saveState('etms_company_parameters', nextParams);
   };

@@ -6,7 +6,9 @@ class AudioHapticFeedback {
   private getAudioContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.audioCtx) {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (AudioContextClass) {
         this.audioCtx = new AudioContextClass();
       }
@@ -70,7 +72,7 @@ class AudioHapticFeedback {
       gain.connect(ctx.destination);
       osc.start(now);
       osc.stop(now + 0.05);
-    } catch (e) {
+    } catch (_e) {
       // Ignore
     }
   }
@@ -93,7 +95,7 @@ class AudioHapticFeedback {
       gain.connect(ctx.destination);
       osc.start(now);
       osc.stop(now + 0.35);
-    } catch (e) {
+    } catch (_e) {
       // Ignore
     }
   }
@@ -103,7 +105,7 @@ class AudioHapticFeedback {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
       try {
         navigator.vibrate(pattern);
-      } catch (e) {
+      } catch (_e) {
         // Ignore vibration errors
       }
     }

@@ -68,6 +68,20 @@ const AuthContext = createContext<AuthContextType>({
   hasPermission: () => false,
 });
 
+interface AuthPayload {
+  accessToken: string;
+  user: UserProfile;
+  activeCompanyId: string;
+  companies?: CompanyMembership[];
+  munimApprovedCompanies?: CompanyMembership[];
+}
+
+interface GenericApiResponse<T = unknown> {
+  success?: boolean;
+  message?: string;
+  data?: T;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -76,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [munimApprovedCompanies, setMunimApprovedCompanies] = useState<CompanyMembership[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleAuthSuccess = React.useCallback((data: any) => {
+  const handleAuthSuccess = React.useCallback((data: AuthPayload) => {
     const { accessToken, user, activeCompanyId, companies, munimApprovedCompanies } = data;
 
     setToken(accessToken);
@@ -125,12 +139,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const requestPasswordReset = async (mobile: string) => {
     try {
-      const res: any = await apiClient.post('/api/v1/auth/forgot-password/request', { mobile });
+      const res = await apiClient.post<GenericApiResponse>('/api/v1/auth/forgot-password/request', { mobile }) as unknown as GenericApiResponse;
       return {
         success: true,
         message: res?.message || 'OTP sent successfully to your mobile number',
       };
-    } catch (_e: any) {
+    } catch (_e: unknown) {
       // Fallback for demo/offline mode
       return {
         success: true,
@@ -141,16 +155,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const verifyAndResetPassword = async (mobile: string, otp: string, newPassword: string) => {
     try {
-      const res: any = await apiClient.post('/api/v1/auth/forgot-password/reset', {
+      const res = await apiClient.post<GenericApiResponse>('/api/v1/auth/forgot-password/reset', {
         mobile,
         otp,
         newPassword,
-      });
+      }) as unknown as GenericApiResponse;
       return {
         success: true,
         message: res?.message || 'Password updated successfully. Please sign in.',
       };
-    } catch (_e: any) {
+    } catch (_e: unknown) {
       // Fallback for demo/offline mode
       return {
         success: true,
@@ -162,11 +176,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (mobile: string, password: string, companyId?: string) => {
     setIsLoading(true);
     try {
-      const res: any = await apiClient.post('/api/v1/auth/login', {
+      const res = await apiClient.post<GenericApiResponse<AuthPayload>>('/api/v1/auth/login', {
         mobile,
         password,
         companyId,
-      });
+      }) as unknown as GenericApiResponse<AuthPayload>;
 
       if (res?.data) {
         handleAuthSuccess(res.data);
@@ -178,9 +192,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const switchCompany = async (companyId: string) => {
     try {
-      const res: any = await apiClient.post('/api/v1/auth/switch-company', {
+      const res = await apiClient.post<GenericApiResponse<{ activeCompanyId?: string }>>('/api/v1/auth/switch-company', {
         companyId,
-      });
+      }) as unknown as GenericApiResponse<{ activeCompanyId?: string }>;
 
       if (res?.data?.activeCompanyId || companyId) {
         const nextId = res?.data?.activeCompanyId || companyId;
@@ -189,7 +203,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('etms_active_company_id', nextId);
         }
       }
-    } catch (e) {
+    } catch (_e) {
       // Fallback local update
       setActiveCompanyId(companyId);
       if (typeof window !== 'undefined') {
@@ -207,7 +221,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }) => {
     setIsLoading(true);
     try {
-      const res: any = await apiClient.post('/api/v1/auth/register', payload);
+      const res = await apiClient.post<GenericApiResponse<AuthPayload>>('/api/v1/auth/register', payload) as unknown as GenericApiResponse<AuthPayload>;
       if (res?.data) {
         handleAuthSuccess(res.data);
       }

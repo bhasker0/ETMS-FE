@@ -59,47 +59,59 @@ export interface ConsolidatedDaybook {
   }[];
 }
 
+export interface MunimActionResponse {
+  success?: boolean;
+  message?: string;
+  [key: string]: unknown;
+}
+
 export const MunimApi = {
   getApprovedCompanies: async (): Promise<MunimClientCompany[]> => {
-    const res: any = await apiClient.get('/api/v1/munim/companies');
-    return res?.data || [];
+    const res = await apiClient.get<MunimClientCompany[]>('/api/v1/munim/companies');
+    const data = (res as unknown as { data?: MunimClientCompany[] })?.data || res;
+    return (data as MunimClientCompany[]) || [];
   },
 
   getConsolidatedDaybook: async (date?: string): Promise<ConsolidatedDaybook> => {
-    const res: any = await apiClient.get('/api/v1/munim/consolidated-daybook', {
+    const res = await apiClient.get<ConsolidatedDaybook>('/api/v1/munim/consolidated-daybook', {
       params: date ? { date } : undefined,
     });
-    return res?.data;
+    const data = (res as unknown as { data?: ConsolidatedDaybook })?.data || res;
+    return data as ConsolidatedDaybook;
   },
 
   getMyRequests: async (): Promise<MunimRequestApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/munim/my-requests');
-    return res?.data || [];
+    const res = await apiClient.get<MunimRequestApiItem[]>('/api/v1/munim/my-requests');
+    const data = (res as unknown as { data?: MunimRequestApiItem[] })?.data || res;
+    return (data as MunimRequestApiItem[]) || [];
   },
 
   getCompanyRequests: async (): Promise<MunimRequestApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/munim/company-requests');
-    return res?.data || [];
+    const res = await apiClient.get<MunimRequestApiItem[]>('/api/v1/munim/company-requests');
+    const data = (res as unknown as { data?: MunimRequestApiItem[] })?.data || res;
+    return (data as MunimRequestApiItem[]) || [];
   },
 
-  munimInviteCompany: async (payload: { gstin?: string; mobile?: string; companyMobile?: string; notes?: string }): Promise<any> => {
-    const res: any = await apiClient.post('/api/v1/munim/invite-company', {
+  munimInviteCompany: async (payload: { gstin?: string; mobile?: string; companyMobile?: string; notes?: string }): Promise<MunimActionResponse> => {
+    const res = await apiClient.post<MunimActionResponse>('/api/v1/munim/invite-company', {
       gstin: payload.gstin,
       companyMobile: payload.companyMobile || payload.mobile,
       notes: payload.notes,
     });
-    return res?.data;
+    const data = (res as unknown as { data?: MunimActionResponse })?.data || res;
+    return data as MunimActionResponse;
   },
 
-  companyInviteMunim: async (payload: { munim_mobile?: string; munimMobile?: string; notes?: string }): Promise<any> => {
-    const res: any = await apiClient.post('/api/v1/munim/company-invite-munim', {
+  companyInviteMunim: async (payload: { munim_mobile?: string; munimMobile?: string; notes?: string }): Promise<MunimActionResponse> => {
+    const res = await apiClient.post<MunimActionResponse>('/api/v1/munim/company-invite-munim', {
       munimMobile: payload.munimMobile || payload.munim_mobile,
       notes: payload.notes,
     });
-    return res?.data;
+    const data = (res as unknown as { data?: MunimActionResponse })?.data || res;
+    return data as MunimActionResponse;
   },
 
-  respondToRequest: async (requestId: string, action: 'ACCEPT' | 'REJECT' | 'REVOKE'): Promise<any> => {
+  respondToRequest: async (requestId: string, action: 'ACCEPT' | 'REJECT' | 'REVOKE'): Promise<MunimActionResponse> => {
     const statusMap: Record<string, string> = {
       ACCEPT: 'ACCEPTED',
       REJECT: 'REJECTED',
@@ -108,9 +120,10 @@ export const MunimApi = {
       REJECTED: 'REJECTED',
       REVOKED: 'REVOKED',
     };
-    const res: any = await apiClient.patch(`/api/v1/munim/requests/${requestId}/respond`, {
+    const res = await apiClient.patch<MunimActionResponse>(`/api/v1/munim/requests/${requestId}/respond`, {
       status: statusMap[action] || action,
     });
-    return res?.data;
+    const data = (res as unknown as { data?: MunimActionResponse })?.data || res;
+    return data as MunimActionResponse;
   },
 };

@@ -68,24 +68,36 @@ export interface DowntimeAnalytics {
   incident_count: number;
 }
 
+interface ShiftLogsResponse<T> {
+  success?: boolean;
+  data: T;
+  meta?: Record<string, unknown>;
+}
+
 export const ShiftLogsApi = {
-  getAll: async (params?: { startDate?: string; endDate?: string; machine_id?: string }): Promise<ShiftLogApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/shift-logs', { params });
+  getAll: async (params?: {
+    startDate?: string;
+    endDate?: string;
+    machine_id?: string;
+    karigar_id?: string;
+    shift_type?: string;
+  }): Promise<ShiftLogApiItem[]> => {
+    const res = await apiClient.get<ShiftLogsResponse<ShiftLogApiItem[]>>('/api/v1/shift-logs', { params }) as unknown as ShiftLogsResponse<ShiftLogApiItem[]>;
     return res?.data || [];
   },
 
   getById: async (id: string): Promise<ShiftLogApiItem> => {
-    const res: any = await apiClient.get(`/api/v1/shift-logs/${id}`);
+    const res = await apiClient.get<ShiftLogsResponse<ShiftLogApiItem>>(`/api/v1/shift-logs/${id}`) as unknown as ShiftLogsResponse<ShiftLogApiItem>;
     return res?.data;
   },
 
   create: async (dto: CreateShiftLogDto): Promise<ShiftLogApiItem> => {
-    const res: any = await apiClient.post('/api/v1/shift-logs', dto);
+    const res = await apiClient.post<ShiftLogsResponse<ShiftLogApiItem>>('/api/v1/shift-logs', dto) as unknown as ShiftLogsResponse<ShiftLogApiItem>;
     return res?.data;
   },
 
   getDowntimeAnalytics: async (params?: { startDate?: string; endDate?: string }): Promise<DowntimeAnalytics[]> => {
-    const res: any = await apiClient.get('/api/v1/shift-logs/downtime-analytics', { params });
+    const res = await apiClient.get<ShiftLogsResponse<DowntimeAnalytics[]>>('/api/v1/shift-logs/downtime-analytics', { params }) as unknown as ShiftLogsResponse<DowntimeAnalytics[]>;
     return res?.data || [];
   },
 

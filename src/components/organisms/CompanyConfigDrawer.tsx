@@ -17,19 +17,21 @@ import {
   CheckCircle2,
   Settings,
   Building,
+  Printer,
+  Save,
 } from 'lucide-react';
 import { RolesPermissionMatrix } from '../molecules/RolesPermissionMatrix';
 import { CompanyParametersForm } from '../molecules/CompanyParametersForm';
 import { PermissionGroupManager } from '../molecules/PermissionGroupManager';
 import { UserAccessManager } from '../molecules/UserAccessManager';
 import { Drawer } from '@/components/ui/drawer';
-import { useI18n } from '@/lib/i18n';
 import { toast } from 'sonner';
+import { LanguageSwitcher } from '../molecules/LanguageSwitcher';
+import { HighContrastToggle } from '../molecules/HighContrastToggle';
 
 export const CompanyConfigDrawer: React.FC = () => {
   const { isConfigDrawerOpen, closeConfigDrawer, activeTab, setActiveTab, canManageModule } = useConfig();
   const { activeCompany } = useAuth();
-  const { t } = useI18n();
 
   // Company Profile form state
   const [compName, setCompName] = useState(activeCompany?.name || 'Radhe Krishna Embroidery Works');
@@ -96,6 +98,12 @@ export const CompanyConfigDrawer: React.FC = () => {
       label: '9. Wage & Uchapat',
       icon: <Calculator className="w-4 h-4" />,
     },
+    {
+      id: 'print_templates',
+      moduleId: 'print_templates',
+      label: '10. Print Templates',
+      icon: <Printer className="w-4 h-4" />,
+    },
   ];
 
   // Filter menu items: A user can ONLY see a setting menu item if they have 'manage' action on that module!
@@ -147,8 +155,25 @@ export const CompanyConfigDrawer: React.FC = () => {
       {/* Drawer Body: Sidebar + Main Content */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden -m-4 sm:-m-6 font-sans">
         {/* Left Menu Sidebar */}
-        <div className="w-full md:w-64 lg:w-72 bg-[var(--bg-surface-elevated)]/30 border-r border-[var(--border)] p-3 space-y-1 shrink-0 overflow-y-auto max-h-48 md:max-h-none">
-          <div className="px-2 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center justify-between">
+        <div className="w-full md:w-64 lg:w-72 bg-[var(--bg-surface-elevated)]/30 border-r border-[var(--border)] p-3 space-y-2 shrink-0 overflow-y-auto max-h-48 md:max-h-none">
+          {/* System Preferences: Language & Theme */}
+          <div className="p-2.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg space-y-2">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+              UI Preferences
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[0.6875rem] text-[var(--text-muted)] font-medium">Language</span>
+                <LanguageSwitcher />
+              </div>
+              <div className="pt-1.5 border-t border-[var(--border)] flex items-center justify-between gap-2">
+                <span className="text-[0.6875rem] text-[var(--text-muted)] font-medium">Color Theme</span>
+                <HighContrastToggle />
+              </div>
+            </div>
+          </div>
+
+          <div className="px-2 py-1 text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center justify-between">
             <span>Config Modules</span>
             <span className="text-emerald-600 dark:text-emerald-400 font-mono font-semibold">({visibleMenuItems.length} Active)</span>
           </div>
@@ -187,16 +212,18 @@ export const CompanyConfigDrawer: React.FC = () => {
         </div>
 
         {/* Right Main Configuration Section */}
-        <div className="flex-1 p-4 sm:p-5 overflow-y-auto bg-card">
+        <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-card">
           {visibleMenuItems.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="max-w-md p-6 bg-background border border-destructive text-center space-y-3" style={{ borderRadius: 0 }}>
-                <div className="w-10 h-10 bg-background text-destructive border border-destructive flex items-center justify-center mx-auto" style={{ borderRadius: 0 }}>
+            <div className="h-full flex items-center justify-center p-6">
+              <div className="max-w-md p-6 bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl text-center space-y-3 shadow-xs">
+                <div className="w-12 h-12 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-xl flex items-center justify-center mx-auto">
                   <Lock className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-foreground text-sm uppercase">[MENU ACCESS LOCKED]</h3>
-                <p className="text-2xs text-muted-foreground leading-relaxed">
-                  Management controls require system administrator role assignment.
+                <h3 className="font-semibold text-foreground text-sm">
+                  Administrator Access Required
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  This configuration module requires administrative privileges. Please contact your factory supervisor.
                 </p>
               </div>
             </div>
@@ -204,77 +231,89 @@ export const CompanyConfigDrawer: React.FC = () => {
             <>
               {/* 1. Company Profile Tab */}
               {activeTab === 'company_profile' && (
-                <div className="space-y-4">
-                  <div className="bg-background p-3.5 border border-border" style={{ borderRadius: 0 }}>
-                    <h3 className="font-black text-foreground text-xs uppercase flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-primary" />
-                      {"/// FACTORY REGISTRATION & LEGAL PROFILE"}
-                    </h3>
-                    <p className="text-2xs text-muted-foreground font-mono mt-0.5">
-                      Business name, GSTIN, registered Surat industrial estate address, and UPI settlement ID
+                <div className="space-y-4 max-w-2xl">
+                  <div className="bg-[var(--bg-surface)] p-4 rounded-xl border border-[var(--border)] shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-primary" />
+                        Factory Registration & Legal Profile
+                      </h3>
+                      <span className="text-3xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                        Active Legal Entity
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Configure registered business trade name, GSTIN identification, UPI settlement handle, and industrial plant address.
                     </p>
                   </div>
 
-                  <form onSubmit={handleSaveProfile} className="bg-background border border-border p-4 space-y-3" style={{ borderRadius: 0 }}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="block text-2xs font-bold uppercase text-foreground">
-                          [REGISTERED COMPANY NAME]
+                  <form onSubmit={handleSaveProfile} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 space-y-4 shadow-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                          Registered Company Name
                         </label>
                         <input
                           type="text"
                           value={compName}
                           onChange={(e) => setCompName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-card border border-border text-xs text-foreground font-mono uppercase focus:outline-none"
-                          style={{ borderRadius: 0 }}
+                          placeholder="e.g. Radhe Krishna Embroidery Works"
+                          className="w-full px-3 py-2 bg-background border border-[var(--border)] rounded-lg text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="block text-2xs font-bold uppercase text-foreground">
-                          [GSTIN IDENTIFIER]
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                          GSTIN Identifier
                         </label>
-                        <input
-                          type="text"
-                          value={compGstin}
-                          onChange={(e) => setCompGstin(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-card border border-border text-xs font-mono font-bold text-accent uppercase focus:outline-none"
-                          style={{ borderRadius: 0 }}
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={compGstin}
+                            onChange={(e) => setCompGstin(e.target.value)}
+                            placeholder="e.g. 24AABCR1234F1Z1"
+                            className="w-full px-3 py-2 bg-background border border-[var(--border)] rounded-lg text-xs font-mono font-medium text-primary uppercase focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                          />
+                          {compGstin?.startsWith('24') && (
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-3xs font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              GUJARAT (24)
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <label className="block text-2xs font-bold uppercase text-foreground">
-                          [CONTACT PHONE / HOTLINE]
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                          Contact Phone / Hotline
                         </label>
                         <input
                           type="text"
                           value={compPhone}
                           onChange={(e) => setCompPhone(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-card border border-border text-xs text-foreground font-mono focus:outline-none"
-                          style={{ borderRadius: 0 }}
+                          placeholder="+91 98250 12345"
+                          className="w-full px-3 py-2 bg-background border border-[var(--border)] rounded-lg text-xs text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="block text-2xs font-bold uppercase text-foreground">
-                          [DEFAULT SETTLEMENT UPI VPA]
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                          Default Settlement UPI VPA
                         </label>
                         <input
                           type="text"
                           value={compUpi}
                           onChange={(e) => setCompUpi(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-card border border-border text-xs font-mono text-foreground focus:outline-none"
-                          style={{ borderRadius: 0 }}
+                          placeholder="e.g. factory@upi"
+                          className="w-full px-3 py-2 bg-background border border-[var(--border)] rounded-lg text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                         />
                       </div>
-                      <div className="sm:col-span-2 space-y-1">
-                        <label className="block text-2xs font-bold uppercase text-foreground">
-                          [INDUSTRIAL UNIT ADDRESS]
+                      <div className="sm:col-span-2 space-y-1.5">
+                        <label className="block text-xs font-medium text-foreground">
+                          Industrial Plant Address
                         </label>
                         <textarea
                           rows={2}
                           value={compAddress}
                           onChange={(e) => setCompAddress(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-card border border-border text-xs text-foreground font-mono uppercase focus:outline-none"
-                          style={{ borderRadius: 0 }}
+                          placeholder="Plot No., GIDC Industrial Estate, Surat, Gujarat"
+                          className="w-full px-3 py-2 bg-background border border-[var(--border)] rounded-lg text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                         />
                       </div>
                     </div>
@@ -282,10 +321,10 @@ export const CompanyConfigDrawer: React.FC = () => {
                     <div className="pt-2 flex justify-end">
                       <button
                         type="submit"
-                        className="px-4 py-1.5 bg-primary hover:bg-primary/90 text-white text-xs font-bold uppercase transition cursor-pointer"
-                        style={{ borderRadius: 0 }}
+                        className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer"
                       >
-                        [SAVE FACTORY PROFILE]
+                        <Save className="w-3.5 h-3.5" />
+                        Save Factory Profile
                       </button>
                     </div>
                   </form>
@@ -307,11 +346,14 @@ export const CompanyConfigDrawer: React.FC = () => {
               {/* 6. Module Specific Configuration Sub-sections */}
               {activeTab === 'invoices_config' && (
                 <div className="space-y-3">
-                  <div className="bg-background p-3.5 border border-border" style={{ borderRadius: 0 }}>
-                    <h3 className="font-black text-foreground text-xs uppercase flex items-center gap-2">
+                  <div className="bg-[var(--bg-surface)] p-3.5 border border-[var(--border)] rounded-xl shadow-xs">
+                    <h3 className="font-semibold text-foreground text-xs flex items-center gap-2">
                       <FileText className="w-4 h-4 text-primary" />
-                      {"/// INVOICES & GST PARAMETERS"}
+                      Invoices & GST Parameters
                     </h3>
+                    <p className="text-2xs text-muted-foreground mt-0.5">
+                      Configure SAC 9988 billing rules, tax roundoff formatting, and invoice numbering prefixes.
+                    </p>
                   </div>
                   <CompanyParametersForm />
                 </div>
@@ -319,11 +361,14 @@ export const CompanyConfigDrawer: React.FC = () => {
 
               {activeTab === 'machines_config' && (
                 <div className="space-y-3">
-                  <div className="bg-background p-3.5 border border-border" style={{ borderRadius: 0 }}>
-                    <h3 className="font-black text-foreground text-xs uppercase flex items-center gap-2">
+                  <div className="bg-[var(--bg-surface)] p-3.5 border border-[var(--border)] rounded-xl shadow-xs">
+                    <h3 className="font-semibold text-foreground text-xs flex items-center gap-2">
                       <Wrench className="w-4 h-4 text-primary" />
-                      {"/// EMBROIDERY MACHINE PARAMETERS"}
+                      Embroidery Machine Fleet Parameters
                     </h3>
+                    <p className="text-2xs text-muted-foreground mt-0.5">
+                      Default head counts, RPM thresholds, shift hours, and telemetry sensor configs.
+                    </p>
                   </div>
                   <CompanyParametersForm />
                 </div>
@@ -331,11 +376,14 @@ export const CompanyConfigDrawer: React.FC = () => {
 
               {activeTab === 'challans_config' && (
                 <div className="space-y-3">
-                  <div className="bg-background p-3.5 border border-border" style={{ borderRadius: 0 }}>
-                    <h3 className="font-black text-foreground text-xs uppercase flex items-center gap-2">
+                  <div className="bg-[var(--bg-surface)] p-3.5 border border-[var(--border)] rounded-xl shadow-xs">
+                    <h3 className="font-semibold text-foreground text-xs flex items-center gap-2">
                       <Truck className="w-4 h-4 text-primary" />
-                      {"/// JOB WORK CHALLAN PARAMETERS"}
+                      Job Work Inward Challan Parameters
                     </h3>
+                    <p className="text-2xs text-muted-foreground mt-0.5">
+                      Fabric inward shrinkage tolerance thresholds and delivery receipt numbering.
+                    </p>
                   </div>
                   <CompanyParametersForm />
                 </div>
@@ -343,11 +391,29 @@ export const CompanyConfigDrawer: React.FC = () => {
 
               {activeTab === 'wage_config' && (
                 <div className="space-y-3">
-                  <div className="bg-background p-3.5 border border-border" style={{ borderRadius: 0 }}>
-                    <h3 className="font-black text-foreground text-xs uppercase flex items-center gap-2">
+                  <div className="bg-[var(--bg-surface)] p-3.5 border border-[var(--border)] rounded-xl shadow-xs">
+                    <h3 className="font-semibold text-foreground text-xs flex items-center gap-2">
                       <Calculator className="w-4 h-4 text-primary" />
-                      {"/// WAGE & UCHAPAT SETTLEMENT PARAMETERS"}
+                      Wage & Uchapat Settlement Parameters
                     </h3>
+                    <p className="text-2xs text-muted-foreground mt-0.5">
+                      Fortnight hisab cutoffs, operator advance caps, and TDS deduction rules.
+                    </p>
+                  </div>
+                  <CompanyParametersForm />
+                </div>
+              )}
+
+              {activeTab === 'print_templates' && (
+                <div className="space-y-3">
+                  <div className="bg-[var(--bg-surface)] p-3.5 border border-[var(--border)] rounded-xl shadow-xs">
+                    <h3 className="font-semibold text-foreground text-xs flex items-center gap-2">
+                      <Printer className="w-4 h-4 text-primary" />
+                      Printing Templates & Thermal Slips
+                    </h3>
+                    <p className="text-2xs text-muted-foreground mt-0.5">
+                      Configure company header titles, thermal slip roll widths (80mm/58mm), statutory terms, and bank/UPI QR toggles.
+                    </p>
                   </div>
                   <CompanyParametersForm />
                 </div>
@@ -359,4 +425,3 @@ export const CompanyConfigDrawer: React.FC = () => {
     </Drawer>
   );
 };
-

@@ -12,6 +12,9 @@ import {
   Trash2,
   CheckCircle2,
   Search,
+  Calculator,
+  Wallet,
+  ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -159,7 +162,17 @@ export default function KarigarsMasterPage() {
             <tbody className="divide-y divide-[var(--border)] font-sans">
               {filtered.map((k) => (
                 <tr key={k.id} className="hover:bg-[var(--bg-surface-elevated)]/50 transition">
-                  <td className="p-3.5 font-semibold text-[var(--text-main)]">{k.name}</td>
+                  <td className="p-3.5">
+                    <button
+                      type="button"
+                      onClick={() => openDrawer('KARIGAR_LEDGER', { karigar: k, karigarId: k.id }, fetchKarigars)}
+                      className="font-semibold text-[var(--text-main)] hover:underline text-left cursor-pointer inline-flex items-center gap-1 group"
+                      title="View Karigar Upad & Salary Ledger"
+                    >
+                      <span>{k.name}</span>
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--primary)]" />
+                    </button>
+                  </td>
                   <td className="p-3.5 font-mono text-[var(--text-muted)]">{k.mobile}</td>
                   <td className="p-3.5">
                     <span
@@ -200,15 +213,37 @@ export default function KarigarsMasterPage() {
                       <span className="text-[var(--text-muted)] text-xs">Inactive</span>
                     )}
                   </td>
-                  <td className="p-3.5 text-right space-x-1">
+                  <td className="p-3.5 text-right space-x-1.5">
                     <button
+                      type="button"
+                      onClick={() => openDrawer('COMPUTE_HISAB', { karigarId: k.id, karigar: k }, fetchKarigars)}
+                      className="px-2 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium inline-flex items-center gap-1 rounded transition shadow-xs cursor-pointer"
+                      title="Settle Fortnight Wage Hisab"
+                    >
+                      <Calculator className="w-3 h-3 text-emerald-600" />
+                      <span>Hisab</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => openDrawer('ADD_UCHAPAT', { karigarId: k.id, karigar: k }, fetchKarigars)}
+                      className="px-2 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium inline-flex items-center gap-1 rounded transition shadow-xs cursor-pointer"
+                      title="Issue Uchapat Cash Advance"
+                    >
+                      <Wallet className="w-3 h-3 text-amber-600" />
+                      <span>Upad</span>
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => openDrawer('EDIT_KARIGAR', { karigar: k }, fetchKarigars)}
                       className="p-1.5 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] rounded transition cursor-pointer"
-                      title="Edit"
+                      title="Edit Profile"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDelete(k.id, k.name)}
                       className="p-1.5 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 rounded transition cursor-pointer"
                       title="Delete"

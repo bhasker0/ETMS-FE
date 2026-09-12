@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { PartiesApi, PartyStatementResult } from '@/lib/api/parties';
+import { WhatsappApi } from '@/lib/api/whatsapp';
 import { useAuth } from '@/lib/auth-context';
 import { formatINR, formatNumber } from '@/lib/utils';
 import {
@@ -11,6 +12,7 @@ import {
   Calendar,
   Share2,
   Printer,
+  Download,
   FileText,
   Truck,
   TrendingUp,
@@ -22,30 +24,42 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function PartyStatementPage() {
+function PartyStatementContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
   const partyId = params?.id as string;
   const { activeCompany } = useAuth();
 
   const [statement, setStatement] = useState<PartyStatementResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
+  const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
+
+  // Synchronize date filter to URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams();
+    if (startDate) urlParams.set('startDate', startDate);
+    if (endDate) urlParams.set('endDate', endDate);
+    const queryString = urlParams.toString();
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, [startDate, endDate, pathname]);
 
   const fetchStatement = useCallback(async () => {
     if (!partyId) return;
     setLoading(true);
     try {
-      const res: any = await PartiesApi.getStatement(partyId, {
+      const res = await PartiesApi.getStatement(partyId, {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
       });
-      const data = res?.party ? res : res?.data || res;
-      setStatement(data);
-    } catch (err: any) {
+      const data = (res as unknown as { party?: unknown })?.party ? res : (res as unknown as { data?: PartyStatementResult })?.data || res;
+      setStatement(data as PartyStatementResult);
+    } catch (err: unknown) {
       console.error('Statement error:', err);
-      toast.error('Failed to load party statement: ' + (err.message || 'Error'));
+      toast.error('Failed to load party statement: ' + (err instanceof Error ? err.message : 'Error'));
     } finally {
       setLoading(false);
     }
@@ -71,33 +85,54 @@ export default function PartyStatementPage() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [sharingWa, setSharingWa] = useState(false);
+
+  const handlePrint = async () => {
+    if (!partyId) return;
+    setDownloadingPdf(true);
+    try {
+      await PartiesApi.downloadStatementPdf(
+        partyId,
+        {
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+        },
+        `Statement_${(statement?.party.name || 'party').replace(/[^a-zA-Z0-9]/g, '_')}`,
+      );
+      toast.success('Downloaded Statement of Account PDF');
+    } catch (err: any) {
+      toast.error('Failed to download ledger PDF: ' + err.message);
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
-  const handleShareWhatsApp = () => {
-    if (!statement) return;
-    const p = statement.party;
-    const m = statement.metrics;
-    const text = `*JOBWORK LEDGER STATEMENT: ${p.name.toUpperCase()}*
-*Factory Unit:* ${activeCompany?.name || 'Radhe Krishna Embroidery'}
-*GSTIN:* ${p.gstin || 'URP / Unregistered'}
-------------------------------------
-*Total Inward Lots:* ${m.total_inward_lots} (${formatNumber(m.total_inward_meters)}m)
-*Total Invoices:* ${m.total_invoices_count} (${formatNumber(m.total_outward_meters)}m)
-*Total Billed:* ${formatINR(m.total_billed_amount)}
-*Fabric In Process:* ${formatNumber(m.fabric_in_process_meters)}m
-*Current Outstanding:* ${formatINR(m.closing_balance)}
-------------------------------------
-*Aging Status:*
-- 0-15 Days: ${formatINR(m.aging.within_15_days)}
-- 16-30 Days: ${formatINR(m.aging.days_16_to_30)}
-- >30 Days: ${formatINR(m.aging.above_30_days)}
-------------------------------------
-Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
-
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+  const handleShareWhatsApp = async () => {
+    if (!partyId || !statement) return;
+    setSharingWa(true);
+    try {
+      const p = statement.party;
+      const res = await WhatsappApi.sendPartyStatementPdf(partyId, {
+        phone: p.mobile || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        caption: `Job-Work Statement of Account for ${p.name} (${activeCompany?.name || 'Radhe Krishna Embroidery Works'}). Outstanding Balance: ${formatINR(statement.metrics.closing_balance)}`,
+      });
+      const displayPhone = res?.recipient?.phone || p.mobile || 'party phone';
+      if (res?.isFallback) {
+        toast.warning(res?.message || 'WhatsApp Gateway offline; opened web fallback.');
+        if (res?.fallbackUrl) {
+          window.open(res.fallbackUrl, '_blank');
+        }
+      } else {
+        toast.success(`Statement PDF sent to ${p.name} (${displayPhone}) via WhatsApp!`);
+      }
+    } catch (err: any) {
+      toast.error('Failed to send statement via WhatsApp: ' + err.message);
+    } finally {
+      setSharingWa(false);
+    }
   };
 
   if (loading && !statement) {
@@ -183,17 +218,21 @@ Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handlePrint}
+              disabled={downloadingPdf}
               className="px-3 py-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-main)] font-semibold text-xs rounded-md flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              title="Download Party Statement of Account PDF"
             >
-              <Printer className="w-4 h-4" />
-              <span>Print Ledger</span>
+              <Download className="w-4 h-4" />
+              <span>{downloadingPdf ? 'Downloading...' : 'Print PDF Ledger'}</span>
             </button>
             <button
               onClick={handleShareWhatsApp}
+              disabled={sharingWa}
               className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-md flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+              title="Send Statement of Account PDF directly to trader on WhatsApp"
             >
               <Share2 className="w-4 h-4" />
-              <span>WhatsApp Khata</span>
+              <span>{sharingWa ? 'Sending...' : 'WhatsApp Statement'}</span>
             </button>
           </div>
         </div>
@@ -425,6 +464,21 @@ Generated via Surat Embroidery Micro-ERP (SAC 9988)`;
         )}
       </div>
     </div>
+  );
+}
+
+export default function PartyStatementPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4">
+          <div className="h-8 w-48 bg-[var(--bg-surface-elevated)] rounded animate-pulse" />
+          <div className="h-64 w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl animate-pulse" />
+        </div>
+      }
+    >
+      <PartyStatementContent />
+    </Suspense>
   );
 }
 

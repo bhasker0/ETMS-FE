@@ -55,8 +55,8 @@ export interface WageHisabCalculationResult {
     reason?: string;
     payment_mode?: string;
   }>;
-  karigar?: any;
-  summary?: any;
+  karigar?: Record<string, unknown>;
+  summary?: Record<string, unknown>;
   included_advance_ids?: string[];
 }
 
@@ -75,12 +75,12 @@ export interface SettleWageHisabDto {
 
 export const WageHisabApi = {
   calculate: async (dto: CalculateWageHisabDto): Promise<WageHisabCalculationResult> => {
-    const res: any = await apiClient.post('/api/v1/wage-hisab/calculate', dto);
-    const raw = res?.data || res;
+    const res = await apiClient.post<Record<string, unknown>>('/api/v1/wage-hisab/calculate', dto) as unknown as Record<string, unknown>;
+    const raw = (res?.data as Record<string, unknown>) || res;
 
-    const karigar = raw?.karigar || {};
-    const period = raw?.period || {};
-    const summary = raw?.summary || {};
+    const karigar = (raw?.karigar as Record<string, unknown>) || {};
+    const period = (raw?.period as Record<string, unknown>) || {};
+    const summary = (raw?.summary as Record<string, unknown>) || {};
 
     const totalMeters = Number(raw?.total_meters ?? summary?.totalMeters ?? 0);
     const totalStitches = Number(raw?.total_stitches ?? summary?.totalStitches ?? 0);
@@ -92,11 +92,11 @@ export const WageHisabApi = {
     const netPayable = Number(raw?.net_payable ?? summary?.netPayable ?? (grossEarnings - totalUchapat - deductions));
 
     return {
-      karigar_id: raw?.karigar_id || karigar?.id || dto.karigar_id,
-      karigar_name: raw?.karigar_name || karigar?.name || 'Karigar',
-      wage_type: raw?.wage_type || karigar?.wage_type || 'PIECE_RATE',
-      startDate: raw?.startDate || period?.startDate || dto.startDate,
-      endDate: raw?.endDate || period?.endDate || dto.endDate,
+      karigar_id: (raw?.karigar_id as string) || (karigar?.id as string) || dto.karigar_id,
+      karigar_name: (raw?.karigar_name as string) || (karigar?.name as string) || 'Karigar',
+      wage_type: (raw?.wage_type as string) || (karigar?.wage_type as string) || 'PIECE_RATE',
+      startDate: (raw?.startDate as string) || (period?.startDate as string) || dto.startDate,
+      endDate: (raw?.endDate as string) || (period?.endDate as string) || dto.endDate,
       total_shifts: Number(raw?.total_shifts ?? summary?.shiftsCount ?? 0),
       total_meters: totalMeters,
       total_stitches: totalStitches,
@@ -106,27 +106,27 @@ export const WageHisabApi = {
       gross_earnings: grossEarnings,
       total_uchapat_advances: totalUchapat,
       deductions: deductions,
-      deduction_reason: raw?.deduction_reason || summary?.deduction_reason || dto.deduction_reason || '',
+      deduction_reason: (raw?.deduction_reason as string) || (summary?.deduction_reason as string) || dto.deduction_reason || '',
       net_payable: netPayable,
-      attendance: raw?.attendance,
-      shifts: raw?.shifts || [],
-      uchapats: raw?.uchapats || [],
+      attendance: raw?.attendance as WageHisabCalculationResult['attendance'],
+      shifts: (raw?.shifts as WageHisabCalculationResult['shifts']) || [],
+      uchapats: (raw?.uchapats as WageHisabCalculationResult['uchapats']) || [],
       karigar,
       summary,
-      included_advance_ids: raw?.included_advance_ids || [],
+      included_advance_ids: (raw?.included_advance_ids as string[]) || [],
     };
   },
 
-  settle: async (dto: SettleWageHisabDto): Promise<any> => {
-    const res: any = await apiClient.post('/api/v1/wage-hisab/settle', dto);
-    return res?.data;
+  settle: async (dto: SettleWageHisabDto): Promise<{ success?: boolean; settlement_id?: string }> => {
+    const res = await apiClient.post<{ success?: boolean; data?: { success?: boolean; settlement_id?: string } }>('/api/v1/wage-hisab/settle', dto) as unknown as { success?: boolean; data?: { success?: boolean; settlement_id?: string } };
+    return res?.data || {};
   },
 
   downloadPdf: async (dto: CalculateWageHisabDto, karigarName: string): Promise<void> => {
     const response = await apiClient.post('/api/v1/wage-hisab/pdf', dto, {
       responseType: 'blob',
     });
-    const blob = new Blob([response as any], { type: 'application/pdf' });
+    const blob = new Blob([response as unknown as BlobPart], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

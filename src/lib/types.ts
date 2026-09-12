@@ -159,7 +159,7 @@ export interface ClientLog {
   timestamp: string;
   level: 'info' | 'warn' | 'error' | 'debug';
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   userRole?: string;
   companyId?: string;
   userAgent?: string;

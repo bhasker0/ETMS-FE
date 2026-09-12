@@ -1,4 +1,6 @@
-import { apiClient } from '../api-client';
+import { apiClient, getApiBaseUrl } from '../api-client';
+import type { InwardChallanApiItem } from './challans';
+import type { PartyApiItem } from './parties';
 
 export interface CalculateInvoiceDto {
   total_stitches: number;
@@ -30,9 +32,11 @@ export interface OutwardInvoiceApiItem {
   invoice_no: string;
   invoice_date: string;
   inward_challan_id?: string;
-  inward_challan?: any;
+  inward_challan?: InwardChallanApiItem;
   trader_name: string;
   trader_gstin?: string;
+  trader_mobile?: string;
+  party?: PartyApiItem;
   sac_code: string;
   total_stitches: number;
   machine_heads: number;
@@ -72,55 +76,71 @@ export interface CreateOutwardInvoiceDto {
   inward_meters: number;
   outward_meters: number;
   lot_items?: Array<{
-    inward_challan_id: string;
+    inward_challan_id?: string;
     lot_no: string;
     meters: number;
     thans?: number;
     fabric_quality?: string;
     design_no?: string;
     rate?: number;
+    stitch_count?: number;
+    machine_heads?: number;
+    taxable_amount?: number;
   }>;
   notes?: string;
 }
 
 export const OutwardInvoicesApi = {
   calculatePreview: async (dto: CalculateInvoiceDto): Promise<CalculateInvoiceResult> => {
-    const res: any = await apiClient.post('/api/v1/outward-invoices/calculate', dto);
-    return res?.data;
+    const res = await apiClient.post<CalculateInvoiceResult>('/api/v1/outward-invoices/calculate', dto);
+    const data = (res as unknown as { data?: CalculateInvoiceResult })?.data || res;
+    return data as CalculateInvoiceResult;
   },
 
-  getAll: async (params?: { startDate?: string; endDate?: string }): Promise<OutwardInvoiceApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/outward-invoices', { params });
-    return res?.data || [];
+  getAll: async (params?: { startDate?: string; endDate?: string; search?: string; inward_challan_id?: string }): Promise<OutwardInvoiceApiItem[]> => {
+    const res = await apiClient.get<OutwardInvoiceApiItem[]>('/api/v1/outward-invoices', { params });
+    const data = (res as unknown as { data?: OutwardInvoiceApiItem[] })?.data || res;
+    return (data as OutwardInvoiceApiItem[]) || [];
   },
 
   getById: async (id: string): Promise<OutwardInvoiceApiItem> => {
-    const res: any = await apiClient.get(`/api/v1/outward-invoices/${id}`);
-    return res?.data;
+    const res = await apiClient.get<OutwardInvoiceApiItem>(`/api/v1/outward-invoices/${id}`);
+    const data = (res as unknown as { data?: OutwardInvoiceApiItem })?.data || res;
+    return data as OutwardInvoiceApiItem;
   },
 
   create: async (dto: CreateOutwardInvoiceDto): Promise<OutwardInvoiceApiItem> => {
-    const res: any = await apiClient.post('/api/v1/outward-invoices', dto);
-    return res?.data;
+    const res = await apiClient.post<OutwardInvoiceApiItem>('/api/v1/outward-invoices', dto);
+    const data = (res as unknown as { data?: OutwardInvoiceApiItem })?.data || res;
+    return data as OutwardInvoiceApiItem;
   },
 
   getPdfUrl: (id: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const baseUrl = getApiBaseUrl();
     return `${baseUrl}/api/v1/outward-invoices/${id}/pdf`;
   },
 
   downloadPdf: async (id: string, invoiceNo: string): Promise<void> => {
-    const response = await apiClient.get(`/api/v1/outward-invoices/${id}/pdf`, {
+    const response = await apiClient.get<BlobPart>(`/api/v1/outward-invoices/${id}/pdf`, {
       responseType: 'blob',
     });
-    const blob = new Blob([response as any], { type: 'application/pdf' });
+    const rawData = response instanceof Blob ? response : ((response as { data?: BlobPart })?.data instanceof Blob ? (response as { data: Blob }).data : (response as unknown as BlobPart));
+    const blob = new Blob([rawData], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `Invoice_${invoiceNo}.pdf`);
     document.body.appendChild(link);
     link.click();
     link.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+  },
+
+  update: async (id: string, dto: Partial<CreateOutwardInvoiceDto>): Promise<OutwardInvoiceApiItem> => {
+    const res = await apiClient.put<OutwardInvoiceApiItem>(`/api/v1/outward-invoices/${id}`, dto);
+    const data = (res as unknown as { data?: OutwardInvoiceApiItem })?.data || res;
+    return data as OutwardInvoiceApiItem;
   },
 
   delete: async (id: string): Promise<void> => {

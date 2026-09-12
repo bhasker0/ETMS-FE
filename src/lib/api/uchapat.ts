@@ -36,19 +36,25 @@ export interface KarigarUchapatSummary {
   last_advance_date?: string;
 }
 
+interface UchapatResponse<T> {
+  success?: boolean;
+  data: T;
+  meta?: Record<string, unknown>;
+}
+
 export const UchapatApi = {
   getAll: async (params?: { karigar_id?: string; is_settled?: boolean }): Promise<UchapatApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/uchapat', { params });
+    const res = await apiClient.get<UchapatResponse<UchapatApiItem[]>>('/api/v1/uchapat', { params }) as unknown as UchapatResponse<UchapatApiItem[]>;
     return res?.data || [];
   },
 
   create: async (dto: CreateUchapatDto): Promise<UchapatApiItem> => {
-    const res: any = await apiClient.post('/api/v1/uchapat', dto);
+    const res = await apiClient.post<UchapatResponse<UchapatApiItem>>('/api/v1/uchapat', dto) as unknown as UchapatResponse<UchapatApiItem>;
     return res?.data;
   },
 
   getSummaryByKarigar: async (karigarId: string): Promise<KarigarUchapatSummary> => {
-    const res: any = await apiClient.get(`/api/v1/uchapat/summary/karigar/${karigarId}`);
+    const res = await apiClient.get<UchapatResponse<KarigarUchapatSummary>>(`/api/v1/uchapat/summary/karigar/${karigarId}`) as unknown as UchapatResponse<KarigarUchapatSummary>;
     return res?.data;
   },
 

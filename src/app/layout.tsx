@@ -9,12 +9,13 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Navbar } from '@/components/Navbar';
 import { AppDrawerProvider } from '@/lib/app-drawer-context';
 import { AppDrawer } from '@/components/AppDrawer';
+import { SpotlightCommandPalette } from '@/components/organisms/SpotlightCommandPalette';
 import { Toaster } from 'sonner';
 
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-sans',
   weight: ['400', '500', '600', '700'],
 });
 
@@ -41,7 +42,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#141413',
+  themeColor: '#F7F6F3',
 };
 
 export default function RootLayout({
@@ -53,8 +54,14 @@ export default function RootLayout({
     <html lang="gu" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="icon" href="/icons/icon-192x192.svg" type="image/svg+xml" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700;800&family=Geist:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className="min-h-[100dvh] bg-[var(--bg-canvas)] text-[var(--text-main)] antialiased selection:bg-[#141413] selection:text-white font-sans">
+      <body className="min-h-[100dvh] bg-[var(--bg-canvas)] text-[var(--text-main)] antialiased selection:bg-[#111111] selection:text-white font-sans">
         <ErrorBoundary>
           <AuthProvider>
             <ConfigProvider>
@@ -67,6 +74,7 @@ export default function RootLayout({
                         {children}
                       </main>
                       <AppDrawer />
+                      <SpotlightCommandPalette />
                       <Toaster richColors position="top-right" />
                     </div>
                   </AppDrawerProvider>

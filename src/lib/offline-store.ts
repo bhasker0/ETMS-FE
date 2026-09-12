@@ -6,7 +6,7 @@ export interface PendingSyncItem {
   id: string;
   type: 'shift' | 'challan' | 'invoice' | 'uchapat';
   action: 'create' | 'update' | 'delete';
-  data: any;
+  data: unknown;
   createdAt: string;
   retryCount?: number;
 }
@@ -65,7 +65,7 @@ class OfflineStore {
   }
 
   // Queue an action for offline sync
-  async queueForSync(type: PendingSyncItem['type'], action: PendingSyncItem['action'], data: any): Promise<void> {
+  async queueForSync(type: PendingSyncItem['type'], action: PendingSyncItem['action'], data: unknown): Promise<void> {
     if (!this.isBrowser) return;
 
     const item: PendingSyncItem = {
@@ -92,7 +92,7 @@ class OfflineStore {
     if (!this.isBrowser) return [];
     try {
       return JSON.parse(localStorage.getItem('etms_pending_sync_queue') || '[]');
-    } catch (e) {
+    } catch (_e) {
       return [];
     }
   }
@@ -127,36 +127,38 @@ class OfflineStore {
 
     try {
       const { method, url } = endpoint;
+      const dataObj = item.data as Record<string, unknown> | undefined;
 
       if (method === 'POST') {
         await apiClient.post(url, item.data);
       } else if (method === 'PUT') {
-        const entityId = item.data?.id;
+        const entityId = dataObj?.id;
         await apiClient.put(entityId ? `${url}/${entityId}` : url, item.data);
       } else if (method === 'DELETE') {
-        const entityId = item.data?.id;
+        const entityId = dataObj?.id;
         await apiClient.delete(entityId ? `${url}/${entityId}` : url);
       }
 
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { message?: string } } };
       // If it's a 409 Conflict, register conflict so supervisor can resolve
-      if (err?.response?.status === 409) {
+      if (axiosErr?.response?.status === 409) {
         logger.warn(`Item ${item.id} encountered 409 Conflict on server.`, { syncId: item.id });
         this.addConflict({
           id: `conflict-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
           item,
-          serverMessage: err?.response?.data?.message || 'Concurrent modification conflict detected on server',
+          serverMessage: axiosErr?.response?.data?.message || 'Concurrent modification conflict detected on server',
           detectedAt: new Date().toISOString(),
         });
         return true; // Remove from active dispatch queue and park in conflict queue
       }
 
       // If it's a 4xx error (client error other than 409), don't retry — data is invalid
-      if (err?.response?.status >= 400 && err?.response?.status < 500) {
-        logger.error(`Client error syncing item ${item.id} (${err?.response?.status}), removing from queue.`, {
+      if (axiosErr?.response?.status && axiosErr.response.status >= 400 && axiosErr.response.status < 500) {
+        logger.error(`Client error syncing item ${item.id} (${axiosErr.response.status}), removing from queue.`, {
           error: String(err),
-          data: item.data,
+          data: item.data as Record<string, unknown>,
         });
         return true; // Remove from queue to prevent infinite retries
       }
@@ -170,7 +172,7 @@ class OfflineStore {
     if (!this.isBrowser) return [];
     try {
       return JSON.parse(localStorage.getItem('etms_sync_conflicts') || '[]');
-    } catch (e) {
+    } catch (_e) {
       return [];
     }
   }
@@ -197,7 +199,8 @@ class OfflineStore {
       if (resolution === 'OVERWRITE') {
         const endpoint = API_ENDPOINTS[target.item.type]?.['update'] || API_ENDPOINTS[target.item.type]?.['create'];
         if (endpoint) {
-          await apiClient.put(endpoint.url, { ...target.item.data, force_override: true });
+          const payload = (typeof target.item.data === 'object' && target.item.data !== null ? target.item.data : {}) as Record<string, unknown>;
+          await apiClient.put(endpoint.url, { ...payload, force_override: true });
         }
       }
 
@@ -302,8 +305,8 @@ class OfflineStore {
         shifts.unshift(shift);
       }
       localStorage.setItem('etms_shifts', JSON.stringify(shifts));
-    } catch (e) {
-      logger.error('Failed to save shift locally', { error: String(e) });
+    } catch (_e) {
+      logger.error('Failed to save shift locally', { error: String(_e) });
     }
   }
 
@@ -311,7 +314,7 @@ class OfflineStore {
     if (!this.isBrowser) return [];
     try {
       return JSON.parse(localStorage.getItem('etms_shifts') || '[]');
-    } catch (e) {
+    } catch (_e) {
       return [];
     }
   }
@@ -328,8 +331,8 @@ class OfflineStore {
         challans.unshift(challan);
       }
       localStorage.setItem('etms_challans', JSON.stringify(challans));
-    } catch (e) {
-      logger.error('Failed to save challan locally', { error: String(e) });
+    } catch (_e) {
+      logger.error('Failed to save challan locally', { error: String(_e) });
     }
   }
 
@@ -337,7 +340,7 @@ class OfflineStore {
     if (!this.isBrowser) return [];
     try {
       return JSON.parse(localStorage.getItem('etms_challans') || '[]');
-    } catch (e) {
+    } catch (_e) {
       return [];
     }
   }
@@ -354,8 +357,8 @@ class OfflineStore {
         invoices.unshift(invoice);
       }
       localStorage.setItem('etms_invoices', JSON.stringify(invoices));
-    } catch (e) {
-      logger.error('Failed to save invoice locally', { error: String(e) });
+    } catch (_e) {
+      logger.error('Failed to save invoice locally', { error: String(_e) });
     }
   }
 
@@ -363,7 +366,7 @@ class OfflineStore {
     if (!this.isBrowser) return [];
     try {
       return JSON.parse(localStorage.getItem('etms_invoices') || '[]');
-    } catch (e) {
+    } catch (_e) {
       return [];
     }
   }
@@ -375,8 +378,8 @@ class OfflineStore {
       const txs: UchapatTransaction[] = JSON.parse(localStorage.getItem('etms_uchapat') || '[]');
       txs.unshift(tx);
       localStorage.setItem('etms_uchapat', JSON.stringify(txs));
-    } catch (e) {
-      logger.error('Failed to save uchapat locally', { error: String(e) });
+    } catch (_e) {
+      logger.error('Failed to save uchapat locally', { error: String(_e) });
     }
   }
 
@@ -384,7 +387,7 @@ class OfflineStore {
     if (!this.isBrowser) return [];
     try {
       return JSON.parse(localStorage.getItem('etms_uchapat') || '[]');
-    } catch (e) {
+    } catch (_e) {
       return [];
     }
   }
@@ -401,8 +404,8 @@ class OfflineStore {
       this.notifyListeners();
       this.notifyConflictListeners();
       logger.info('Purged local offline storage cache.');
-    } catch (e) {
-      logger.error('Failed to purge local cache', { error: String(e) });
+    } catch (_e) {
+      logger.error('Failed to purge local cache', { error: String(_e) });
     }
   }
 }

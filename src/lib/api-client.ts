@@ -1,22 +1,29 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.VITE_API_URL ||
-  'http://localhost:4000';
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return `${window.location.protocol}//${hostname}:4000`;
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || process.env.VITE_API_URL || 'http://localhost:4000';
+};
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 15000,
 });
 
-// Request Interceptor: Inject JWT token & active Company ID header
+// Request Interceptor: Inject JWT token & active Company ID header, and adapt baseURL dynamically
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
+      config.baseURL = getApiBaseUrl();
+
       const token = localStorage.getItem('etms_access_token');
       const activeCompanyId = localStorage.getItem('etms_active_company_id');
 
@@ -50,9 +57,10 @@ apiClient.interceptors.response.use(
         // Do not force harsh redirect during dev, allow smooth login
       }
     }
+    const errorData = error.response?.data as { message?: string; error?: string } | undefined;
     const message =
-      (error.response?.data as any)?.message ||
-      (error.response?.data as any)?.error ||
+      errorData?.message ||
+      errorData?.error ||
       error.message ||
       'API Request failed';
     return Promise.reject(new Error(message));

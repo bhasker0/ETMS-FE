@@ -6,8 +6,8 @@ import { InvoiceSAC9988 } from './types';
 export function generateTallyPrimeSalesXML(
   companyName: string,
   invoices: InvoiceSAC9988[],
-  startDate: string,
-  endDate: string
+  _startDate?: string,
+  _endDate?: string
 ): string {
   const sanitize = (str: string) =>
     (str || '')

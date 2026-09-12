@@ -33,23 +33,27 @@ export interface CreateKarigarDto {
 
 export const KarigarsApi = {
   getAll: async (): Promise<KarigarApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/karigars');
-    return res?.data || [];
+    const res = await apiClient.get<KarigarApiItem[]>('/api/v1/karigars');
+    const data = (res as unknown as { data?: KarigarApiItem[] })?.data || res;
+    return (data as KarigarApiItem[]) || [];
   },
 
   getById: async (id: string): Promise<KarigarApiItem> => {
-    const res: any = await apiClient.get(`/api/v1/karigars/${id}`);
-    return res?.data;
+    const res = await apiClient.get<KarigarApiItem>(`/api/v1/karigars/${id}`);
+    const data = (res as unknown as { data?: KarigarApiItem })?.data || res;
+    return data as KarigarApiItem;
   },
 
   create: async (dto: CreateKarigarDto): Promise<KarigarApiItem> => {
-    const res: any = await apiClient.post('/api/v1/karigars', dto);
-    return res?.data;
+    const res = await apiClient.post<KarigarApiItem>('/api/v1/karigars', dto);
+    const data = (res as unknown as { data?: KarigarApiItem })?.data || res;
+    return data as KarigarApiItem;
   },
 
   update: async (id: string, dto: Partial<CreateKarigarDto>): Promise<KarigarApiItem> => {
-    const res: any = await apiClient.put(`/api/v1/karigars/${id}`, dto);
-    return res?.data;
+    const res = await apiClient.put<KarigarApiItem>(`/api/v1/karigars/${id}`, dto);
+    const data = (res as unknown as { data?: KarigarApiItem })?.data || res;
+    return data as KarigarApiItem;
   },
 
   delete: async (id: string): Promise<void> => {

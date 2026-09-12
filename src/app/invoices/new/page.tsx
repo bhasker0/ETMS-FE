@@ -60,10 +60,6 @@ function NewInvoiceContent() {
   const [inwardMeters, setInwardMeters] = useState<number>(1000);
   const [outwardMeters, setOutwardMeters] = useState<number>(970);
   const [notes, setNotes] = useState('');
-
-  // Live Calculation Preview State
-  const [calcResult, setCalcResult] = useState<CalculateInvoiceResult | null>(null);
-  const [calculating, setCalculating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -87,50 +83,37 @@ function NewInvoiceContent() {
     fetchChallans();
   }, [qChallanId, activeCompany?.id]);
 
-  // Trigger live calculation preview on parameter change
-  useEffect(() => {
-    const runCalculation = async () => {
-      if (totalStitches <= 0 || ratePer1000 <= 0 || machineHeads <= 0) return;
-      setCalculating(true);
-      try {
-        const result = await OutwardInvoicesApi.calculatePreview({
-          total_stitches: Number(totalStitches),
-          rate_per_1000: Number(ratePer1000),
-          machine_heads: Number(machineHeads),
-          inward_meters: Number(inwardMeters),
-          outward_meters: Number(outwardMeters),
-          trader_gstin: traderGstin,
-        });
-        setCalcResult(result);
-      } catch (err) {
-        // Fallback local calculation
-        const gross = (Number(totalStitches) / 1000) * Number(ratePer1000) * Number(machineHeads);
-        const isInter = traderGstin ? !traderGstin.startsWith('24') : false;
-        const diff = Number(inwardMeters) - Number(outwardMeters);
-        const shrinkPct = Number(inwardMeters) > 0 ? (diff / Number(inwardMeters)) * 100 : 0;
+  // Live Calculation Preview (Derived State via useMemo)
+  const calcResult = React.useMemo<CalculateInvoiceResult>(() => {
+    const gross = (Number(totalStitches) / 1000) * Number(ratePer1000) * Number(machineHeads);
+    const isInter = traderGstin ? !traderGstin.startsWith('24') : false;
+    const diff = Math.max(0, Number(inwardMeters) - Number(outwardMeters));
+    const shrinkPct = Number(inwardMeters) > 0 ? (diff / Number(inwardMeters)) * 100 : 0;
+    const isExceeded = shrinkPct > 3.0;
 
-        setCalcResult({
-          gross_amount: gross,
-          cgst_rate: isInter ? 0 : 2.5,
-          cgst_amount: isInter ? 0 : (gross * 2.5) / 100,
-          sgst_rate: isInter ? 0 : 2.5,
-          sgst_amount: isInter ? 0 : (gross * 2.5) / 100,
-          igst_rate: isInter ? 5.0 : 0,
-          igst_amount: isInter ? (gross * 5.0) / 100 : 0,
-          net_amount: gross + (gross * 5.0) / 100,
-          is_interstate: isInter,
-          shrinkage_meters: diff,
-          shrinkage_percent: Number(shrinkPct.toFixed(2)),
-          is_shrinkage_exceeded: shrinkPct > 3.0,
-          shrinkage_warning: shrinkPct > 3.0 ? 'Shrinkage exceeds 3.0% fabric tolerance' : undefined,
-        });
-      } finally {
-        setCalculating(false);
-      }
+    const cgstRate = isInter ? 0 : 2.5;
+    const cgstAmount = (gross * cgstRate) / 100;
+    const sgstRate = isInter ? 0 : 2.5;
+    const sgstAmount = (gross * sgstRate) / 100;
+    const igstRate = isInter ? 5.0 : 0;
+    const igstAmount = (gross * igstRate) / 100;
+    const netAmount = gross + cgstAmount + sgstAmount + igstAmount;
+
+    return {
+      gross_amount: gross,
+      cgst_rate: cgstRate,
+      cgst_amount: cgstAmount,
+      sgst_rate: sgstRate,
+      sgst_amount: sgstAmount,
+      igst_rate: igstRate,
+      igst_amount: igstAmount,
+      net_amount: netAmount,
+      is_interstate: isInter,
+      shrinkage_meters: diff,
+      shrinkage_percent: Number(shrinkPct.toFixed(2)),
+      is_shrinkage_exceeded: isExceeded,
+      shrinkage_warning: isExceeded ? 'Shrinkage exceeds 3.0% fabric tolerance' : undefined,
     };
-
-    const timer = setTimeout(runCalculation, 250);
-    return () => clearTimeout(timer);
   }, [totalStitches, ratePer1000, machineHeads, inwardMeters, outwardMeters, traderGstin]);
 
   const handleSubmit = async (e: React.FormEvent) => {

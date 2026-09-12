@@ -14,9 +14,12 @@ import {
   Truck,
   Layers,
   FileCode,
+  Loader2,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { WhatsappApi } from '@/lib/api/whatsapp';
 
 export default function InvoicesListPage() {
   const { activeCompany } = useAuth();
@@ -48,6 +51,28 @@ export default function InvoicesListPage() {
       toast.success(`[DOWNLOADED] Official PDF for ${invoiceNo}`);
     } catch (e: any) {
       toast.error('PDF download error: ' + e.message);
+    }
+  };
+
+  const [sendingWaId, setSendingWaId] = useState<string | null>(null);
+
+  const handleSendWhatsapp = async (inv: OutwardInvoiceApiItem) => {
+    setSendingWaId(inv.id);
+    try {
+      const traderMobile = inv.trader_mobile || (inv as any).party?.mobile;
+      const res = await WhatsappApi.sendInvoicePdf(inv.id, {
+        phone: traderMobile || undefined,
+        caption: `Tax Invoice ${inv.invoice_no} from ${activeCompany?.name || 'Surat Unit'}. Total Net: ${formatINR(inv.net_amount)}`,
+      });
+      const displayPhone = res?.recipient?.phone || traderMobile || 'registered party mobile';
+      toast.success(res?.message || `Tax Invoice ${inv.invoice_no} PDF sent to ${inv.trader_name} (${displayPhone}) via WhatsApp!`);
+      if (res?.isFallback && res?.fallbackUrl) {
+        window.open(res.fallbackUrl, '_blank');
+      }
+    } catch (err: any) {
+      toast.error('Failed to send WhatsApp document: ' + err.message);
+    } finally {
+      setSendingWaId(null);
     }
   };
 
@@ -181,14 +206,26 @@ export default function InvoicesListPage() {
               {filtered.map((inv) => (
                 <tr key={inv.id} className="hover:bg-[var(--bg-surface-elevated)]/50 transition">
                   <td className="p-3.5 font-mono font-semibold text-[var(--text-main)]">
-                    <Link href={`/invoices/${inv.id}`} className="hover:underline text-emerald-600 dark:text-emerald-400">
+                    <button
+                      type="button"
+                      onClick={() => openDrawer('VIEW_INVOICE', { invoice: inv, invoiceId: inv.id }, fetchInvoices)}
+                      className="hover:underline text-emerald-600 dark:text-emerald-400 font-bold text-left cursor-pointer transition"
+                      title="Open Tax Invoice in slide-over drawer"
+                    >
                       {inv.invoice_no}
-                    </Link>
+                    </button>
                   </td>
                   <td className="p-3.5 font-mono text-[var(--text-muted)]">{inv.invoice_date}</td>
                   <td className="p-3.5">
                     <div className="font-semibold text-[var(--text-main)]">{inv.trader_name}</div>
-                    <div className="text-[0.6875rem] text-[var(--text-muted)] font-mono">{inv.trader_gstin || 'Unregistered'}</div>
+                    <div className="flex items-center gap-1.5 text-[0.6875rem] text-[var(--text-muted)] font-mono">
+                      <span>{inv.trader_gstin || 'Unregistered'}</span>
+                      {inv.trader_mobile && (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          • +91 {inv.trader_mobile}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-3.5 text-right font-mono text-[var(--text-muted)] tabular-nums">
                     <div className="font-medium text-[var(--text-main)]">{formatNumber(inv.total_stitches)} st.</div>
@@ -213,6 +250,17 @@ export default function InvoicesListPage() {
                   </td>
                   <td className="p-3.5 text-right space-x-1.5">
                     <button
+                      type="button"
+                      onClick={() => openDrawer('VIEW_INVOICE', { invoice: inv, invoiceId: inv.id }, fetchInvoices)}
+                      className="px-2 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium inline-flex items-center gap-1 rounded transition cursor-pointer shadow-xs"
+                      title="View Tax Invoice in slide-over drawer"
+                    >
+                      <Eye className="w-3 h-3 text-blue-600" />
+                      <span>View</span>
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => openDrawer('GENERATE_EWB', { invoice: inv }, fetchInvoices)}
                       className="px-2 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium inline-flex items-center gap-1 rounded transition cursor-pointer shadow-xs"
                       title="Generate Government NIC E-Way Bill JSON"
@@ -222,6 +270,7 @@ export default function InvoicesListPage() {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handleDownloadPdf(inv.id, inv.invoice_no)}
                       className="px-2 py-1 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] text-xs font-medium inline-flex items-center gap-1 rounded transition cursor-pointer shadow-xs"
                       title="Download Official PDF"
@@ -230,17 +279,24 @@ export default function InvoicesListPage() {
                       <span>PDF</span>
                     </button>
 
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(
-                        `Invoice ${inv.invoice_no} from ${activeCompany?.name}: Total ₹${Number(inv.net_amount || 0).toFixed(2)}`
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-2 py-1 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 text-xs font-medium inline-flex items-center gap-1 rounded transition shadow-xs"
+                    <button
+                      type="button"
+                      disabled={sendingWaId === inv.id}
+                      onClick={() => handleSendWhatsapp(inv)}
+                      className="px-2 py-1 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 text-xs font-medium inline-flex items-center gap-1 rounded transition shadow-xs cursor-pointer disabled:opacity-50"
+                      title={
+                        inv.trader_mobile
+                          ? `Send Tax Invoice PDF via WhatsApp to +91 ${inv.trader_mobile}`
+                          : 'Send Tax Invoice PDF via WhatsApp'
+                      }
                     >
-                      <Share2 className="w-3 h-3 text-emerald-600" />
-                      <span>WA</span>
-                    </a>
+                      {sendingWaId === inv.id ? (
+                        <Loader2 className="w-3 h-3 text-emerald-600 animate-spin" />
+                      ) : (
+                        <Share2 className="w-3 h-3 text-emerald-600" />
+                      )}
+                      <span>{sendingWaId === inv.id ? 'Sending...' : 'WA'}</span>
+                    </button>
                   </td>
                 </tr>
               ))}

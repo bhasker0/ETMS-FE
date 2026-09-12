@@ -6,67 +6,67 @@
   :root,
   [data-theme="light"],
   .light {
-    /* 5-COLOR PALETTE (STEEL BLUE, PERIWINKLE, ICE CANVAS, POWDER BLUE, SLATE GREY) */
-    --bg-canvas: #eff7ff;
+    /* WARM MONOCHROME EDITORIAL PALETTE */
+    --bg-canvas: #F7F6F3;
     --bg-surface: #FFFFFF;
-    --bg-surface-elevated: #cee3f8;
-    --border: #c6c6c6;
-    --border-strong: #336699;
-    --text-main: #336699;
-    --text-muted: #5c768d;
-    --primary: #336699;
+    --bg-surface-elevated: #F1EFEA;
+    --border: #E6E4DD;
+    --border-strong: #111111;
+    --text-main: #111111;
+    --text-muted: #666666;
+    --primary: #111111;
     --primary-foreground: #FFFFFF;
-    --secondary: #cee3f8;
-    --secondary-foreground: #336699;
-    --accent-red: #8A1C14;
-    --accent-green: #1B4D2E;
-    --accent-yellow: #744210;
-    --accent-blue: #336699;
-    --accent-purple: #9494ff;
-    --warning: #744210;
-    --radius: 8px;
+    --secondary: #F1EFEA;
+    --secondary-foreground: #111111;
+    --accent-red: #B91C1C;
+    --accent-green: #15803D;
+    --accent-yellow: #B45309;
+    --accent-blue: #2563EB;
+    --accent-purple: #4F46E5;
+    --warning: #B45309;
+    --radius: 3px;
 
-    /* Subtle Shadows */
-    --shadow-subtle: 0 1px 2px rgba(51, 102, 153, 0.05);
-    --shadow-card: 0 1px 3px rgba(51, 102, 153, 0.06), 0 1px 2px rgba(51, 102, 153, 0.04);
-    --shadow-modal: 0 12px 28px -4px rgba(51, 102, 153, 0.12), 0 4px 10px -2px rgba(51, 102, 153, 0.06);
+    /* Subtle Ultra-diffuse Shadows */
+    --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-modal: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
 
     /* Shadcn compatibility bindings */
-    --background: 210 100% 97%;
-    --foreground: 210 50% 40%;
+    --background: 40 14% 96%;
+    --foreground: 0 0% 7%;
     --card: 0 0% 100%;
-    --card-foreground: 210 50% 40%;
-    --popover: 210 70% 95%;
-    --popover-foreground: 210 50% 40%;
-    --muted: 210 50% 90%;
-    --muted-foreground: 210 20% 45%;
-    --destructive: 0 74% 31%;
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --muted: 40 10% 93%;
+    --muted-foreground: 0 0% 40%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --input: 0 0% 78%;
-    --ring: 210 50% 40%;
+    --input: 40 10% 88%;
+    --ring: 0 0% 7%;
   }
 
   [data-theme="dark"],
   .dark {
-    /* TINTED STEEL NAVY DARK PALETTE */
-    --bg-canvas: #0e1726;
-    --bg-surface: #19263e;
-    --bg-surface-elevated: #243556;
-    --border: #2e4368;
-    --border-strong: #9494ff;
-    --text-main: #eff7ff;
-    --text-muted: #cee3f8;
-    --primary: #9494ff;
-    --primary-foreground: #0e1726;
-    --secondary: #243556;
-    --secondary-foreground: #eff7ff;
-    --accent-red: #E63946;
-    --accent-green: #2A9D8F;
-    --accent-yellow: #E76F51;
-    --accent-blue: #cee3f8;
-    --accent-purple: #9494ff;
-    --warning: #E76F51;
-    --radius: 8px;
+    /* CHARCOAL MONOCHROME DARK PALETTE */
+    --bg-canvas: #121212;
+    --bg-surface: #1A1A1A;
+    --bg-surface-elevated: #242424;
+    --border: #2E2E2E;
+    --border-strong: #EDEDED;
+    --text-main: #EDEDED;
+    --text-muted: #888888;
+    --primary: #EDEDED;
+    --primary-foreground: #121212;
+    --secondary: #242424;
+    --secondary-foreground: #EDEDED;
+    --accent-red: #EF4444;
+    --accent-green: #22C55E;
+    --accent-yellow: #F59E0B;
+    --accent-blue: #3B82F6;
+    --accent-purple: #6366F1;
+    --warning: #F59E0B;
+    --radius: 3px;
 
     /* Shadows */
     --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -74,31 +74,48 @@
     --shadow-modal: 0 16px 32px rgba(0, 0, 0, 0.6);
 
     /* Shadcn compatibility bindings */
-    --background: 217 46% 10%;
-    --foreground: 210 100% 97%;
-    --card: 217 42% 17%;
-    --card-foreground: 210 100% 97%;
-    --popover: 217 41% 24%;
-    --popover-foreground: 210 100% 97%;
-    --muted: 217 41% 24%;
-    --muted-foreground: 210 70% 89%;
-    --destructive: 355 78% 56%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 93%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 55%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --input: 217 38% 30%;
-    --ring: 240 100% 79%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 93%;
   }
 }
 
 body {
   background-color: var(--bg-canvas);
   color: var(--text-main);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family: 'Geist', var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
 }
 
-/* TACTILE HARD SCROLLBARS */
+/* NUMBER & MONOSPACE TYPOGRAPHY WITH GEIST MONO TABULAR FIGURES */
+.font-mono,
+.font-number,
+.font-numeric {
+  font-family: 'Geist Mono', var(--font-mono), ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace !important;
+  font-feature-settings: 'tnum' 1, 'zero' 1, 'cv01' 1, 'ss01' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+/* TABULAR NUMERALS FOR METRICS, TOTALS, AND DATA TABLES */
+.tabular-nums {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+  font-family: 'Geist Mono', var(--font-mono), monospace;
+}
+
+/* CLEAN MINIMALIST SCROLLBARS */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -107,54 +124,31 @@ body {
   background: var(--bg-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 0px;
+  background: var(--border);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+  background: var(--text-muted);
 }
 
-/* CRT ANALOG SCANLINE SHADER */
-.crt-scanlines {
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.12),
-    rgba(0, 0, 0, 0.12) 1px,
-    transparent 1px,
-    transparent 2px
-  );
-  pointer-events: none;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* AVIATION HAZARD DIAGONAL STRIPES */
-.hazard-strip {
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--accent-red),
-    var(--accent-red) 10px,
-    #000000 10px,
-    #000000 20px
-  );
-}
-
-.hazard-strip-warning {
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--warning),
-    var(--warning) 10px,
-    #000000 10px,
-    #000000 20px
-  );
-}
-
-/* BLUEPRINT MATRIX GRIDS */
-.grid-blueprint {
+/* EDITORIAL BENTO CONTAINER GRID */
+.grid-bento {
   display: grid;
   gap: 1px;
   background-color: var(--border);
   border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
 }
-.grid-blueprint > * {
+.grid-bento > * {
   background-color: var(--bg-surface);
 }
 
@@ -170,7 +164,7 @@ body {
   top: -8px;
   left: 6px;
   background: var(--bg-surface);
-  font-family: var(--font-mono), monospace;
+  font-family: 'Geist Mono', var(--font-mono), monospace;
   font-weight: 800;
   color: var(--primary);
   padding: 0 4px;
@@ -183,33 +177,30 @@ body {
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 0.95;
-  font-family: var(--font-sans), sans-serif;
+  font-family: 'Geist Mono', var(--font-sans), sans-serif;
   text-transform: uppercase;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
 /* MICRO TELEMETRY LABELS */
 .telemetry-metric {
-  font-family: var(--font-mono), monospace;
+  font-family: 'Geist Mono', var(--font-mono), monospace;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
   color: var(--text-muted);
-}
-
-/* TABULAR NUMERALS FOR GAUGES & COUNTERS */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-mono), monospace;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
 /* THERMAL RECEIPT & HISAB PRINT STYLING */
 .thermal-receipt {
-  font-family: var(--font-mono), monospace;
+  font-family: 'Geist Mono', var(--font-mono), monospace;
   border: 1px dashed var(--border-strong);
   background: #FFFFFF;
   color: #000000;
   padding: 1rem;
+  font-feature-settings: 'tnum' 1;
 }
 
 /* MUTED PASTEL BADGES */

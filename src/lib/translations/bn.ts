@@ -341,8 +341,8 @@ export const bn: Partial<typeof en> = {
   voice_lotDesignLabel: "লট / ডিজাইন:",
   voice_metersLabel: "মিটার উৎপাদন:",
   voice_karigarLabel: "কারিগরের নাম:",
-  voice_dayShift: "☀️ দিন",
-  voice_nightShift: "🌙 রাত",
+  voice_dayShift: "দিন",
+  voice_nightShift: "রাত",
   voice_orTestSample: "অথবা নমুনা পরীক্ষা করুন:",
   voice_testSampleBtn: "ভয়েস নমুনা পরীক্ষা করুন ➔",
   shift_shifts: "শিফট",
@@ -953,9 +953,66 @@ export const bn: Partial<typeof en> = {
   diag_noLogs: "এখনও কোনো লগ রেকর্ড করা হয়নি।",
   diag_payloadContext: "প্রসঙ্গ পেলোড",
   diag_confirmPurge: "আপনি কি সত্যিই সমস্ত লোকাল অফলাইন স্টোরেজ মুছে ফেলতে চান?",
+
+  challan_viewTitle: "ইনওয়ার্ড চালান বিবরণ",
+  challan_viewSubtitle: "কাপড়ের লট তথ্য এবং নকশা বরাদ্দ",
+  challan_editTitle: "ইনওয়ার্ড চালান সম্পাদনা করুন",
+  challan_editSubtitle: "কাপড়ের স্পেসিফিকেশন এবং মজুরির হার আপডেট করুন",
+  invoice_addItem: "+ আইটেম যোগ করুন",
+  invoice_removeItem: "মুছুন",
+  invoice_itemDescription: "আইটেম / কাজের বিবরণ",
+  invoice_itemStitchCount: "স্টিচ কাউন্ট",
+  invoice_itemHeads: "হেড",
+  invoice_itemRate: "হার / ১০০০",
+  invoice_itemTaxable: "করযোগ্য ভিত্তি (₹)",
+  karigar_ledgerTitle: "কারিগর আর্থিক লেজার",
+  karigar_ledgerSubtitle: "নগদ অগ্রিম এবং মজুরি নিষ্পত্তি",
+  karigar_btnHisab: "মজুরি নিষ্পত্তি",
+  karigar_btnUpad: "অগ্রিম দিন",
+  hisab_errEndDateFuture: "গণনার শেষ তারিখ আজকের তারিখের চেয়ে বেশি হতে পারে না",
+
+  // 6 New Embroidery Industry Modules (Bengali)
+  thread_ledgerTitle: "সুতা ও কাঁচামাল ব্যবহার লেজার",
+  thread_ledgerSubtitle: "কোন আগমন, রঙ শেড, স্টিচ দক্ষতা এবং সুতার অপচয় ট্র্যাকিং",
+  thread_lotNo: "সুতার লট নং",
+  thread_type: "সুতার ধরন",
+  thread_color: "রঙের কোড",
+  thread_conesInward: "আগমন (কোন)",
+  thread_conesConsumed: "ব্যবহৃত (কোন)",
+  thread_efficiency: "দক্ষতার রেটিং",
+  thread_btnLog: "ব্যবহার রেকর্ড করুন",
+
+  maint_title: "মেশিন বন্ধ ও রক্ষণাবেক্ষণ লগ",
+  maint_subtitle: "মেশিন বিভ্রাট, কারণ, মেকানিকের বিবরণ এবং মেরামতের খরচ",
+  maint_machineNo: "মেশিন নং",
+  maint_reason: "বিভ্রাটের ধরন",
+  maint_downtimeMin: "বন্ধ সময় (মিনিট)",
+  maint_actionTaken: "গৃহীত ব্যবস্থা",
+  maint_technician: "প্রযুক্তিবিদ / মেকানিক",
+  maint_cost: "মেরামত খরচ (₹)",
+  maint_btnRecord: "বিভ্রাট রেকর্ড করুন",
+
+  shrink_title: "কাপড়ের সংকোচন ও সহনশীলতা সনদ",
+  shrink_subtitle: "বৈজ্ঞানিক সংকোচন গণনা এবং ব্যবসায়ীর জন্য গুণমান সনদ",
+  shrink_inwardMeters: "আগত ধূসর কাপড় (মিটার)",
+  shrink_outwardMeters: "প্রস্তুত কাপড় (মিটার)",
+  shrink_calculatedRate: "সংকোচনের হার",
+  shrink_statusPass: "সুরাট টেক্সটাইল শিল্প মানদণ্ডের মধ্যে (< ৩.০%)। সম্পূর্ণ বিলিংয়ের জন্য বৈধ।",
+  shrink_statusWarn: "অতিরিক্ত সংকোচন (> ৩.০%)। হার পুনর্মূল্যায়ন প্রয়োজন।",
+  shrink_btnPrintCert: "সনদ প্রিন্ট করুন",
+
+  ugraani_title: "ব্যবসায়ী বকেয়া ও আদায় পাইপলাইন",
+  ugraani_subtitle: "বকেয়া দিন, বিলম্বিত সুদ গণনা এবং হোয়াটসঅ্যাপ অনুস্মারক",
+  ugraani_trader: "টেক্সটাইল ব্যবসায়ী / পার্টি",
+  ugraani_btnSendWa: "হোয়াটসঅ্যাপ অনুস্মারক পাঠান",
+
+  wageSlip_title: "কারিগর পাক্ষিক মজুরি হিসাব রসিদ",
+  wageSlip_subtitle: "শিফট স্টিচ বিবরণ, হার গণনা, অগ্রিম কর্তন এবং নিট মজুরি",
+  wageSlip_uchapatDeducted: "অগ্রিম কর্তন",
+  wageSlip_netPayable: "নিট প্রদেয় পরিমাণ",
+  wageSlip_btnPrintSlip: "হিসাব রসিদ প্রিন্ট করুন",
+
+  sacTally_title: "SAC 9988 জিএসটি বিলিং এবং ট্যালি প্রাইম ৪.০ XML",
+  sacTally_subtitle: "জব ওয়ার্ক কর গণনা (২.৫% + ২.৫% / ৫%) এবং ট্যালি XML রপ্তানি",
+  sacTally_btnGenerate: "ট্যালি XML রপ্তানি করুন",
 };
-
-
-
-
-

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ShiftLogsApi, ShiftLogApiItem, DowntimeAnalytics } from '@/lib/api/shift-logs';
+import { KarigarsApi, KarigarApiItem } from '@/lib/api/karigars';
 import { useAuth } from '@/lib/auth-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
 import { formatNumber } from '@/lib/utils';
@@ -14,26 +15,31 @@ import {
   Activity,
   TrendingUp,
   Layers,
+  Users,
 } from 'lucide-react';
 
 export default function ShiftLogsListPage() {
   const { activeCompany } = useAuth();
   const { openDrawer } = useAppDrawer();
   const [shifts, setShifts] = useState<ShiftLogApiItem[]>([]);
+  const [karigars, setKarigars] = useState<KarigarApiItem[]>([]);
   const [downtimeStats, setDowntimeStats] = useState<DowntimeAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [shiftFilter, setShiftFilter] = useState<string>('ALL');
+  const [selectedKarigarId, setSelectedKarigarId] = useState<string>('ALL');
 
   const fetchShifts = async () => {
     setLoading(true);
     try {
-      const [sList, dStats] = await Promise.all([
-        ShiftLogsApi.getAll(),
+      const [sList, dStats, kList] = await Promise.all([
+        ShiftLogsApi.getAll(selectedKarigarId !== 'ALL' ? { karigar_id: selectedKarigarId } : undefined),
         ShiftLogsApi.getDowntimeAnalytics().catch(() => []),
+        KarigarsApi.getAll().catch(() => []),
       ]);
       setShifts(sList);
       setDowntimeStats(dStats);
+      setKarigars(kList);
     } catch (e: any) {
       console.warn('Shift logs fetch error:', e);
     } finally {
@@ -43,7 +49,7 @@ export default function ShiftLogsListPage() {
 
   useEffect(() => {
     fetchShifts();
-  }, []);
+  }, [selectedKarigarId]);
 
   useEffect(() => {
     if (activeCompany?.id) {
@@ -58,7 +64,8 @@ export default function ShiftLogsListPage() {
       (s.design_no && s.design_no.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesShift = shiftFilter === 'ALL' || s.shift_type === shiftFilter;
-    return matchesSearch && matchesShift;
+    const matchesKarigar = selectedKarigarId === 'ALL' || s.karigar_id === selectedKarigarId;
+    return matchesSearch && matchesShift && matchesKarigar;
   });
 
   const totalMetersToday = filtered.reduce((acc, s) => acc + Number(s.total_meters), 0);
@@ -145,7 +152,7 @@ export default function ShiftLogsListPage() {
         )}
 
         {/* Filter / Search Bar */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-xs">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -157,24 +164,44 @@ export default function ShiftLogsListPage() {
             />
           </div>
 
-          <div className="flex items-center gap-1.5 self-end sm:self-auto bg-[var(--bg-surface-elevated)] p-1 rounded-md border border-[var(--border)]">
-            {[
-              { key: 'ALL', label: 'All' },
-              { key: 'DAY', label: 'Day' },
-              { key: 'NIGHT', label: 'Night' },
-            ].map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setShiftFilter(key)}
-                className={`px-3 py-1 text-xs font-medium rounded transition ${
-                  shiftFilter === key
-                    ? 'bg-[var(--text-main)] text-[var(--bg-surface)] font-semibold shadow-xs'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                }`}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Karigar Filter Dropdown */}
+            <div className="flex items-center gap-1.5 bg-[var(--bg-canvas)] px-2.5 py-1 border border-[var(--border)] rounded-md text-xs">
+              <Users className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
+              <select
+                value={selectedKarigarId}
+                onChange={(e) => setSelectedKarigarId(e.target.value)}
+                className="bg-transparent text-xs text-[var(--text-main)] font-medium focus:outline-none cursor-pointer"
               >
-                {label}
-              </button>
-            ))}
+                <option value="ALL">All Karigars ({karigars.length})</option>
+                {karigars.map((k) => (
+                  <option key={k.id} value={k.id}>
+                    {k.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Day / Night Shift Filter */}
+            <div className="flex items-center gap-1.5 bg-[var(--bg-surface-elevated)] p-1 rounded-md border border-[var(--border)]">
+              {[
+                { key: 'ALL', label: 'All' },
+                { key: 'DAY', label: 'Day' },
+                { key: 'NIGHT', label: 'Night' },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setShiftFilter(key)}
+                  className={`px-3 py-1 text-xs font-medium rounded transition ${
+                    shiftFilter === key
+                      ? 'bg-[var(--text-main)] text-[var(--bg-surface)] font-semibold shadow-xs'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

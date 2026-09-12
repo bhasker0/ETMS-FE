@@ -53,6 +53,9 @@ export const Drawer: React.FC<DrawerProps> = ({
   closeOnBackdropClick = true,
 }) => {
   const { t } = useI18n();
+  const drawerRef = React.useRef<HTMLDivElement>(null);
+  const titleId = React.useId();
+  const subtitleId = React.useId();
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -66,15 +69,67 @@ export const Drawer: React.FC<DrawerProps> = ({
     };
   }, [isOpen, level]);
 
-  // Handle escape key
+  // Handle escape key and focus trap
   useEffect(() => {
+    if (!isOpen) return;
+
+    const prevActiveElement = document.activeElement as HTMLElement | null;
+
+    // Focus first focusable element or drawer container
+    const focusTimer = setTimeout(() => {
+      if (drawerRef.current) {
+        const focusable = drawerRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length > 0) {
+          focusable[0].focus();
+        } else {
+          drawerRef.current.focus();
+        }
+      }
+    }, 50);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
         onClose();
+        return;
+      }
+
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusables = Array.from(
+          drawerRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((el) => el.offsetParent !== null);
+
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || !drawerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !drawerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      clearTimeout(focusTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      if (prevActiveElement && typeof prevActiveElement.focus === 'function') {
+        prevActiveElement.focus();
+      }
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -96,8 +151,14 @@ export const Drawer: React.FC<DrawerProps> = ({
       {/* Slide-Over Drawer Container (Appears from the Right side with smooth modern styling) */}
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
         <div
+          ref={drawerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          aria-describedby={subtitle ? subtitleId : undefined}
+          tabIndex={-1}
           className={cn(
-            'w-screen bg-[var(--bg-surface)] text-[var(--text-main)] flex flex-col transform transition-transform duration-200 ease-in-out border-l border-[var(--border)] shadow-2xl rounded-l-2xl overflow-hidden',
+            'w-screen bg-[var(--bg-surface)] text-[var(--text-main)] flex flex-col transform transition-transform duration-200 ease-in-out border-l border-[var(--border)] shadow-2xl rounded-l-2xl overflow-hidden focus:outline-none',
             widthClass,
             className
           )}
@@ -115,11 +176,17 @@ export const Drawer: React.FC<DrawerProps> = ({
                 </div>
               )}
               <div className="truncate">
-                <h2 className="text-sm sm:text-base font-bold text-[var(--text-main)] tracking-tight truncate">
+                <h2
+                  id={titleId}
+                  className="text-sm sm:text-base font-bold text-[var(--text-main)] tracking-tight truncate"
+                >
                   {title}
                 </h2>
                 {subtitle && (
-                  <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+                  <div
+                    id={subtitleId}
+                    className="text-xs text-[var(--text-muted)] truncate mt-0.5"
+                  >
                     {subtitle}
                   </div>
                 )}

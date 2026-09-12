@@ -3,7 +3,7 @@ import { ClientLog } from './types';
 class StructuredClientLogger {
   private logQueue: ClientLog[] = [];
   private maxQueueSize = 100;
-  private flushTimer: any = null;
+  private flushTimer: ReturnType<typeof setInterval> | null = null;
   private isFlushing = false;
 
   constructor() {
@@ -22,7 +22,7 @@ class StructuredClientLogger {
     }
   }
 
-  private createLog(level: ClientLog['level'], message: string, context?: Record<string, any>): ClientLog {
+  private createLog(level: ClientLog['level'], message: string, context?: Record<string, unknown>): ClientLog {
     const role = typeof window !== 'undefined' ? localStorage.getItem('etms_role') || 'unknown' : 'server';
     const companyId = typeof window !== 'undefined' ? localStorage.getItem('etms_company_id') || 'comp-1' : 'comp-1';
 
@@ -39,19 +39,19 @@ class StructuredClientLogger {
     };
   }
 
-  info(message: string, context?: Record<string, any>): void {
+  info(message: string, context?: Record<string, unknown>): void {
     const log = this.createLog('info', message, context);
     console.info(`[ETMS INFO] ${message}`, context || '');
     this.enqueue(log);
   }
 
-  warn(message: string, context?: Record<string, any>): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     const log = this.createLog('warn', message, context);
     console.warn(`[ETMS WARN] ${message}`, context || '');
     this.enqueue(log);
   }
 
-  error(message: string, context?: Record<string, any>): void {
+  error(message: string, context?: Record<string, unknown>): void {
     const log = this.createLog('error', message, context);
     console.error(`[ETMS ERROR] ${message}`, context || '');
     this.enqueue(log);
@@ -59,7 +59,7 @@ class StructuredClientLogger {
     this.flush();
   }
 
-  debug(message: string, context?: Record<string, any>): void {
+  debug(message: string, context?: Record<string, unknown>): void {
     const log = this.createLog('debug', message, context);
     console.debug(`[ETMS DEBUG] ${message}`, context || '');
     this.enqueue(log);
@@ -78,7 +78,7 @@ class StructuredClientLogger {
         stored.push(log);
         if (stored.length > 50) stored.splice(0, stored.length - 50);
         localStorage.setItem('etms_recent_logs', JSON.stringify(stored));
-      } catch (e) {
+      } catch (_e) {
         // Ignore quota error
       }
     }
@@ -107,7 +107,7 @@ class StructuredClientLogger {
           this.logQueue = this.logQueue.filter((l) => !logsToSend.some((s) => s.id === l.id));
         }
       }
-    } catch (err) {
+    } catch (_err) {
       // Keep in queue to retry later
     } finally {
       this.isFlushing = false;
@@ -118,7 +118,7 @@ class StructuredClientLogger {
     if (typeof window === 'undefined') return [];
     try {
       return JSON.parse(localStorage.getItem('etms_recent_logs') || '[]');
-    } catch (e) {
+    } catch (_e) {
       return [];
     }
   }

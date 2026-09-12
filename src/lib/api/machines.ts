@@ -23,23 +23,27 @@ export interface CreateMachineDto {
 
 export const MachinesApi = {
   getAll: async (): Promise<MachineApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/machines');
-    return res?.data || [];
+    const res = await apiClient.get<MachineApiItem[]>('/api/v1/machines');
+    const data = (res as unknown as { data?: MachineApiItem[] })?.data || res;
+    return (data as MachineApiItem[]) || [];
   },
 
   getById: async (id: string): Promise<MachineApiItem> => {
-    const res: any = await apiClient.get(`/api/v1/machines/${id}`);
-    return res?.data;
+    const res = await apiClient.get<MachineApiItem>(`/api/v1/machines/${id}`);
+    const data = (res as unknown as { data?: MachineApiItem })?.data || res;
+    return data as MachineApiItem;
   },
 
   create: async (dto: CreateMachineDto): Promise<MachineApiItem> => {
-    const res: any = await apiClient.post('/api/v1/machines', dto);
-    return res?.data;
+    const res = await apiClient.post<MachineApiItem>('/api/v1/machines', dto);
+    const data = (res as unknown as { data?: MachineApiItem })?.data || res;
+    return data as MachineApiItem;
   },
 
   update: async (id: string, dto: Partial<CreateMachineDto>): Promise<MachineApiItem> => {
-    const res: any = await apiClient.put(`/api/v1/machines/${id}`, dto);
-    return res?.data;
+    const res = await apiClient.put<MachineApiItem>(`/api/v1/machines/${id}`, dto);
+    const data = (res as unknown as { data?: MachineApiItem })?.data || res;
+    return data as MachineApiItem;
   },
 
   delete: async (id: string): Promise<void> => {

@@ -12,8 +12,26 @@ export interface InwardChallanDesignItem {
   than_count: number;
 }
 
+export interface InwardChallanInvoiceRef {
+  id: string;
+  invoice_no: string;
+  invoice_date?: string;
+  net_amount?: number;
+  [key: string]: unknown;
+}
+
+export interface InwardChallanShiftLogRef {
+  id: string;
+  shift_date?: string;
+  shift_type?: string;
+  stitches_count?: number;
+  meter_count?: number;
+  [key: string]: unknown;
+}
+
 export interface InwardChallanApiItem {
   id: string;
+  challan_no?: string;
   trader_name: string;
   trader_gstin?: string;
   lot_no: string;
@@ -31,8 +49,18 @@ export interface InwardChallanApiItem {
   notes?: string;
   company_id: string;
   created_at: string;
-  shift_logs?: any[];
-  outward_invoices?: any[];
+  shift_logs?: InwardChallanShiftLogRef[];
+  shiftLogs?: InwardChallanShiftLogRef[];
+  production_summary?: Record<
+    string,
+    {
+      total_stitches: number;
+      total_meters: number;
+      machine_heads: number;
+      log_count: number;
+    }
+  >;
+  outward_invoices?: InwardChallanInvoiceRef[];
 }
 
 export interface CreateInwardChallanDto {
@@ -80,34 +108,51 @@ export interface ActivePendingLotItem {
 
 export const InwardChallansApi = {
   getAll: async (status?: ChallanStatus): Promise<InwardChallanApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/inward-challans', {
+    const res = await apiClient.get<InwardChallanApiItem[]>('/api/v1/inward-challans', {
       params: status ? { status } : undefined,
     });
-    return res?.data || [];
+    return (res as unknown as { data: InwardChallanApiItem[] })?.data || (Array.isArray(res) ? res : []);
   },
 
   getActivePendingLots: async (): Promise<ActivePendingLotItem[]> => {
-    const res: any = await apiClient.get('/api/v1/inward-challans/active-designs');
-    return res?.data || [];
+    const res = await apiClient.get<ActivePendingLotItem[]>('/api/v1/inward-challans/active-designs');
+    return (res as unknown as { data: ActivePendingLotItem[] })?.data || (Array.isArray(res) ? res : []);
   },
 
   getById: async (id: string): Promise<InwardChallanApiItem> => {
-    const res: any = await apiClient.get(`/api/v1/inward-challans/${id}`);
-    return res?.data;
+    const res = await apiClient.get<InwardChallanApiItem>(`/api/v1/inward-challans/${id}`);
+    return (res as unknown as { data: InwardChallanApiItem })?.data || (res as unknown as InwardChallanApiItem);
   },
 
   create: async (dto: CreateInwardChallanDto): Promise<InwardChallanApiItem> => {
-    const res: any = await apiClient.post('/api/v1/inward-challans', dto);
-    return res?.data;
+    const res = await apiClient.post<InwardChallanApiItem>('/api/v1/inward-challans', dto);
+    return (res as unknown as { data: InwardChallanApiItem })?.data || (res as unknown as InwardChallanApiItem);
   },
 
   update: async (id: string, dto: Partial<CreateInwardChallanDto>): Promise<InwardChallanApiItem> => {
-    const res: any = await apiClient.put(`/api/v1/inward-challans/${id}`, dto);
-    return res?.data;
+    const res = await apiClient.put<InwardChallanApiItem>(`/api/v1/inward-challans/${id}`, dto);
+    return (res as unknown as { data: InwardChallanApiItem })?.data || (res as unknown as InwardChallanApiItem);
   },
 
   delete: async (id: string): Promise<{ message: string }> => {
-    const res: any = await apiClient.delete(`/api/v1/inward-challans/${id}`);
-    return res?.data;
+    const res = await apiClient.delete<{ message: string }>(`/api/v1/inward-challans/${id}`);
+    return (res as unknown as { data: { message: string } })?.data || (res as unknown as { message: string });
+  },
+
+  downloadPdf: async (id: string, filename: string = 'challan') => {
+    const res = await apiClient.get<BlobPart>(`/api/v1/inward-challans/${id}/pdf`, {
+      responseType: 'blob',
+    });
+    const rawData = res instanceof Blob ? res : ((res as { data?: BlobPart })?.data instanceof Blob ? (res as { data: Blob }).data : (res as unknown as BlobPart));
+    const blob = new Blob([rawData], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${filename}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000);
   },
 };

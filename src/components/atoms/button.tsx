@@ -6,24 +6,24 @@ import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--border-strong)] disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer',
   {
     variants: {
       variant: {
-        default: 'bg-[var(--primary)] text-white hover:bg-[#9494ff] shadow-xs active:scale-[0.98]',
-        secondary: 'bg-[var(--bg-surface-elevated)] text-[var(--text-main)] hover:bg-[#9494ff]/20 border border-[var(--border)] shadow-xs',
-        accent: 'bg-[#9494ff] text-white hover:bg-[#b3b3ff] shadow-xs',
-        outline: 'border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-main)] hover:bg-[var(--bg-surface-elevated)]',
-        ghost: 'hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)]',
-        destructive: 'bg-[#EF4444] text-white hover:bg-[#EF4444]/90 shadow-xs',
-        link: 'text-[var(--primary)] underline-offset-4 hover:underline',
+        default: 'bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[#2c2c2c] dark:hover:bg-[#d4d4d4] active:scale-[0.98]',
+        secondary: 'bg-[var(--bg-surface-elevated)] text-[var(--text-main)] hover:bg-[var(--border)] border border-[var(--border)] active:scale-[0.98]',
+        accent: 'bg-[var(--text-main)] text-[var(--bg-surface)] hover:opacity-90 active:scale-[0.98]',
+        outline: 'border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-main)] hover:bg-[var(--bg-surface-elevated)] active:scale-[0.98]',
+        ghost: 'hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)] active:scale-[0.98]',
+        destructive: 'bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.98]',
+        link: 'text-[var(--text-main)] underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-lg px-3 text-xs',
-        lg: 'h-11 rounded-xl px-8',
-        icon: 'h-10 w-10',
-        touch: 'h-12 min-w-[48px] px-6 text-base',
+        default: 'h-9 px-3.5 py-1.5',
+        sm: 'h-7.5 px-2.5 text-2xs',
+        lg: 'h-10 px-5 text-sm',
+        icon: 'h-8 w-8 p-1.5',
+        touch: 'h-11 min-w-[44px] px-4 text-sm',
       },
     },
     defaultVariants: {

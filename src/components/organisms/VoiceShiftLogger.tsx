@@ -23,18 +23,40 @@ interface VoiceShiftLoggerProps {
   onApplyParsedData?: (data: ParsedShiftVoiceData) => void;
 }
 
+interface ISpeechRecognitionEvent {
+  results: {
+    length: number;
+    [index: number]: {
+      0: { transcript: string };
+      isFinal?: boolean;
+    };
+  };
+}
+
+interface ISpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: ISpeechRecognitionEvent) => void) | null;
+  onerror: ((err: unknown) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
 export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParsedData }) => {
   const { language } = useI18n();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [parsedData, setParsedData] = useState<ParsedShiftVoiceData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const win = window as unknown as { SpeechRecognition?: new () => ISpeechRecognition; webkitSpeechRecognition?: new () => ISpeechRecognition };
+      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
       if (!SpeechRecognition) {
         // Speech recognition not supported in this browser
       }
@@ -50,8 +72,8 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
 
     if (typeof window === 'undefined') return;
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const win = window as unknown as { SpeechRecognition?: new () => ISpeechRecognition; webkitSpeechRecognition?: new () => ISpeechRecognition };
+    const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       // Provide simulated fallback for testing in browsers without Web Speech
@@ -77,18 +99,18 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
         setIsListening(true);
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: ISpeechRecognitionEvent) => {
         let current = '';
         for (let i = 0; i < event.results.length; i++) {
           current += event.results[i][0].transcript;
         }
         setTranscript(current);
-        if (event.results[0].isFinal) {
+        if (event.results[0]?.isFinal) {
           parseVoiceTranscript(current);
         }
       };
 
-      recognition.onerror = (err: any) => {
+      recognition.onerror = (err: unknown) => {
         console.warn('Speech recognition error:', err);
         setIsListening(false);
       };
@@ -109,7 +131,7 @@ export const VoiceShiftLogger: React.FC<VoiceShiftLoggerProps> = ({ onApplyParse
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
-      } catch (e) {}
+      } catch (_e) {}
     }
     setIsListening(false);
   };

@@ -19,8 +19,8 @@ export interface PartyApiItem {
     total_challans: number;
     total_invoices: number;
     total_billed_amount: number;
-    recent_challans?: any[];
-    recent_invoices?: any[];
+    recent_challans?: unknown[];
+    recent_invoices?: unknown[];
   };
 }
 
@@ -71,32 +71,60 @@ export interface PartyStatementResult {
 
 export const PartiesApi = {
   getAll: async (params?: { search?: string }): Promise<PartyApiItem[]> => {
-    const res: any = await apiClient.get('/api/v1/parties', { params });
-    return res?.data || [];
+    const res = await apiClient.get<PartyApiItem[]>('/api/v1/parties', { params });
+    const data = (res as unknown as { data?: PartyApiItem[] })?.data || res;
+    return (data as PartyApiItem[]) || [];
   },
 
   getById: async (id: string): Promise<PartyApiItem> => {
-    const res: any = await apiClient.get(`/api/v1/parties/${id}`);
-    return res?.data;
+    const res = await apiClient.get<PartyApiItem>(`/api/v1/parties/${id}`);
+    const data = (res as unknown as { data?: PartyApiItem })?.data || res;
+    return data as PartyApiItem;
   },
 
   getStatement: async (id: string, params?: { startDate?: string; endDate?: string }): Promise<PartyStatementResult> => {
-    const res: any = await apiClient.get(`/api/v1/parties/${id}/statement`, { params });
-    return res?.data;
+    const res = await apiClient.get<PartyStatementResult>(`/api/v1/parties/${id}/statement`, { params });
+    const data = (res as unknown as { data?: PartyStatementResult })?.data || res;
+    return data as PartyStatementResult;
   },
 
   create: async (dto: CreatePartyDto): Promise<PartyApiItem> => {
-    const res: any = await apiClient.post('/api/v1/parties', dto);
-    return res?.data;
+    const res = await apiClient.post<PartyApiItem>('/api/v1/parties', dto);
+    const data = (res as unknown as { data?: PartyApiItem })?.data || res;
+    return data as PartyApiItem;
   },
 
   update: async (id: string, dto: UpdatePartyDto): Promise<PartyApiItem> => {
-    const res: any = await apiClient.put(`/api/v1/parties/${id}`, dto);
-    return res?.data;
+    const res = await apiClient.put<PartyApiItem>(`/api/v1/parties/${id}`, dto);
+    const data = (res as unknown as { data?: PartyApiItem })?.data || res;
+    return data as PartyApiItem;
   },
 
   delete: async (id: string): Promise<{ message: string }> => {
-    const res: any = await apiClient.delete(`/api/v1/parties/${id}`);
-    return res?.data;
+    const res = await apiClient.delete<{ message: string }>(`/api/v1/parties/${id}`);
+    const data = (res as unknown as { data?: { message: string } })?.data || res;
+    return data as { message: string };
+  },
+
+  downloadStatementPdf: async (
+    id: string,
+    params?: { startDate?: string; endDate?: string },
+    filename: string = 'ledger_statement',
+  ) => {
+    const res = await apiClient.get<BlobPart>(`/api/v1/parties/${id}/statement/pdf`, {
+      params,
+      responseType: 'blob',
+    });
+    const rawData = res instanceof Blob ? res : ((res as { data?: BlobPart })?.data instanceof Blob ? (res as { data: Blob }).data : (res as unknown as BlobPart));
+    const blob = new Blob([rawData], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${filename}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000);
   },
 };
