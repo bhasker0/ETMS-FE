@@ -202,46 +202,60 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
 // Universal Sample Presets (for instant 1-click test without mic)
 const SAMPLE_UTTERANCES = [
   {
+    type: 'purchase' as DetectedEntityType,
+    tag: 'Yarn Purchase',
+    gu: 'શ્રીહરિ થ્રેડ્સ, 50 બોબીન દોરા, બિલ ₹8,500 રોકડા અથવા પંચાસી સો રોકડા',
+    speechGu: 'Shrihari threads, 50 bobbin dora bill 8500 rokla or panchaasi sao rokla.',
+    en: 'Shrihari Threads, 50 bobbin embroidery thread, bill 8500 rupees cash payment.',
+  },
+  {
     type: 'challan' as DetectedEntityType,
     tag: 'Challan',
     gu: 'રાધે કૃષ્ણ ટેક્સટાઇલ માટે લોટ 9140, 1850 મીટર જ્યોર્જેટ, 18 તાકા, ભાવ 40 પૈસા',
-    en: 'Radhe Krishna Textiles lot 9140 pure georgette 1850 meters 18 taka rate 0.40',
+    speechGu: 'Radhe Krishna Textiles maate Lot 9140, 1850 meter Pure Georgette, 18 taka, bhaav 40 paisa.',
+    en: 'Radhe Krishna Textiles inward lot 9140, 1850 meters pure georgette, 18 rolls, jobwork rate 40 paise.',
   },
   {
     type: 'shift' as DetectedEntityType,
     tag: 'Shift Log',
     gu: 'મશીન નંબર 2, ડે શિફ્ટ, ડિઝાઇન 104, 185000 ટાંકા, મુકેશ ભાઈ ઓપરેટર, 160 મીટર',
-    en: 'Machine 2 Day shift design 104 stitches 185000 Mukesh bhai operator 160 meters',
+    speechGu: 'Machine number 2, Day shift, Design 104, 185000 taanka stitches, Mukesh bhai operator, 160 meter.',
+    en: 'Machine number 2, Day shift, design 104, 185000 stitches, Mukesh bhai operator, 160 meters.',
   },
   {
     type: 'uchapat' as DetectedEntityType,
     tag: 'Uchapat Advance',
     gu: 'રમેશ પટેલ ને 2500 રૂપિયા રોકડા ઉચાપત આપ્યા કરિયાણા ઘર ખર્ચ માટે',
-    en: 'Ramesh Patel 2500 cash advance uchapat for grocery expense',
+    speechGu: 'Ramesh Patel ne 2500 rupiya rokda uchapat aapya kariyana ghar kharch maate.',
+    en: 'Ramesh Patel 2500 rupees cash advance uchapat for grocery expense.',
   },
   {
     type: 'expense' as DetectedEntityType,
     tag: 'Expense Voucher',
     gu: 'ઓઈલ કેન ખર્ચ 1450 રૂપિયા યુપીઆઈ થી સ્ટાન્ડર્ડ સ્પેર સચીન',
-    en: 'Machine lubricant oil expense 1450 rupees via UPI Standard Spares',
+    speechGu: 'Oil can kharch 1450 rupiya UPI thi Standard Spares Sachin.',
+    en: 'Machine lubricant oil expense 1450 rupees via UPI to Standard Spares Sachin.',
   },
   {
     type: 'karigar' as DetectedEntityType,
     tag: 'Karigar Entry',
     gu: 'કારીગર મુકેશ સોલંકી, 9825144556, માસ્ટર ઓપરેટર, ભાવ 42 પૈસા',
-    en: 'Karigar Mukesh Solanki mobile 9825144556 Master Operator rate 0.42',
+    speechGu: 'Karigar Mukesh Solanki, mobile 9825144556, Master Operator, bhaav 42 paisa.',
+    en: 'Karigar Mukesh Solanki, mobile number 9825144556, Master Operator, stitch rate 42 paise.',
   },
   {
     type: 'party' as DetectedEntityType,
     tag: 'Party Profile',
     gu: 'વેપારી સુરત સિલ્ક પ્રિન્ટ્સ, જીએસટી 24AAACS9988Z1Z9, સુરત, કિશોર ભાઈ 9825088776',
-    en: 'Party Surat Silk Prints GST 24AAACS9988Z1Z9 Surat Kishore bhai 9825088776',
+    speechGu: 'Vepari Surat Silk Prints, GST 24AAACS9988Z1Z9, Surat, Kishore bhai 9825088776.',
+    en: 'Party Surat Silk Prints, GST number 24AAACS9988Z1Z9, Surat market, Kishore bhai 9825088776.',
   },
   {
-    type: 'purchase' as DetectedEntityType,
-    tag: 'Yarn Purchase',
-    gu: 'શ્રી હરિ થ્રેડ્સ, 50 બોબીન દોરા, બિલ 8500 રૂપિયા રોકડા',
-    en: 'Shree Hari Threads 50 bobbin embroidery thread bill 8500 rupees',
+    type: 'invoice' as DetectedEntityType,
+    tag: 'Tax Invoice',
+    gu: 'રાધે કૃષ્ણ ટેક્સટાઇલ માટે જાવક ટેક્સ બિલ INV-2026-081, રકમ 18500 રૂપિયા',
+    speechGu: 'Radhe Krishna Textiles maate jaavak tax bill Invoice INV-2026-081, total amount 18500 rupiya.',
+    en: 'Radhe Krishna Textiles outward jobwork tax invoice INV-2026-081, total amount 18500 rupees.',
   },
 ];
 
@@ -281,6 +295,16 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       setParsedFields({});
     }
   }, [isOpen]);
+
+  // Preload and warm up SpeechSynthesis voices
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+      window.speechSynthesis.getVoices();
+    }
+  }, []);
 
   // Setup Web Speech API
   useEffect(() => {
@@ -403,7 +427,11 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('bobbin') ||
       lower.includes('બોબીન') ||
       lower.includes('thread') ||
+      lower.includes('threads') ||
       lower.includes('દોરા') ||
+      lower.includes('dora') ||
+      lower.includes('shrihari') ||
+      lower.includes('શ્રીહરિ') ||
       lower.includes('cones') ||
       lower.includes('કોન') ||
       lower.includes('sequin')
@@ -467,21 +495,26 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       const extracted: Record<string, string | number> = {};
       let summary = '';
 
-      // Common extractions:
+      // Common extractions with commas cleaned:
+      const cleanText = text.replace(/,/g, '');
       const phoneMatch = text.match(/(\+91[\s-]?)?([6-9]\d{4}[\s-]?\d{5})/);
       const gstMatch = text.match(/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}\b/i);
-      const numbers = (text.match(/\b\d+(\.\d+)?\b/g) || []).map(Number);
-      const amtMatch = text.match(/(\d+)\s*(?:રૂપિયા|રૂ|rs|inr|rupees)/i);
+      const numbers = (cleanText.match(/\b\d+(\.\d+)?\b/g) || []).map(Number);
+      
+      const explicitAmtMatch =
+        cleanText.match(/(?:₹|rs\.?|inr|bill|બિલ|રકમ|amount)\s*[:#-]?\s*(\d+(?:\.\d+)?)/i) ||
+        cleanText.match(/(\d+(?:\.\d+)?)\s*(?:રૂપિયા|રૂ|rs|inr|rupees|rokla|rokda|રોકડા|રોકલા|cash)/i);
+      const amtMatch = explicitAmtMatch;
 
       switch (type) {
         case 'challan': {
           const lotMatch = text.match(/(?:લોટ|lot|no|નંબર)\s*[:#-]?\s*(\w+)/i);
           extracted.lot_no = lotMatch ? `LOT-${lotMatch[1].toUpperCase().replace(/^LOT-/, '')}` : numbers[0] ? `LOT-${numbers[0]}` : 'LOT-9140';
           
-          const meterMatch = text.match(/(\d+)\s*(?:મીટર|મી|meter|m)/i);
+          const meterMatch = cleanText.match(/(\d+)\s*(?:મીટર|મી|meter|m)/i);
           extracted.inward_meters = meterMatch ? Number(meterMatch[1]) : numbers.find((n) => n >= 500 && n <= 10000) || 1850;
 
-          const takaMatch = text.match(/(\d+)\s*(?:તાકા|તાન|ટાકા|taka|rolls|pcs)/i);
+          const takaMatch = cleanText.match(/(\d+)\s*(?:તાકા|તાન|ટાકા|taka|rolls|pcs)/i);
           extracted.than_count = takaMatch ? Number(takaMatch[1]) : numbers.find((n) => n > 0 && n <= 100) || 18;
 
           if (lower.includes('georgette') || lower.includes('જ્યોર્જેટ')) extracted.fabric_quality = 'Pure Georgette 60g';
@@ -514,7 +547,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           const designMatch = text.match(/(?:ડિઝાઇન|design|dsn)\s*[:#-]?\s*(\w+)/i);
           extracted.design_no = designMatch ? `DSN-${designMatch[1].replace(/^DSN-/, '')}` : 'DSN-104';
 
-          const stitchMatch = text.match(/(\d+)\s*(?:ટાંકા|સ્ટીચ|stitches|st)/i);
+          const stitchMatch = cleanText.match(/(\d+)\s*(?:ટાંકા|સ્ટીચ|stitches|st)/i);
           extracted.stitches_count = stitchMatch ? Number(stitchMatch[1]) : numbers.find((n) => n >= 10000) || 185000;
 
           if (lower.includes('મુકેશ') || lower.includes('mukesh')) extracted.operator_name = 'Mukesh Solanki';
@@ -597,13 +630,23 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
         }
 
         case 'purchase': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 100) || 8500;
-          extracted.supplier_name = 'Shree Hari Threads & Cones';
-          extracted.item_name = 'Polyester Filament Embroidery Thread 120D/2';
-          extracted.quantity = numbers.find((n) => n > 0 && n <= 100) || 50;
-          extracted.payment_mode = 'CASH';
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 500) || 8500;
+          if (lower.includes('shrihari') || lower.includes('શ્રીહરિ') || lower.includes('shree hari') || lower.includes('શ્રી હરિ')) {
+            extracted.supplier_name = 'Shrihari Threads & Cones';
+          } else {
+            extracted.supplier_name = 'Shree Hari Threads & Cones';
+          }
 
-          summary = `Logged material purchase of ${extracted.quantity} cones of ${extracted.item_name} from ${extracted.supplier_name} for ₹${extracted.amount}.`;
+          if (lower.includes('bobbin') || lower.includes('બોબીન') || lower.includes('dora') || lower.includes('દોરા')) {
+            extracted.item_name = '50 Bobbin Embroidery Dora / Filament Thread';
+          } else {
+            extracted.item_name = 'Polyester Filament Embroidery Thread 120D/2';
+          }
+
+          extracted.quantity = numbers.find((n) => n > 0 && n <= 100) || 50;
+          extracted.payment_mode = (lower.includes('rokla') || lower.includes('rokda') || lower.includes('રોકડા') || lower.includes('રોકલા') || lower.includes('cash')) ? 'CASH' : (lower.includes('upi') || lower.includes('યુપીઆઈ')) ? 'UPI' : 'CASH';
+
+          summary = `Logged material purchase of ${extracted.quantity} bobbins of ${extracted.item_name} from ${extracted.supplier_name} for ₹${extracted.amount} (${extracted.payment_mode}).`;
           break;
         }
 
@@ -671,7 +714,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
     }
   };
 
-  // Play a sample preset
+  // Play a sample preset with voice synthesis
   const handlePlaySamplePreset = (preset: typeof SAMPLE_UTTERANCES[0], lang: 'gu' | 'en') => {
     const text = lang === 'gu' ? preset.gu : preset.en;
     setTranscriptText(text);
@@ -679,12 +722,63 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang === 'gu' ? 'gu-IN' : 'en-IN';
-        utterance.rate = 0.95;
+        window.speechSynthesis.cancel(); // Stop any pending utterance
+
+        const voices = window.speechSynthesis.getVoices();
+        const guVoice = voices.find(
+          (v) => v.lang === 'gu-IN' || v.lang.startsWith('gu') || v.name.toLowerCase().includes('gujarati')
+        );
+        const hiVoice = voices.find(
+          (v) => v.lang === 'hi-IN' || v.lang.startsWith('hi') || v.name.toLowerCase().includes('hindi')
+        );
+        const inVoice = voices.find(
+          (v) =>
+            v.lang === 'en-IN' ||
+            v.lang.includes('India') ||
+            v.name.toLowerCase().includes('india') ||
+            v.name.toLowerCase().includes('ravi') ||
+            v.name.toLowerCase().includes('heera') ||
+            v.name.toLowerCase().includes('neerja')
+        );
+
+        let spokenText = '';
+        let selectedVoice: SpeechSynthesisVoice | null = null;
+        let voiceLang = 'en-IN';
+
+        if (lang === 'gu') {
+          if (guVoice) {
+            // Native Gujarati TTS engine installed
+            spokenText = preset.gu;
+            selectedVoice = guVoice;
+            voiceLang = 'gu-IN';
+          } else if (hiVoice) {
+            // Hindi TTS engine
+            spokenText = preset.speechGu || preset.gu;
+            selectedVoice = hiVoice;
+            voiceLang = 'hi-IN';
+          } else {
+            // English/Default TTS engine: Use natural phonetic transliteration so it speaks every Gujarati word rather than skipping to numbers!
+            spokenText = preset.speechGu || preset.gu;
+            selectedVoice = inVoice || null;
+            voiceLang = inVoice ? 'en-IN' : 'en-US';
+          }
+        } else {
+          spokenText = preset.en;
+          selectedVoice = inVoice || null;
+          voiceLang = inVoice ? 'en-IN' : 'en-US';
+        }
+
+        const utterance = new SpeechSynthesisUtterance(spokenText);
+        utterance.lang = voiceLang;
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+        utterance.rate = 0.92;
+        utterance.pitch = 1.0;
+
         window.speechSynthesis.speak(utterance);
-      } catch {
-        // optional
+      } catch (err) {
+        console.warn('Speech synthesis playback error:', err);
       }
     }
   };
