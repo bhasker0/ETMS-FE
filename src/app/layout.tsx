@@ -3,13 +3,16 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { ConfigProvider } from '@/lib/config-context';
+import { FeatureFlagsProvider } from '@/lib/featureFlags';
 import { I18nProvider } from '@/lib/i18n';
 import { RoleProvider } from '@/lib/role-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Navbar } from '@/components/Navbar';
+import { BroadcastingAlertsBanner } from '@/components/BroadcastingAlertsBanner';
 import { AppDrawerProvider } from '@/lib/app-drawer-context';
 import { AppDrawer } from '@/components/AppDrawer';
 import { SpotlightCommandPalette } from '@/components/organisms/SpotlightCommandPalette';
+import { FloatingVoiceTrigger } from '@/components/FloatingVoiceTrigger';
 import { Toaster } from 'sonner';
 
 const inter = Inter({
@@ -65,21 +68,25 @@ export default function RootLayout({
         <ErrorBoundary>
           <AuthProvider>
             <ConfigProvider>
-              <I18nProvider>
-                <RoleProvider>
-                  <AppDrawerProvider>
-                    <div className="flex min-h-[100dvh] flex-col bg-[var(--bg-canvas)]">
-                      <Navbar />
-                      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 pb-24">
-                        {children}
-                      </main>
-                      <AppDrawer />
-                      <SpotlightCommandPalette />
-                      <Toaster richColors position="top-right" />
-                    </div>
-                  </AppDrawerProvider>
-                </RoleProvider>
-              </I18nProvider>
+              <FeatureFlagsProvider>
+                <I18nProvider>
+                  <RoleProvider>
+                    <AppDrawerProvider>
+                      <div className="flex min-h-[100dvh] flex-col bg-[var(--bg-canvas)]">
+                        <Navbar />
+                        <BroadcastingAlertsBanner />
+                        <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 pb-24">
+                          {children}
+                        </main>
+                        <AppDrawer />
+                        <SpotlightCommandPalette />
+                        <FloatingVoiceTrigger />
+                        <Toaster richColors position="top-right" />
+                      </div>
+                    </AppDrawerProvider>
+                  </RoleProvider>
+                </I18nProvider>
+              </FeatureFlagsProvider>
             </ConfigProvider>
           </AuthProvider>
         </ErrorBoundary>

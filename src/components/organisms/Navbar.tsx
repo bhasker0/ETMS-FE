@@ -27,6 +27,7 @@ import {
   Receipt,
   BarChart3,
   Search,
+  Mic,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useConfig } from '@/lib/config-context';
@@ -103,6 +104,12 @@ export const Navbar: React.FC = () => {
       label: 'Add Expense',
       icon: <Receipt className="w-4 h-4 text-rose-600 dark:text-rose-400" />,
       onClick: () => openDrawer('CREATE_EXPENSE', {}),
+    },
+    {
+      id: 'speech-data-entry',
+      label: 'Voice Entry',
+      icon: <Mic className="w-4 h-4 text-rose-500 animate-pulse" />,
+      onClick: () => window.dispatchEvent(new CustomEvent('open-speech-data-entry')),
     },
   ];
 

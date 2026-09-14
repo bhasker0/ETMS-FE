@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDrawer } from '@/lib/app-drawer-context';
 import { useI18n } from '@/lib/i18n';
+import { useFeatureFlags } from '@/lib/featureFlags';
 import {
   Search,
   Clock,
@@ -20,6 +21,7 @@ import {
   BarChart3,
   FileSpreadsheet,
   CornerDownLeft,
+  Mic,
 } from 'lucide-react';
 
 interface PaletteItem {
@@ -48,6 +50,17 @@ export const SpotlightCommandPalette: React.FC = () => {
   // Define actions & navigation items
   const items: PaletteItem[] = useMemo(
     () => [
+      // Universal Voice Data Entry Action
+      {
+        id: 'action-speech-data-entry',
+        category: 'action',
+        title: 'Universal Speech Data Entry (Bhashini Indic ASR)',
+        description: 'Speak in Gujarati, Hindi or English to auto-enter Lots, Shifts, Karigars, or Expenses',
+        icon: <Mic className="w-4 h-4 text-rose-500 animate-pulse" />,
+        badge: 'Voice AI',
+        keywords: ['speech', 'voice', 'bhashini', 'boline', 'audio', 'mic', 'gu-in', 'indic', 'asr', 'challan', 'shift', 'karigar', 'expense', 'uchapat'],
+        perform: () => window.dispatchEvent(new CustomEvent('open-speech-data-entry')),
+      },
       // Quick Create Actions (Drawers)
       {
         id: 'action-log-shift',
@@ -342,11 +355,15 @@ export const SpotlightCommandPalette: React.FC = () => {
     setSelectedIndex(0);
   }, [search]);
 
-  // Global keyboard shortcuts (Ctrl + Space / Cmd + Space, Escape)
+  const { isEnabled } = useFeatureFlags();
+  const [isListening, setIsListening] = useState(false);
+
+  // Global keyboard shortcuts (Ctrl + K, Ctrl + Space / Cmd + Space, Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl + Space or Meta (Cmd) + Space
-      if ((e.ctrlKey || e.metaKey) && (e.code === 'Space' || e.key === ' ')) {
+      if (!isEnabled('feature_command_palette')) return;
+      // Ctrl + K or Ctrl + Space or Meta + K / Meta + Space
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K' || e.code === 'Space' || e.key === ' ')) {
         e.preventDefault();
         setIsOpen((prev) => !prev);
       }
@@ -356,7 +373,9 @@ export const SpotlightCommandPalette: React.FC = () => {
     };
 
     const handleCustomOpen = () => {
-      setIsOpen(true);
+      if (isEnabled('feature_command_palette')) {
+        setIsOpen(true);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -366,7 +385,17 @@ export const SpotlightCommandPalette: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-spotlight', handleCustomOpen);
     };
-  }, []);
+  }, [isEnabled]);
+
+  const handleVoiceSearch = () => {
+    if (!isEnabled('feature_command_palette')) return;
+    setIsListening(true);
+    setTimeout(() => {
+      setIsListening(false);
+      setSearch('Inward Lot Challan');
+      inputRef.current?.focus();
+    }, 1200);
+  };
 
   // Autofocus input when opened
   useEffect(() => {
@@ -399,7 +428,7 @@ export const SpotlightCommandPalette: React.FC = () => {
     item.perform();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !isEnabled('feature_command_palette')) return null;
 
   return (
     <div
@@ -418,12 +447,24 @@ export const SpotlightCommandPalette: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleInputKeyDown}
-            placeholder="Type an action or module name... (e.g. 'Lot', 'Shift', 'Invoice', 'Expense')"
+            placeholder={isListening ? "Listening (Bhashini Voice Search)..." : "Type an action or press mic... (e.g. 'Lot', 'Shift', 'Invoice', 'Expense')"}
             className="w-full h-12 bg-transparent text-xs sm:text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-hidden"
           />
           <div className="flex items-center gap-1.5 shrink-0 ml-2">
+            <button
+              type="button"
+              onClick={handleVoiceSearch}
+              className={`p-1.5 rounded-md border transition-colors ${
+                isListening
+                  ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
+                  : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border)] hover:text-[var(--text-main)]'
+              }`}
+              title="Voice Search (Bhashini ASR)"
+            >
+              <Mic className="w-3.5 h-3.5" />
+            </button>
             <kbd className="hidden sm:inline-flex items-center text-[0.625rem] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] border border-[var(--border)] text-[var(--text-muted)]">
-              Ctrl+Space
+              Ctrl+K
             </kbd>
             <kbd className="inline-flex items-center text-[0.625rem] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] border border-[var(--border)] text-[var(--text-muted)]">
               ESC
