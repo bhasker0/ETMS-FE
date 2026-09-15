@@ -7,7 +7,7 @@ services:
     container_name: etms_frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "3002:3000"
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -24,9 +24,12 @@ services:
       - CLIENT_LOG_LEVEL=info
     command: npm run dev -- -H 0.0.0.0
     volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./package.json:/app/package.json
+      - ./next.config.mjs:/app/next.config.mjs
+      - ./tailwind.config.ts:/app/tailwind.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:3000/api/health"]
       interval: 15s
