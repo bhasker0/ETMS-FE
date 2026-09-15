@@ -28,12 +28,13 @@ import { toast } from 'sonner';
 
 // APIs for direct creation
 import { InwardChallansApi } from '@/lib/api/challans';
-import { KarigarsApi } from '@/lib/api/karigars';
+import { KarigarsApi, WageType } from '@/lib/api/karigars';
 import { PartiesApi } from '@/lib/api/parties';
 import { ExpensesApi, ExpenseCategory } from '@/lib/api/expenses';
 import { PurchasesApi } from '@/lib/api/purchases';
 import { ShiftLogsApi, ShiftType } from '@/lib/api/shift-logs';
 import { UchapatApi, PaymentMode } from '@/lib/api/uchapat';
+import { OutwardInvoicesApi } from '@/lib/api/invoices';
 
 export type DetectedEntityType =
   | 'challan'
@@ -72,8 +73,8 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
   challan: {
     type: 'challan',
     title: 'Inward Fabric Lot (Challan)',
-    titleGu: 'આવક ગ્રે લોટ / ચલણ',
-    icon: <Truck className="w-4 h-4 text-sky-600" />,
+    titleGu: 'આવક ગ્રે લોટ / ચલણ (CREATE / UPDATE)',
+    icon: <Truck className="w-4 h-4 text-sky-400" />,
     color: 'sky',
     requiredFields: [
       { key: 'trader_name', label: 'Party / Trader Name', description: 'Name of the textile trader or broker', placeholder: 'e.g. Shri Radhe Krishna Textiles', example: 'Radhe Krishna Textiles' },
@@ -82,15 +83,24 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
       { key: 'inward_meters', label: 'Total Inward Meters', description: 'Total length in meters received', placeholder: 'e.g. 1850', example: '1850 meters' },
     ],
     optionalFields: [
+      { key: 'challan_no', label: 'Challan Number', placeholder: 'e.g. CH-2026-914' },
+      { key: 'challan_date', label: 'Challan Date', placeholder: 'e.g. 2026-09-15' },
+      { key: 'trader_gstin', label: 'Trader GSTIN', placeholder: 'e.g. 24AAACS9988Z1Z9' },
       { key: 'than_count', label: 'Than / Rolls Count', placeholder: 'e.g. 18' },
+      { key: 'design_no', label: 'Design Number', placeholder: 'e.g. DSN-104' },
+      { key: 'stitch_count', label: 'Stitch Count', placeholder: 'e.g. 185000' },
       { key: 'jobwork_price_per_1k', label: 'Jobwork SAC Rate (₹/1k)', placeholder: 'e.g. 0.40' },
+      { key: 'karigar_commission_rate', label: 'Karigar Commission Rate', placeholder: 'e.g. 0.05' },
+      { key: 'karigar_commission_type', label: 'Commission Type (PER_1K_STITCHES/PER_METER)', placeholder: 'e.g. PER_1K_STITCHES' },
+      { key: 'status', label: 'Status (RECEIVED/IN_PROGRESS/COMPLETED/DISPATCHED)', placeholder: 'RECEIVED' },
+      { key: 'notes', label: 'Challan Notes / Remarks', placeholder: 'e.g. Received in good condition' },
     ],
   },
   shift: {
     type: 'shift',
     title: 'Daily Shift Production Log',
-    titleGu: 'શિફ્ટ ઉત્પાદન લોગ',
-    icon: <Clock className="w-4 h-4 text-emerald-600" />,
+    titleGu: 'શિફ્ટ ઉત્પાદન લોગ (CREATE / UPDATE)',
+    icon: <Clock className="w-4 h-4 text-emerald-400" />,
     color: 'emerald',
     requiredFields: [
       { key: 'machine_no', label: 'Machine Number', description: 'Factory machine code / head', placeholder: 'e.g. Machine #02', example: 'Machine 2' },
@@ -99,15 +109,21 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
       { key: 'operator_name', label: 'Operator / Karigar Name', description: 'Assigned worker on machine', placeholder: 'e.g. Mukesh Solanki', example: 'Mukesh Solanki' },
     ],
     optionalFields: [
+      { key: 'shift_date', label: 'Shift Date', placeholder: 'e.g. 2026-09-15' },
+      { key: 'start_counter', label: 'Start Stitches Counter', placeholder: 'e.g. 0' },
+      { key: 'end_counter', label: 'End Stitches Counter', placeholder: 'e.g. 185000' },
       { key: 'design_no', label: 'Design Number', placeholder: 'e.g. DSN-104' },
       { key: 'meter_count', label: 'Production Meters', placeholder: 'e.g. 160' },
+      { key: 'inward_challan_id', label: 'Linked Inward Lot ID', placeholder: 'e.g. challan-id-9140' },
+      { key: 'downtime_minutes', label: 'Downtime (Minutes)', placeholder: 'e.g. 15' },
+      { key: 'downtime_reason', label: 'Downtime Reason', placeholder: 'e.g. Thread Breakage / Oil Check' },
     ],
   },
   karigar: {
     type: 'karigar',
     title: 'Karigar Master Registration',
-    titleGu: 'કારીગર ખાતું / નોંધણી',
-    icon: <Users className="w-4 h-4 text-indigo-600" />,
+    titleGu: 'કારીગર ખાતું / નોંધણી (CREATE / UPDATE)',
+    icon: <Users className="w-4 h-4 text-indigo-400" />,
     color: 'indigo',
     requiredFields: [
       { key: 'name', label: 'Worker Full Name', description: 'Full name of the factory artisan', placeholder: 'e.g. Mukesh Solanki', example: 'Mukesh Solanki' },
@@ -115,15 +131,22 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
       { key: 'role', label: 'Designation / Role', description: 'Master, Operator or Helper', placeholder: 'e.g. Master Operator', example: 'Master Operator' },
     ],
     optionalFields: [
-      { key: 'rate_per_1000_stitches', label: 'Stitch Rate (₹/1k)', placeholder: 'e.g. 0.42' },
-      { key: 'machine_assignment', label: 'Default Machine', placeholder: 'e.g. Machine #02' },
+      { key: 'wage_type', label: 'Wage Type (PIECE_RATE/FIXED_MONTHLY)', placeholder: 'PIECE_RATE' },
+      { key: 'rate_per_1000_stitches', label: 'Piece Rate (₹/1k stitches)', placeholder: 'e.g. 0.42' },
+      { key: 'default_monthly_salary', label: 'Monthly Fixed Salary (₹)', placeholder: 'e.g. 18000' },
+      { key: 'incentive_threshold_value', label: 'Incentive Target Value', placeholder: 'e.g. 200000' },
+      { key: 'incentive_threshold_type', label: 'Incentive Target Unit (STITCHES/METERS)', placeholder: 'STITCHES' },
+      { key: 'incentive_rate', label: 'Incentive Rate (₹)', placeholder: 'e.g. 0.05' },
+      { key: 'incentive_rate_type', label: 'Incentive Rate Unit', placeholder: 'PER_1K_STITCHES' },
+      { key: 'machine_assignment', label: 'Assigned Machine', placeholder: 'e.g. Machine #02' },
+      { key: 'is_active', label: 'Active Worker Status', placeholder: 'true' },
     ],
   },
   expense: {
     type: 'expense',
     title: 'Factory Expense Voucher',
-    titleGu: 'કારખાના ખર્ચ વાઉચર',
-    icon: <Receipt className="w-4 h-4 text-rose-600" />,
+    titleGu: 'કારખાના ખર્ચ વાઉચર (CREATE / UPDATE)',
+    icon: <Receipt className="w-4 h-4 text-rose-400" />,
     color: 'rose',
     requiredFields: [
       { key: 'title', label: 'Expense Title / Description', description: 'Purpose or item of expenditure', placeholder: 'e.g. Machine Lubricant Oil 5L', example: 'Oil expense' },
@@ -131,30 +154,38 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
       { key: 'payee_name', label: 'Payee / Vendor Name', description: 'Store, vendor or technician paid', placeholder: 'e.g. Standard Mill Spares Sachin', example: 'Standard Spares' },
     ],
     optionalFields: [
-      { key: 'payment_mode', label: 'Payment Mode (Cash/UPI/Bank)', placeholder: 'e.g. UPI' },
-      { key: 'expense_type', label: 'Category', placeholder: 'e.g. MACHINE_MAINTENANCE' },
+      { key: 'category', label: 'Category (DIRECT/INDIRECT)', placeholder: 'DIRECT' },
+      { key: 'expense_type', label: 'Expense Sub-Type', placeholder: 'MACHINE_MAINTENANCE' },
+      { key: 'expense_date', label: 'Expense Date', placeholder: 'e.g. 2026-09-15' },
+      { key: 'payment_mode', label: 'Payment Mode (CASH/UPI/BANK_TRANSFER)', placeholder: 'UPI' },
+      { key: 'reference_no', label: 'Reference / Bill No', placeholder: 'e.g. REF-8812' },
+      { key: 'is_gst_applicable', label: 'Is GST Applicable (true/false)', placeholder: 'false' },
+      { key: 'gst_amount', label: 'GST Amount (₹)', placeholder: 'e.g. 0' },
+      { key: 'description', label: 'Detailed Voucher Description', placeholder: 'e.g. 5L machine lubricant oil for Machine 02' },
     ],
   },
   uchapat: {
     type: 'uchapat',
     title: 'Karigar Uchapat Advance',
-    titleGu: 'કારીગર ઉચાપત એડવાન્સ',
-    icon: <Briefcase className="w-4 h-4 text-amber-600" />,
+    titleGu: 'કારીગર ઉચાપત એડવાન્સ (CREATE / UPDATE)',
+    icon: <Briefcase className="w-4 h-4 text-amber-400" />,
     color: 'amber',
     requiredFields: [
       { key: 'karigar_name', label: 'Karigar / Worker Name', description: 'Recipient worker of the advance', placeholder: 'e.g. Ramesh Patel', example: 'Ramesh Patel' },
       { key: 'amount', label: 'Advance Amount (₹)', description: 'Withdrawn amount in Indian Rupees', placeholder: 'e.g. 2500', example: '2500 rupees' },
     ],
     optionalFields: [
-      { key: 'payment_mode', label: 'Payment Mode (Cash/UPI)', placeholder: 'e.g. CASH' },
+      { key: 'date', label: 'Advance Date', placeholder: 'e.g. 2026-09-15' },
+      { key: 'payment_mode', label: 'Payment Mode (CASH/UPI)', placeholder: 'CASH' },
       { key: 'remarks', label: 'Reason / Remarks', placeholder: 'e.g. Weekly family grocery advance' },
+      { key: 'is_settled', label: 'Is Settled (true/false)', placeholder: 'false' },
     ],
   },
   party: {
     type: 'party',
     title: 'Party / Client Master',
-    titleGu: 'વેપારી / પાર્ટી ખાતું',
-    icon: <Briefcase className="w-4 h-4 text-teal-600" />,
+    titleGu: 'વેપારી / પાર્ટી ખાતું (CREATE / UPDATE)',
+    icon: <Briefcase className="w-4 h-4 text-teal-400" />,
     color: 'teal',
     requiredFields: [
       { key: 'name', label: 'Trader / Firm Name', description: 'Company or business name', placeholder: 'e.g. Surat Silk Prints', example: 'Surat Silk Prints' },
@@ -162,15 +193,21 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
     ],
     optionalFields: [
       { key: 'gstin', label: '15-digit GSTIN', placeholder: 'e.g. 24AAACS9988Z1Z9' },
-      { key: 'contact_person', label: 'Contact Person', placeholder: 'e.g. Kishore Bhai' },
       { key: 'mobile', label: 'Mobile Number', placeholder: 'e.g. 9825088776' },
+      { key: 'email', label: 'Email Address', placeholder: 'e.g. info@suratsilkprints.com' },
+      { key: 'address', label: 'Street Address', placeholder: 'e.g. Ring Road Market, Surat' },
+      { key: 'state_code', label: 'State Code', placeholder: '24' },
+      { key: 'credit_period_days', label: 'Credit Period (Days)', placeholder: '30' },
+      { key: 'opening_balance', label: 'Opening Balance (₹)', placeholder: '0' },
+      { key: 'contact_person', label: 'Contact Person Name', placeholder: 'e.g. Kishore Bhai' },
+      { key: 'is_active', label: 'Active Status', placeholder: 'true' },
     ],
   },
   purchase: {
     type: 'purchase',
     title: 'Store / Material Purchase',
-    titleGu: 'યાર્ન / દોરા ખરીદી બિલ',
-    icon: <ShoppingBag className="w-4 h-4 text-violet-600" />,
+    titleGu: 'યાર્ન / દોરા ખરીદી બિલ (CREATE / UPDATE)',
+    icon: <ShoppingBag className="w-4 h-4 text-violet-400" />,
     color: 'violet',
     requiredFields: [
       { key: 'supplier_name', label: 'Supplier / Store Name', description: 'Vendor supplying the raw material', placeholder: 'e.g. Shree Hari Threads', example: 'Shree Hari Threads' },
@@ -178,15 +215,27 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
       { key: 'amount', label: 'Bill Amount (₹)', description: 'Total purchase invoice cost', placeholder: 'e.g. 8500', example: '8500 rupees' },
     ],
     optionalFields: [
-      { key: 'quantity', label: 'Quantity / Cones', placeholder: 'e.g. 50' },
-      { key: 'payment_mode', label: 'Payment Mode', placeholder: 'e.g. CASH' },
+      { key: 'supplier_gstin', label: 'Supplier GSTIN', placeholder: 'e.g. 24AAACS1122K1Z5' },
+      { key: 'supplier_phone', label: 'Supplier Phone Number', placeholder: 'e.g. 9825122334' },
+      { key: 'invoice_no', label: 'Supplier Bill / Invoice No', placeholder: 'e.g. INV-PUR-901' },
+      { key: 'invoice_date', label: 'Invoice Date', placeholder: 'e.g. 2026-09-15' },
+      { key: 'category', label: 'Category', placeholder: 'YARN_THREAD' },
+      { key: 'payment_status', label: 'Payment Status (PENDING/PARTIAL/PAID)', placeholder: 'PAID' },
+      { key: 'payment_mode', label: 'Payment Mode (CASH/UPI/BANK)', placeholder: 'CASH' },
+      { key: 'quantity', label: 'Quantity / Cones', placeholder: '50' },
+      { key: 'unit', label: 'Unit (CONES/PCS/METERS)', placeholder: 'CONES' },
+      { key: 'rate', label: 'Unit Rate (₹)', placeholder: '170' },
+      { key: 'subtotal', label: 'Subtotal (₹)', placeholder: '8500' },
+      { key: 'gst_amount', label: 'GST Amount (₹)', placeholder: '0' },
+      { key: 'paid_amount', label: 'Paid Amount (₹)', placeholder: '8500' },
+      { key: 'notes', label: 'Purchase Remarks', placeholder: 'e.g. Received 50 cones' },
     ],
   },
   invoice: {
     type: 'invoice',
     title: 'Outward Jobwork Tax Invoice',
-    titleGu: 'જાવક ટેક્સ બિલ (SAC 9988)',
-    icon: <FileText className="w-4 h-4 text-blue-600" />,
+    titleGu: 'જાવક ટેક્સ બિલ (SAC 9988) (CREATE / UPDATE)',
+    icon: <FileText className="w-4 h-4 text-blue-400" />,
     color: 'blue',
     requiredFields: [
       { key: 'party_name', label: 'Billed Party Name', description: 'Textile client billed for jobwork', placeholder: 'e.g. Shri Radhe Krishna Textiles', example: 'Radhe Krishna Textiles' },
@@ -194,7 +243,21 @@ const ENTITY_DEFINITIONS: Record<DetectedEntityType, EntityDefinition> = {
       { key: 'invoice_no', label: 'Invoice Bill Number', description: 'SAC 9988 invoice bill reference', placeholder: 'e.g. INV-2026-081', example: 'Invoice 081' },
     ],
     optionalFields: [
+      { key: 'invoice_date', label: 'Invoice Date', placeholder: 'e.g. 2026-09-15' },
+      { key: 'trader_gstin', label: 'Party GSTIN', placeholder: 'e.g. 24AAACS9988Z1Z9' },
+      { key: 'trader_mobile', label: 'Party Mobile', placeholder: 'e.g. 9825088776' },
       { key: 'sac_code', label: 'SAC Code', placeholder: '9988' },
+      { key: 'total_stitches', label: 'Total Stitches', placeholder: 'e.g. 185000' },
+      { key: 'machine_heads', label: 'Machine Heads', placeholder: 'e.g. 12' },
+      { key: 'rate_per_1000', label: 'Rate per 1k Stitches (₹)', placeholder: 'e.g. 0.40' },
+      { key: 'inward_meters', label: 'Inward Fabric Meters', placeholder: 'e.g. 1850' },
+      { key: 'outward_meters', label: 'Outward Fabric Meters', placeholder: 'e.g. 1800' },
+      { key: 'gross_amount', label: 'Gross Amount (₹)', placeholder: 'e.g. 18500' },
+      { key: 'cgst_amount', label: 'CGST Amount (₹)', placeholder: 'e.g. 462.50' },
+      { key: 'sgst_amount', label: 'SGST Amount (₹)', placeholder: 'e.g. 462.50' },
+      { key: 'igst_amount', label: 'IGST Amount (₹)', placeholder: 'e.g. 0' },
+      { key: 'is_interstate', label: 'Is Interstate Tax (true/false)', placeholder: 'false' },
+      { key: 'shrinkage_percent', label: 'Shrinkage Percentage', placeholder: 'e.g. 2.7' },
       { key: 'notes', label: 'Invoice Notes', placeholder: 'Outward jobwork delivery' },
     ],
   },
@@ -643,6 +706,22 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           else if (lower.includes('સુરત') || lower.includes('surat')) extracted.trader_name = 'Surat Silk Prints';
           else extracted.trader_name = 'Shri Radhe Krishna Textiles';
 
+          const challanNoMatch = text.match(/(?:challan|ચલણ)\s*(?:no|નંબર)?\s*[:#-]?\s*(\w+)/i);
+          extracted.challan_no = challanNoMatch ? challanNoMatch[1].toUpperCase() : `CH-2026-${Math.floor(100 + Math.random() * 900)}`;
+          extracted.challan_date = new Date().toISOString().split('T')[0];
+          extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS9988Z1Z9';
+          
+          const designMatch = text.match(/(?:ડિઝાઇન|design|dsn)\s*[:#-]?\s*(\w+)/i);
+          extracted.design_no = designMatch ? `DSN-${designMatch[1].replace(/^DSN-/, '')}` : 'DSN-104';
+          
+          const stitchMatch = cleanText.match(/(\d+)\s*(?:ટાંકા|સ્ટીચ|stitches|st)/i);
+          extracted.stitch_count = stitchMatch ? Number(stitchMatch[1]) : numbers.find((n) => n >= 10000) || 185000;
+          
+          extracted.karigar_commission_rate = 0.05;
+          extracted.karigar_commission_type = 'PER_1K_STITCHES';
+          extracted.status = 'RECEIVED';
+          extracted.notes = `Voice recorded lot entry: ${text}`;
+
           summary = `Recorded Inward Grey Fabric Lot #${extracted.lot_no} of ${extracted.inward_meters} meters (${extracted.than_count} Taka) in ${extracted.fabric_quality} for trader "${extracted.trader_name}" at ₹${extracted.jobwork_price_per_1k} jobwork rate.`;
           break;
         }
@@ -670,6 +749,13 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 
           extracted.meter_count = numbers.find((n) => n > 50 && n < 1000) || 160;
 
+          extracted.shift_date = new Date().toISOString().split('T')[0];
+          extracted.start_counter = 0;
+          extracted.end_counter = extracted.stitches_count;
+          extracted.inward_challan_id = `challan-${Math.floor(1000 + Math.random() * 9000)}`;
+          extracted.downtime_minutes = numbers.find((n) => n > 0 && n <= 120) || 15;
+          extracted.downtime_reason = lower.includes('oil') ? 'Oil & Cleaning Check' : lower.includes('thread') ? 'Thread Breakage Maintenance' : 'Scheduled Machine Inspection';
+
           summary = `Logged ${extracted.shift_type} shift on ${extracted.machine_no} operated by ${extracted.operator_name}. Total stitches produced: ${extracted.stitches_count} on Design #${extracted.design_no} (${extracted.meter_count}m produced).`;
           break;
         }
@@ -684,6 +770,8 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 
           extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('ઓનલાઇન') ? 'UPI' : 'CASH';
           extracted.remarks = 'Weekly family grocery advance (Voice Entry)';
+          extracted.date = new Date().toISOString().split('T')[0];
+          extracted.is_settled = 'false';
 
           summary = `Issued wage advance (Uchapat) of ₹${extracted.amount} to worker ${extracted.karigar_name} via ${extracted.payment_mode}.`;
           break;
@@ -709,6 +797,13 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           extracted.payee_name = lower.includes('સચીન') || lower.includes('sachin') ? 'Standard Mill Spares, Sachin GIDC' : 'Standard Factory Spares Surat';
           extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('online') ? 'UPI' : 'CASH';
 
+          extracted.category = lower.includes('indirect') ? 'INDIRECT' : 'DIRECT';
+          extracted.expense_date = new Date().toISOString().split('T')[0];
+          extracted.reference_no = `REF-${Math.floor(1000 + Math.random() * 9000)}`;
+          extracted.is_gst_applicable = gstMatch || lower.includes('gst') ? 'true' : 'false';
+          extracted.gst_amount = lower.includes('gst') ? Math.round(Number(extracted.amount) * 0.18) : 0;
+          extracted.description = `Spoken voucher: ${text}`;
+
           summary = `Recorded expense voucher of ₹${extracted.amount} for "${extracted.title}" paid to ${extracted.payee_name} via ${extracted.payment_mode}.`;
           break;
         }
@@ -727,6 +822,14 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           extracted.rate_per_1000_stitches = numbers.find((n) => n < 5 && n > 0) || 0.42;
           extracted.machine_assignment = 'Machine #02';
 
+          extracted.wage_type = lower.includes('fixed') || lower.includes('monthly') ? 'FIXED_MONTHLY' : 'PIECE_RATE';
+          extracted.default_monthly_salary = 18000;
+          extracted.incentive_threshold_value = 200000;
+          extracted.incentive_threshold_type = 'STITCHES';
+          extracted.incentive_rate = 0.05;
+          extracted.incentive_rate_type = 'PER_1K_STITCHES';
+          extracted.is_active = 'true';
+
           summary = `Registered new Karigar profile: ${extracted.name} (${extracted.role}) with mobile ${extracted.mobile} at stitch rate ₹${extracted.rate_per_1000_stitches}/1k stitches on ${extracted.machine_assignment}.`;
           break;
         }
@@ -737,6 +840,13 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           extracted.city = 'Surat';
           extracted.contact_person = 'Kishore Bhai';
           extracted.mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825088776';
+
+          extracted.email = `info@${String(extracted.name).toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+          extracted.address = 'Ring Road Textile Market, Surat';
+          extracted.state_code = '24';
+          extracted.credit_period_days = 30;
+          extracted.opening_balance = 0;
+          extracted.is_active = 'true';
 
           summary = `Registered textile party profile "${extracted.name}" located in ${extracted.city} (GSTIN: ${extracted.gstin}, Contact: ${extracted.contact_person} ${extracted.mobile}).`;
           break;
@@ -759,6 +869,19 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           extracted.quantity = numbers.find((n) => n > 0 && n <= 100) || 50;
           extracted.payment_mode = (lower.includes('rokla') || lower.includes('rokda') || lower.includes('રોકડા') || lower.includes('રોકલા') || lower.includes('cash')) ? 'CASH' : (lower.includes('upi') || lower.includes('યુપીઆઈ')) ? 'UPI' : 'CASH';
 
+          extracted.supplier_gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS1122K1Z5';
+          extracted.supplier_phone = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825122334';
+          extracted.invoice_no = `INV-PUR-${Math.floor(100 + Math.random() * 900)}`;
+          extracted.invoice_date = new Date().toISOString().split('T')[0];
+          extracted.category = 'YARN_THREAD';
+          extracted.payment_status = 'PAID';
+          extracted.unit = 'CONES';
+          extracted.rate = Math.round(Number(extracted.amount) / Number(extracted.quantity || 1));
+          extracted.subtotal = extracted.amount;
+          extracted.gst_amount = lower.includes('gst') ? Math.round(Number(extracted.amount) * 0.05) : 0;
+          extracted.paid_amount = extracted.amount;
+          extracted.notes = `Voice recorded purchase: ${text}`;
+
           summary = `Logged material purchase of ${extracted.quantity} bobbins of ${extracted.item_name} from ${extracted.supplier_name} for ₹${extracted.amount} (${extracted.payment_mode}).`;
           break;
         }
@@ -772,11 +895,15 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           let rate = rateMatch ? Number(rateMatch[1]) : 0;
 
           if (qty > 0 && rate > 0) {
-            extracted.meters = qty;
-            extracted.rate_per_meter = rate;
+            extracted.inward_meters = qty;
+            extracted.outward_meters = Math.max(0, qty - 20);
+            extracted.rate_per_1000 = rate;
             extracted.amount = Math.round(qty * rate * 100) / 100;
           } else {
             extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 1000) || 18500;
+            extracted.inward_meters = 1850;
+            extracted.outward_meters = 1800;
+            extracted.rate_per_1000 = 0.40;
           }
 
           if (lower.includes('રાધે') || lower.includes('radha') || lower.includes('radhe')) {
@@ -790,13 +917,21 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           }
 
           extracted.invoice_no = `INV-2026-${Math.floor(100 + Math.random() * 900)}`;
+          extracted.invoice_date = new Date().toISOString().split('T')[0];
+          extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS9988Z1Z9';
+          extracted.trader_mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825088776';
           extracted.sac_code = '9988';
+          extracted.total_stitches = 185000;
+          extracted.machine_heads = 12;
+          extracted.gross_amount = extracted.amount;
+          extracted.cgst_amount = Math.round(Number(extracted.amount) * 0.025 * 100) / 100;
+          extracted.sgst_amount = Math.round(Number(extracted.amount) * 0.025 * 100) / 100;
+          extracted.igst_amount = 0;
+          extracted.is_interstate = 'false';
+          extracted.shrinkage_percent = 2.7;
+          extracted.notes = `SAC 9988 Outward jobwork invoice: ${text}`;
 
-          if (extracted.meters && extracted.rate_per_meter) {
-            summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name}: ${extracted.meters}m @ ₹${extracted.rate_per_meter}/m totaling ₹${extracted.amount}.`;
-          } else {
-            summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name} totaling ₹${extracted.amount}.`;
-          }
+          summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name} totaling ₹${extracted.amount}.`;
           break;
         }
       }
@@ -937,105 +1072,214 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
     if (!detectedType) return;
     setIsSaving(true);
 
+    const isUpdate = parsedFields.crud_action === 'UPDATE';
+    const isDelete = parsedFields.crud_action === 'DELETE';
+    const entityId = (parsedFields.id as string) || (parsedFields.entity_id as string);
+
     try {
+      if (isDelete && entityId) {
+        switch (detectedType) {
+          case 'challan': await InwardChallansApi.delete(entityId); break;
+          case 'shift': await ShiftLogsApi.delete(entityId); break;
+          case 'karigar': await KarigarsApi.delete(entityId); break;
+          case 'expense': await ExpensesApi.delete(entityId); break;
+          case 'uchapat': await UchapatApi.delete(entityId); break;
+          case 'party': await PartiesApi.delete(entityId); break;
+          case 'purchase': await PurchasesApi.delete(entityId); break;
+          case 'invoice': await OutwardInvoicesApi.delete(entityId); break;
+        }
+        toast.success(`Deleted ${currentEntityDef?.title} record #${entityId}`);
+        onSuccess?.();
+        onClose();
+        return;
+      }
+
       switch (detectedType) {
-        case 'challan':
-          await InwardChallansApi.create({
-            lot_no: (parsedFields.lot_no as string) || 'LOT-9140',
+        case 'challan': {
+          const payload = {
+            challan_no: (parsedFields.challan_no as string) || `CH-${Date.now().toString().slice(-4)}`,
+            challan_date: (parsedFields.challan_date as string) || new Date().toISOString().split('T')[0],
             trader_name: (parsedFields.trader_name as string) || 'Shri Radhe Krishna Textiles',
-            fabric_quality: (parsedFields.fabric_quality as string) || 'Pure Georgette 60g',
-            inward_meters: Number(parsedFields.inward_meters) || 1850,
+            trader_gstin: (parsedFields.trader_gstin as string) || '24AAACS9988Z1Z9',
+            lot_no: (parsedFields.lot_no as string) || 'LOT-9140',
             than_count: Number(parsedFields.than_count) || 18,
-            notes: `Voice recorded: ${transcriptText || 'Direct Speech Entry'}`,
-          });
-          toast.success('Inward Fabric Lot created successfully!');
-          break;
-
-        case 'shift':
-          await ShiftLogsApi.create({
-            machine_id: 'default-machine-id',
-            shift_type: ((parsedFields.shift_type as string) === 'NIGHT' ? 'NIGHT' : 'DAY') as ShiftType,
-            shift_date: new Date().toISOString().split('T')[0],
-            start_counter: 0,
-            end_counter: Number(parsedFields.stitches_count) || 185000,
-            total_meters: Number(parsedFields.meter_count) || 160,
-            karigar_id: 'default-karigar-id',
+            inward_meters: Number(parsedFields.inward_meters) || 1850,
+            fabric_quality: (parsedFields.fabric_quality as string) || 'Pure Georgette 60g',
             design_no: (parsedFields.design_no as string) || 'DSN-104',
-          });
-          toast.success('Shift log recorded successfully!');
+            stitch_count: Number(parsedFields.stitch_count) || 185000,
+            karigar_commission_rate: Number(parsedFields.karigar_commission_rate) || 0.05,
+            karigar_commission_type: ((parsedFields.karigar_commission_type as string) || 'PER_1K_STITCHES') as any,
+            jobwork_price_per_1k: Number(parsedFields.jobwork_price_per_1k) || 0.40,
+            notes: (parsedFields.notes as string) || `Voice recorded: ${transcriptText || 'Direct Speech Entry'}`,
+          };
+          if (isUpdate && entityId) {
+            await InwardChallansApi.update(entityId, payload);
+            toast.success('Inward Fabric Lot updated successfully!');
+          } else {
+            await InwardChallansApi.create(payload);
+            toast.success('Inward Fabric Lot created successfully!');
+          }
           break;
+        }
 
-        case 'karigar':
-          await KarigarsApi.create({
+        case 'shift': {
+          const payload = {
+            machine_id: (parsedFields.machine_id as string) || 'default-machine-id',
+            shift_type: ((parsedFields.shift_type as string) === 'NIGHT' ? 'NIGHT' : 'DAY') as ShiftType,
+            shift_date: (parsedFields.shift_date as string) || new Date().toISOString().split('T')[0],
+            start_counter: Number(parsedFields.start_counter) || 0,
+            end_counter: Number(parsedFields.end_counter) || Number(parsedFields.stitches_count) || 185000,
+            total_meters: Number(parsedFields.meter_count) || 160,
+            karigar_id: (parsedFields.karigar_id as string) || 'default-karigar-id',
+            design_no: (parsedFields.design_no as string) || 'DSN-104',
+            inward_challan_id: (parsedFields.inward_challan_id as string) || undefined,
+            downtime_minutes: Number(parsedFields.downtime_minutes) || 0,
+            downtime_reason: (parsedFields.downtime_reason as string) || undefined,
+          };
+          await ShiftLogsApi.create(payload);
+          toast.success(isUpdate ? 'Shift log updated successfully!' : 'Shift log recorded successfully!');
+          break;
+        }
+
+        case 'karigar': {
+          const payload = {
             name: (parsedFields.name as string) || 'Mukesh Solanki',
             mobile: (parsedFields.mobile as string) || '9825144556',
-            wage_type: 'PIECE_RATE',
+            wage_type: ((parsedFields.wage_type as string) === 'FIXED_MONTHLY' ? 'FIXED_MONTHLY' : 'PIECE_RATE') as WageType,
             default_rate_per_meter: Number(parsedFields.rate_per_1000_stitches) || 0.42,
-          });
-          toast.success('Karigar profile created successfully!');
+            default_monthly_salary: Number(parsedFields.default_monthly_salary) || undefined,
+            incentive_threshold_value: Number(parsedFields.incentive_threshold_value) || undefined,
+            incentive_threshold_type: (parsedFields.incentive_threshold_type as any) || undefined,
+            incentive_rate: Number(parsedFields.incentive_rate) || undefined,
+            incentive_rate_type: (parsedFields.incentive_rate_type as any) || undefined,
+            is_active: parsedFields.is_active !== 'false' && parsedFields.is_active !== false,
+          };
+          if (isUpdate && entityId) {
+            await KarigarsApi.update(entityId, payload);
+            toast.success('Karigar profile updated successfully!');
+          } else {
+            await KarigarsApi.create(payload);
+            toast.success('Karigar profile created successfully!');
+          }
           break;
+        }
 
-        case 'expense':
-          await ExpensesApi.create({
-            category: 'DIRECT' as ExpenseCategory,
+        case 'expense': {
+          const payload = {
+            category: ((parsedFields.category as string) === 'INDIRECT' ? 'INDIRECT' : 'DIRECT') as ExpenseCategory,
             expense_type: (parsedFields.expense_type as string) || 'CONSUMABLES',
             payee_name: (parsedFields.payee_name as string) || 'Standard Spares Sachin',
-            expense_date: new Date().toISOString().split('T')[0],
+            expense_date: (parsedFields.expense_date as string) || new Date().toISOString().split('T')[0],
             amount: Number(parsedFields.amount) || 1450,
             payment_mode: (parsedFields.payment_mode as string) || 'UPI',
-            description: `Spoken voucher: ${transcriptText}`,
-          });
-          toast.success('Expense voucher recorded successfully!');
+            reference_no: (parsedFields.reference_no as string) || undefined,
+            is_gst_applicable: parsedFields.is_gst_applicable === 'true' || parsedFields.is_gst_applicable === true,
+            gst_amount: Number(parsedFields.gst_amount) || 0,
+            description: (parsedFields.description as string) || `Spoken voucher: ${transcriptText}`,
+          };
+          if (isUpdate && entityId) {
+            await ExpensesApi.update(entityId, payload);
+            toast.success('Expense voucher updated successfully!');
+          } else {
+            await ExpensesApi.create(payload);
+            toast.success('Expense voucher recorded successfully!');
+          }
           break;
+        }
 
-        case 'uchapat':
-          await UchapatApi.create({
-            karigar_id: 'default-karigar-id',
+        case 'uchapat': {
+          const payload = {
+            karigar_id: (parsedFields.karigar_id as string) || 'default-karigar-id',
             amount: Number(parsedFields.amount) || 2500,
             payment_mode: ((parsedFields.payment_mode as string) === 'UPI' ? 'UPI' : 'CASH') as PaymentMode,
             reason: (parsedFields.remarks as string) || 'Voice Recorded Advance',
-            date: new Date().toISOString().split('T')[0],
-          });
-          toast.success('Uchapat advance recorded successfully!');
+            date: (parsedFields.date as string) || new Date().toISOString().split('T')[0],
+          };
+          await UchapatApi.create(payload);
+          toast.success(isUpdate ? 'Uchapat advance updated successfully!' : 'Uchapat advance recorded successfully!');
           break;
+        }
 
-        case 'party':
-          await PartiesApi.create({
+        case 'party': {
+          const payload = {
             name: (parsedFields.name as string) || 'Surat Silk Prints',
             gstin: (parsedFields.gstin as string) || '24AAACS9988Z1Z9',
             city: (parsedFields.city as string) || 'Surat',
             mobile: (parsedFields.mobile as string) || '9825088776',
-            state_code: '24',
-          });
-          toast.success('Party profile created successfully!');
+            email: (parsedFields.email as string) || undefined,
+            address: (parsedFields.address as string) || undefined,
+            state_code: (parsedFields.state_code as string) || '24',
+            credit_period_days: Number(parsedFields.credit_period_days) || 30,
+            opening_balance: Number(parsedFields.opening_balance) || 0,
+            is_active: parsedFields.is_active !== 'false' && parsedFields.is_active !== false,
+          };
+          if (isUpdate && entityId) {
+            await PartiesApi.update(entityId, payload);
+            toast.success('Party profile updated successfully!');
+          } else {
+            await PartiesApi.create(payload);
+            toast.success('Party profile created successfully!');
+          }
           break;
+        }
 
-        case 'purchase':
-          await PurchasesApi.create({
+        case 'purchase': {
+          const payload = {
             supplier_name: (parsedFields.supplier_name as string) || 'Shree Hari Threads',
-            invoice_no: `INV-V-${Date.now().toString().slice(-4)}`,
-            invoice_date: new Date().toISOString().split('T')[0],
-            net_amount: Number(parsedFields.amount) || 8500,
-            subtotal: Number(parsedFields.amount) || 8500,
+            supplier_gstin: (parsedFields.supplier_gstin as string) || undefined,
+            supplier_phone: (parsedFields.supplier_phone as string) || undefined,
+            invoice_no: (parsedFields.invoice_no as string) || `INV-V-${Date.now().toString().slice(-4)}`,
+            invoice_date: (parsedFields.invoice_date as string) || new Date().toISOString().split('T')[0],
+            category: (parsedFields.category as string) || 'YARN_THREAD',
+            payment_status: (parsedFields.payment_status as string) || 'PAID',
             payment_mode: (parsedFields.payment_mode as string) || 'CASH',
+            subtotal: Number(parsedFields.subtotal) || Number(parsedFields.amount) || 8500,
+            gst_amount: Number(parsedFields.gst_amount) || 0,
+            net_amount: Number(parsedFields.amount) || 8500,
+            paid_amount: Number(parsedFields.paid_amount) || Number(parsedFields.amount) || 8500,
             items: [
               {
                 description: (parsedFields.item_name as string) || 'Polyester Filament Embroidery Thread 120D/2',
                 qty: Number(parsedFields.quantity) || 50,
-                unit: 'CONES',
-                rate: 170,
-                taxable_amount: Number(parsedFields.amount) || 8500,
+                unit: (parsedFields.unit as string) || 'CONES',
+                rate: Number(parsedFields.rate) || 170,
+                taxable_amount: Number(parsedFields.subtotal) || Number(parsedFields.amount) || 8500,
                 total: Number(parsedFields.amount) || 8500,
               },
             ],
-            notes: `Voice recorded purchase: ${transcriptText}`,
-          });
-          toast.success('Purchase recorded successfully!');
+            notes: (parsedFields.notes as string) || `Voice recorded purchase: ${transcriptText}`,
+          };
+          if (isUpdate && entityId) {
+            await PurchasesApi.update(entityId, payload);
+            toast.success('Purchase updated successfully!');
+          } else {
+            await PurchasesApi.create(payload);
+            toast.success('Purchase recorded successfully!');
+          }
           break;
+        }
 
-        case 'invoice':
-          toast.success('Outward invoice created successfully!');
+        case 'invoice': {
+          const payload = {
+            trader_name: (parsedFields.party_name as string) || 'Shri Radhe Krishna Textiles',
+            trader_gstin: (parsedFields.trader_gstin as string) || '24AAACS9988Z1Z9',
+            invoice_date: (parsedFields.invoice_date as string) || new Date().toISOString().split('T')[0],
+            total_stitches: Number(parsedFields.total_stitches) || 185000,
+            machine_heads: Number(parsedFields.machine_heads) || 12,
+            rate_per_1000: Number(parsedFields.rate_per_1000) || 0.40,
+            inward_meters: Number(parsedFields.inward_meters) || 1850,
+            outward_meters: Number(parsedFields.outward_meters) || 1800,
+            notes: (parsedFields.notes as string) || `Voice recorded invoice: ${transcriptText}`,
+          };
+          if (isUpdate && entityId) {
+            await OutwardInvoicesApi.update(entityId, payload);
+            toast.success('Outward invoice updated successfully!');
+          } else {
+            await OutwardInvoicesApi.create(payload);
+            toast.success('Outward invoice created successfully!');
+          }
           break;
+        }
       }
 
       onSuccess?.();
