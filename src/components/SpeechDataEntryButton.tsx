@@ -116,12 +116,12 @@ export function SpeechDataEntryButton({
       type="button"
       onClick={handleStartVoiceEntry}
       disabled={isRecording || isProcessing}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-md border transition-all ${
+      className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border backdrop-blur-xl transition-all transform active:scale-95 cursor-pointer shadow-sm ${
         isRecording
-          ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
+          ? 'bg-gradient-to-r from-rose-600 to-pink-600 text-white border-rose-500 shadow-rose-500/30 animate-pulse'
           : isProcessing
-          ? 'bg-[#F2F1ED] text-[#111111] border-[#D5D4CE]'
-          : 'bg-white text-[#111111] border-[#EAEAEA] hover:border-[#111111] hover:bg-[#FAF9F5]'
+          ? 'bg-slate-800 text-slate-200 border-white/15'
+          : 'bg-slate-900/90 text-slate-100 border-white/15 hover:border-rose-400/50 hover:bg-slate-900'
       } ${className}`}
       title="Speak to Auto-Fill Form Fields (Bhashini Indic ASR)"
     >
@@ -132,12 +132,12 @@ export function SpeechDataEntryButton({
         </>
       ) : isProcessing ? (
         <>
-          <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#111111]" />
+          <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-300" />
           <span>Processing Speech...</span>
         </>
       ) : (
         <>
-          <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>Voice Auto-Fill</span>
         </>
       )}

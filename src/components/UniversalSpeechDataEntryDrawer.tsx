@@ -46,6 +46,7 @@ export type DetectedEntityType =
   | 'invoice';
 
 export type SpeechCategory = DetectedEntityType;
+export type CrudAction = 'CREATE' | 'READ' | 'UPDATE' | 'DELETE';
 
 interface EntityDefinition {
   type: DetectedEntityType;
@@ -253,9 +254,9 @@ const SAMPLE_UTTERANCES = [
   {
     type: 'invoice' as DetectedEntityType,
     tag: 'Tax Invoice',
-    gu: 'રાધે કૃષ્ણ ટેક્સટાઇલ માટે જાવક ટેક્સ બિલ INV-2026-081, રકમ 18500 રૂપિયા',
-    speechGu: 'Radhe Krishna Textiles maate jaavak tax bill Invoice INV-2026-081, total amount 18500 rupiya.',
-    en: 'Radhe Krishna Textiles outward jobwork tax invoice INV-2026-081, total amount 18500 rupees.',
+    gu: 'રાધા કૃષ્ણ ટેક્સટાઇલ માટે 500 મીટર નો 20 રૂપિયા પ્રતિ મીટર હિસાબે જાવક ટેક્સ બિલ',
+    speechGu: 'Radha Krishna Textiles maate 500 meter no 20 rupiya per meter hisaabe jaavak tax bill.',
+    en: 'Create invoice for Radha Krishna Textiles for 500 m at 20 rupees per metre.',
   },
 ];
 
@@ -273,7 +274,8 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 }) => {
   const { t } = useI18n();
 
-  const [activeLanguage, setActiveLanguage] = useState<'gu-IN' | 'hi-IN' | 'en-IN' | 'mr-IN'>('gu-IN');
+  const [activeLanguage, setActiveLanguage] = useState<'auto' | 'gu-IN' | 'hi-IN' | 'en-IN' | 'mr-IN' | 'ta-IN' | 'te-IN' | 'kn-IN' | 'bn-IN' | 'pa-IN' | 'ur-IN'>('auto');
+  const [detectedLanguageLabel, setDetectedLanguageLabel] = useState<string>('Auto (All Regional Embroidery Hubs)');
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -286,6 +288,40 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
 
+  // Helper for auto-detecting language from transcript text across all regional embroidery hubs
+  const detectLanguageFromScript = (text: string): { code: string; label: string } => {
+    if (!text.trim()) return { code: 'gu-IN', label: 'Gujarati (ગુજરાતી) • Surat Hub' };
+    
+    if (/[\u0A80-\u0AFF]/.test(text)) {
+      return { code: 'gu-IN', label: 'Gujarati (ગુજરાતી) • Surat/Ahmedabad Hub' };
+    }
+    if (/[\u0900-\u097F]/.test(text)) {
+      if (text.includes('आहे') || text.includes('करू') || text.includes('दाखवा') || text.includes('उचल')) {
+        return { code: 'mr-IN', label: 'Marathi (मराठी) • Bhiwandi/Ichalkaranji Hub' };
+      }
+      return { code: 'hi-IN', label: 'Hindi (हिन्दी) • UP/Pan-India Karigar Hub' };
+    }
+    if (/[\u0B80-\u0BFF]/.test(text)) {
+      return { code: 'ta-IN', label: 'Tamil (தமிழ்) • Tirupur/Coimbatore Hub' };
+    }
+    if (/[\u0C00-\u0C7F]/.test(text)) {
+      return { code: 'te-IN', label: 'Telugu (తెలుగు) • Hyderabad Hub' };
+    }
+    if (/[\u0C80-\u0CFF]/.test(text)) {
+      return { code: 'kn-IN', label: 'Kannada (ಕನ್ನಡ) • Bangalore Silk Hub' };
+    }
+    if (/[\u0980-\u09FF]/.test(text)) {
+      return { code: 'bn-IN', label: 'Bengali (বাংলা) • Kolkata Zardozi Hub' };
+    }
+    if (/[\u0A00-\u0A7F]/.test(text)) {
+      return { code: 'pa-IN', label: 'Punjabi (ਪੰਜਾਬੀ) • Ludhiana/Amritsar Hub' };
+    }
+    if (/[\u0600-\u06FF]/.test(text)) {
+      return { code: 'ur-IN', label: 'Urdu (اردو) • Malegaon/Varanasi Hub' };
+    }
+    return { code: 'en-IN', label: 'English (Indian Standard)' };
+  };
+
   // Reset state when opening / closing
   useEffect(() => {
     if (!isOpen) {
@@ -293,6 +329,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       setDetectedType(null);
       setEnglishSummary('');
       setParsedFields({});
+      setDetectedLanguageLabel('Auto (Gujarati / Hindi / English)');
     }
   }, [isOpen]);
 
@@ -315,7 +352,11 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = activeLanguage;
+        if (activeLanguage === 'auto') {
+          recognition.lang = typeof navigator !== 'undefined' ? (navigator.language || 'gu-IN') : 'gu-IN';
+        } else {
+          recognition.lang = activeLanguage;
+        }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
@@ -325,6 +366,11 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           }
           const cleaned = currentTranscript.trim();
           setTranscriptText(cleaned);
+
+          if (activeLanguage === 'auto') {
+            const detected = detectLanguageFromScript(cleaned);
+            setDetectedLanguageLabel(detected.label);
+          }
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -352,7 +398,45 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
     };
   }, [activeLanguage]);
 
-  // 1. Zero-Click Intent Classifier
+  // 1. Multilingual CRUD Action Detector
+  const detectCrudAction = (text: string): CrudAction => {
+    const lower = text.toLowerCase();
+
+    // DELETE / CANCEL / REMOVE (Gujarati, Hindi, Marathi, English)
+    if (
+      lower.includes('delete') || lower.includes('remove') || lower.includes('cancel') ||
+      lower.includes('રદ') || lower.includes('ડીલીટ') || lower.includes('હટાવો') || lower.includes('કાઢી') ||
+      lower.includes('रद्द') || lower.includes('डिलीट') || lower.includes('हटाओ') || lower.includes('निकालो') ||
+      lower.includes('हटवा') || lower.includes('कमी करा')
+    ) {
+      return 'DELETE';
+    }
+
+    // UPDATE / EDIT / MODIFY (Gujarati, Hindi, Marathi, English)
+    if (
+      lower.includes('update') || lower.includes('edit') || lower.includes('modify') || lower.includes('change') ||
+      lower.includes('સુધારો') || lower.includes('બદલો') || lower.includes('અપડેટ') || lower.includes('ફેરફાર') ||
+      lower.includes('सुधारो') || lower.includes('बदलो') || lower.includes('अपडेट') || lower.includes('संशोधन') ||
+      lower.includes('बदला') || lower.includes('दुरुस्त')
+    ) {
+      return 'UPDATE';
+    }
+
+    // READ / VIEW / SHOW / LIST (Gujarati, Hindi, Marathi, English)
+    if (
+      lower.includes('show') || lower.includes('view') || lower.includes('list') || lower.includes('display') || lower.includes('check') || lower.includes('search') ||
+      lower.includes('બતાવો') || lower.includes('જુઓ') || lower.includes('દેખાડો') || lower.includes('ચકાસો') || lower.includes('પડતાલ') || lower.includes('યાદી') ||
+      lower.includes('दिखाओ') || lower.includes('देखो') || lower.includes('सूची') || lower.includes('जांचो') || lower.includes('लिस्ट') ||
+      lower.includes('दाखवा') || lower.includes('पहा') || lower.includes('यादी')
+    ) {
+      return 'READ';
+    }
+
+    // Default: CREATE / ADD
+    return 'CREATE';
+  };
+
+  // 2. Zero-Click Multilingual Intent Classifier (Gujarati, Hindi, English, Marathi)
   const classifyIntent = (text: string): DetectedEntityType => {
     const lower = text.toLowerCase();
 
@@ -363,7 +447,10 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('advance') ||
       lower.includes('એડવાન્સ') ||
       lower.includes('ઉપાડ') ||
-      lower.includes('upad')
+      lower.includes('upad') ||
+      lower.includes('उधार') ||
+      lower.includes('अग्रिम') ||
+      lower.includes('उचल')
     ) {
       return 'uchapat';
     }
@@ -378,10 +465,13 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('machine') ||
       lower.includes('મશીન') ||
       lower.includes('design') ||
-      lower.includes('ડિઝાઇન')
+      lower.includes('ડિઝાઇન') ||
+      lower.includes('शिफ्ट') ||
+      lower.includes('टांका') ||
+      lower.includes('मशीन') ||
+      lower.includes('टाके')
     ) {
-      // If it has meters and lot together, could be challan unless stitches are mentioned
-      if (lower.includes('stitches') || lower.includes('ટાંકા') || lower.includes('night') || lower.includes('day') || lower.includes('ઓપરેટર')) {
+      if (lower.includes('stitches') || lower.includes('ટાંકા') || lower.includes('टांका') || lower.includes('night') || lower.includes('day') || lower.includes('ઓપરેટર')) {
         return 'shift';
       }
     }
@@ -399,7 +489,10 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('organza') ||
       lower.includes('તાકા') ||
       lower.includes('than') ||
-      lower.includes('taka')
+      lower.includes('taka') ||
+      lower.includes('चालान') ||
+      lower.includes('पावती') ||
+      lower.includes('कापड')
     ) {
       return 'challan';
     }
@@ -415,7 +508,9 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('રિપેરીંગ') ||
       lower.includes('spares') ||
       lower.includes('ચા') ||
-      lower.includes('લાઈટ બિલ')
+      lower.includes('લાઈટ બિલ') ||
+      lower.includes('खर्च') ||
+      lower.includes('वाउचर')
     ) {
       return 'expense';
     }
@@ -434,7 +529,10 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('શ્રીહરિ') ||
       lower.includes('cones') ||
       lower.includes('કોન') ||
-      lower.includes('sequin')
+      lower.includes('sequin') ||
+      lower.includes('खरीद') ||
+      lower.includes('खरेदी') ||
+      lower.includes('धागा')
     ) {
       return 'purchase';
     }
@@ -446,6 +544,8 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('master') ||
       lower.includes('helper') ||
       lower.includes('હેલ્પર') ||
+      lower.includes(' कारीगर') ||
+      lower.includes('कामगार') ||
       (lower.includes('operator') && !lower.includes('shift'))
     ) {
       return 'karigar';
@@ -459,7 +559,9 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('વેપારી') ||
       lower.includes('gst') ||
       lower.includes('જીએસટી') ||
-      lower.includes('prints')
+      lower.includes('prints') ||
+      lower.includes('व्यापारी') ||
+      lower.includes('ग्राहक')
     ) {
       return 'party';
     }
@@ -469,14 +571,17 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       lower.includes('invoice') ||
       lower.includes('ઇનવોઇસ') ||
       lower.includes('tax bill') ||
-      lower.includes('sac 9988')
+      lower.includes('sac 9988') ||
+      lower.includes('બિલ') ||
+      lower.includes('बिल') ||
+      lower.includes('बीजक')
     ) {
       return 'invoice';
     }
 
     // Default Fallback based on numbers & words
-    if (lower.includes('meter') || lower.includes('મીટર')) return 'challan';
-    if (lower.includes('રૂપિયા') || lower.includes('rs') || lower.includes('rupees')) return 'expense';
+    if (lower.includes('meter') || lower.includes('મીટર') || lower.includes('मीटर')) return 'challan';
+    if (lower.includes('રૂપિયા') || lower.includes('rs') || lower.includes('rupees') || lower.includes('रुपये')) return 'expense';
 
     return 'challan';
   };
@@ -489,11 +594,19 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 
     setTimeout(() => {
       const type = classifyIntent(text);
+      const crudAction = detectCrudAction(text);
       setDetectedType(type);
 
       const lower = text.toLowerCase();
       const extracted: Record<string, string | number> = {};
+      extracted.crud_action = crudAction;
       let summary = '';
+
+      const actionPrefix =
+        crudAction === 'DELETE' ? 'DELETE / CANCEL REQUEST: ' :
+        crudAction === 'UPDATE' ? 'UPDATE REQUEST: ' :
+        crudAction === 'READ' ? 'VIEW / SEARCH INQUIRY: ' :
+        'CREATE NEW ENTRY: ';
 
       // Common extractions with commas cleaned:
       const cleanText = text.replace(/,/g, '');
@@ -651,20 +764,47 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
         }
 
         case 'invoice': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 1000) || 18500;
-          extracted.party_name = 'Shri Radhe Krishna Textiles';
+          const meterQtyMatch = cleanText.match(/(\d+(?:\.\d+)?)\s*(?:મીટર|મી|meter|meters|metre|metres|m|pcs|units)/i);
+          const rateMatch = cleanText.match(/(?:at|@|rate|ભાવ|ભાવે|દર|rate\s*of)\s*(\d+(?:\.\d+)?)\s*(?:રૂપિયા|રૂ|rs|inr|rupees|\/m|per\s*meter|per\s*m|per\s*metre)?/i) ||
+                            cleanText.match(/(\d+(?:\.\d+)?)\s*(?:રૂપિયા|રૂ|rs|inr|rupees)\s*(?:per|\/)\s*(?:meter|metre|m|pc|unit)/i);
+
+          let qty = meterQtyMatch ? Number(meterQtyMatch[1]) : 0;
+          let rate = rateMatch ? Number(rateMatch[1]) : 0;
+
+          if (qty > 0 && rate > 0) {
+            extracted.meters = qty;
+            extracted.rate_per_meter = rate;
+            extracted.amount = Math.round(qty * rate * 100) / 100;
+          } else {
+            extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 1000) || 18500;
+          }
+
+          if (lower.includes('રાધે') || lower.includes('radha') || lower.includes('radhe')) {
+            extracted.party_name = 'Shri Radhe Krishna Textiles';
+          } else if (lower.includes('રામ') || lower.includes('ram')) {
+            extracted.party_name = 'Shree Ram Fabrics';
+          } else if (lower.includes('સુરત') || lower.includes('surat')) {
+            extracted.party_name = 'Surat Silk Prints';
+          } else {
+            extracted.party_name = 'Shri Radhe Krishna Textiles';
+          }
+
           extracted.invoice_no = `INV-2026-${Math.floor(100 + Math.random() * 900)}`;
           extracted.sac_code = '9988';
 
-          summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name} totaling ₹${extracted.amount}.`;
+          if (extracted.meters && extracted.rate_per_meter) {
+            summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name}: ${extracted.meters}m @ ₹${extracted.rate_per_meter}/m totaling ₹${extracted.amount}.`;
+          } else {
+            summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name} totaling ₹${extracted.amount}.`;
+          }
           break;
         }
       }
 
       setParsedFields(extracted);
-      setEnglishSummary(summary);
+      setEnglishSummary(actionPrefix + summary);
       setIsProcessing(false);
-      toast.success(`Auto-detected ${ENTITY_DEFINITIONS[type].title} from speech!`);
+      toast.success(`Auto-detected ${crudAction} intent for ${ENTITY_DEFINITIONS[type].title}!`);
     }, 500);
   };
 
@@ -912,114 +1052,168 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-[var(--text-main)] flex items-center justify-center text-[var(--bg-surface)]">
-            <Mic className="w-4 h-4 text-rose-500 animate-pulse" />
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-rose-500 to-amber-500 p-[1px] shadow-lg shadow-purple-500/20">
+            <div className="w-full h-full rounded-[11px] bg-slate-950 flex items-center justify-center">
+              <Mic className="w-4 h-4 text-rose-400 animate-pulse" />
+            </div>
           </div>
           <div>
-            <div className="text-sm font-bold tracking-tight text-[var(--text-main)] flex items-center gap-1.5">
-              <span>Universal Speech Assistant</span>
-              <span className="text-[0.625rem] font-semibold uppercase px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 border border-amber-500/20">
-                Zero-Click AI Intent
+            <div className="text-base font-bold tracking-tight text-slate-100 flex items-center gap-2">
+              <span>Universal Voice Assistant</span>
+              <span className="text-[0.625rem] font-extrabold uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 via-rose-500/20 to-amber-500/20 text-rose-300 border border-rose-500/30 tracking-wider">
+                Apple Design • Zero-Click AI
               </span>
             </div>
-            <div className="text-[0.7rem] text-[var(--text-muted)]">
-              {(t as unknown as Record<string, string>).voiceDataEntrySubtitle || 'Speak freely in Gujarati or English — the AI automatically detects what to record'}
+            <div className="text-xs text-slate-400 font-medium">
+              {(t as unknown as Record<string, string>).voiceDataEntrySubtitle || 'Speak freely in any Indic language — AI automatically classifies and fills ETMS forms'}
             </div>
           </div>
         </div>
       }
       size="2xl"
     >
-      <div className="p-4 sm:p-5 space-y-4 text-xs text-[var(--text-main)]">
-        {/* Main Voice Capture Hero Dock */}
-        <div className="bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg p-4 space-y-3">
-          <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-6 space-y-5 text-xs text-slate-100 bg-slate-950 min-h-screen">
+        {/* HERO MIC & SIRI AUDIO WAVEFORM DOCK */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950 border border-white/10 p-5 sm:p-6 shadow-2xl backdrop-blur-2xl space-y-4">
+          {/* Ambient Glow Aura */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-tr from-rose-500/15 via-purple-500/15 to-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Top Status & Language Bar */}
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-xs text-[var(--text-main)]">
+              <span className="font-semibold text-xs text-slate-200 tracking-wide flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 Live Speech Capture (Bhashini Indic ASR)
               </span>
               {isListening && (
-                <span className="inline-flex items-center gap-1 text-[0.65rem] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 animate-pulse">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping" />
+                <span className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-rose-300 bg-rose-500/15 px-2.5 py-1 rounded-full border border-rose-500/30 animate-pulse shadow-sm shadow-rose-500/20">
+                  <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
                   Listening...
+                </span>
+              )}
+              {activeLanguage === 'auto' && (
+                <span className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/25">
+                  {detectedLanguageLabel}
                 </span>
               )}
             </div>
 
-            {/* Language Selector */}
-            <div className="flex items-center gap-1">
-              <span className="text-[0.6875rem] text-[var(--text-muted)]">Language:</span>
+            {/* Regional Hub Language Selector Dropdown */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[0.7rem] text-slate-400 font-medium">Hub Language:</span>
               <select
                 value={activeLanguage}
-                onChange={(e) => setActiveLanguage(e.target.value as 'gu-IN' | 'hi-IN' | 'en-IN' | 'mr-IN')}
-                className="bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-main)] text-[0.7rem] font-medium rounded px-2 py-1 outline-none"
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                onChange={(e) => setActiveLanguage(e.target.value as any)}
+                className="bg-slate-900/90 border border-white/15 text-slate-200 text-[0.725rem] font-semibold rounded-lg px-2.5 py-1.5 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400/50 transition cursor-pointer max-w-[210px] sm:max-w-none truncate shadow-inner"
               >
-                <option value="gu-IN">ગુજરાતી (Gujarati)</option>
-                <option value="hi-IN">हिन्दी (Hindi)</option>
-                <option value="en-IN">English (Indian)</option>
-                <option value="mr-IN">મરાઠી (Marathi)</option>
+                <option value="auto">✨ Auto-Detect (Pan-India Embroidery Hubs)</option>
+                <option value="gu-IN">ગુજરાતી (Gujarati) • Surat & Ahmedabad</option>
+                <option value="hi-IN">हिन्दी (Hindi) • UP & Pan-India Karigar Workforce</option>
+                <option value="mr-IN">मराठी (Marathi) • Bhiwandi, Ichalkaranji & Malegaon</option>
+                <option value="ta-IN">தமிழ் (Tamil) • Tirupur & Coimbatore</option>
+                <option value="te-IN">తెలుగు (Telugu) • Hyderabad Cluster</option>
+                <option value="kn-IN">ಕನ್ನಡ (Kannada) • Bangalore Silk Hub</option>
+                <option value="bn-IN">বাংলা (Bengali) • Kolkata Zardozi Cluster</option>
+                <option value="pa-IN">ਪੰਜਾਬੀ (Punjabi) • Ludhiana & Amritsar</option>
+                <option value="ur-IN">اردو (Urdu) • Malegaon, Varanasi & Lucknow</option>
+                <option value="en-IN">English (Indian Standard)</option>
               </select>
             </div>
           </div>
 
-          {/* Large Primary Mic Button */}
-          <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
-            <button
-              type="button"
-              onClick={handleToggleListening}
-              className={`w-full sm:w-auto px-5 py-3 rounded-lg border font-semibold text-xs flex items-center justify-center gap-2.5 transition active:scale-95 shadow-xs ${
-                isListening
-                  ? 'bg-rose-600 text-white border-rose-700 shadow-rose-200'
-                  : 'bg-[var(--text-main)] text-[var(--bg-surface)] border-[var(--text-main)] hover:opacity-90'
-              }`}
-            >
-              {isListening ? (
+          {/* Centered Hero Mic Button & Siri Waveform */}
+          <div className="relative z-10 flex flex-col items-center justify-center py-2 space-y-4">
+            <div className="relative flex items-center justify-center">
+              {/* Outer Pulse Rings when Listening */}
+              {isListening && (
                 <>
-                  <MicOff className="w-4 h-4 text-white animate-bounce" />
-                  <span>Stop & Auto-Detect Intent</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="w-4 h-4 text-rose-400" />
-                  <span>Tap to Speak Anything (No Option Selection Needed)</span>
+                  <div className="absolute w-24 h-24 rounded-full bg-rose-500/20 animate-ping opacity-75" />
+                  <div className="absolute w-20 h-20 rounded-full bg-purple-500/30 animate-pulse" />
                 </>
               )}
-            </button>
 
-            {transcriptText && (
+              {/* Large Apple Orb Mic Button */}
               <button
                 type="button"
-                onClick={() => processSpokenInput(transcriptText)}
-                disabled={isProcessing}
-                className="px-3 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--border)] text-[var(--text-main)] font-semibold text-xs flex items-center gap-1.5"
+                onClick={handleToggleListening}
+                className={`relative z-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all transform active:scale-90 shadow-2xl cursor-pointer ${
+                  isListening
+                    ? 'bg-gradient-to-tr from-rose-600 via-pink-500 to-rose-500 text-white shadow-rose-500/50 ring-4 ring-rose-400/40'
+                    : 'bg-gradient-to-tr from-slate-800 via-slate-900 to-slate-800 text-slate-100 border border-white/20 hover:border-rose-400/50 hover:shadow-rose-500/20 hover:scale-105'
+                }`}
+                title={isListening ? 'Click to Stop Speech Capture' : 'Tap to Start Universal Speech Assistant'}
               >
-                {isProcessing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-600" />}
-                <span>Re-Analyze</span>
+                {isListening ? (
+                  <MicOff className="w-7 h-7 sm:w-9 sm:h-9 text-white animate-pulse" />
+                ) : (
+                  <Mic className="w-7 h-7 sm:w-9 sm:h-9 text-rose-400" />
+                )}
               </button>
-            )}
+            </div>
 
-            {transcriptText && (
-              <button
-                type="button"
-                onClick={() => {
-                  setTranscriptText('');
-                  setDetectedType(null);
-                  setEnglishSummary('');
-                  setParsedFields({});
-                }}
-                className="px-3 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] hover:bg-[var(--border)] text-rose-600 font-semibold text-xs flex items-center gap-1"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset</span>
-              </button>
-            )}
+            {/* Simulated Animated Equalizer Audio Waveform Bars */}
+            <div className="flex items-center gap-1.5 h-6">
+              {[0.4, 0.8, 0.5, 1.0, 0.7, 0.9, 0.4].map((scale, i) => (
+                <span
+                  key={i}
+                  style={{
+                    height: isListening ? `${scale * 100}%` : '20%',
+                    transitionDuration: '150ms',
+                  }}
+                  className={`w-1 rounded-full transition-all ${
+                    isListening
+                      ? 'bg-gradient-to-t from-rose-500 via-purple-400 to-amber-300 animate-pulse'
+                      : 'bg-slate-700/60'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="text-center">
+              <div className="text-xs font-bold text-slate-200">
+                {isListening ? 'Listening for speech...' : 'Tap Mic to Speak Anything'}
+              </div>
+              <div className="text-[0.6875rem] text-slate-400 mt-0.5">
+                No menu selection required &bull; Auto-classifies Challan, Shift, Karigar, Expense, Uchapat, Party or Invoice
+              </div>
+            </div>
           </div>
 
-          {/* Spoken Text Box */}
-          <div>
-            <div className="flex items-center justify-between text-[0.6875rem] font-medium text-[var(--text-muted)] mb-1">
-              <span>Original Spoken Utterance:</span>
+          {/* Spoken Transcript Input Container */}
+          <div className="relative z-10 space-y-1.5">
+            <div className="flex items-center justify-between text-[0.7rem] font-semibold text-slate-300">
+              <span className="flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5 text-rose-400" />
+                Original Spoken Utterance:
+              </span>
+              {transcriptText && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => processSpokenInput(transcriptText)}
+                    disabled={isProcessing}
+                    className="text-[0.675rem] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1 transition"
+                  >
+                    {isProcessing ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-amber-400" />}
+                    <span>Re-Analyze</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTranscriptText('');
+                      setDetectedType(null);
+                      setEnglishSummary('');
+                      setParsedFields({});
+                    }}
+                    className="text-[0.675rem] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 flex items-center gap-1 transition"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Clear</span>
+                  </button>
+                </div>
+              )}
             </div>
             <textarea
               rows={2}
@@ -1030,122 +1224,136 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
                   processSpokenInput(e.target.value);
                 }
               }}
-              placeholder="Speak in Gujarati, Hindi or English, or paste text here... (The system automatically determines the data type)"
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-2.5 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)] font-mono resize-none"
+              placeholder="Speak in Gujarati, Hindi or English, or paste spoken text here... (e.g. Radhe Krishna Textiles Lot 9140 1850m Georgette)"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400/50 font-mono resize-none shadow-inner"
             />
           </div>
         </div>
 
-        {/* English Structured Verification & Translation */}
+        {/* INTENT VERIFICATION & STRUCTURED BREAKDOWN CARD */}
         {detectedType && currentEntityDef && (
-          <div className="bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded-lg p-4 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-2.5">
-              <div className="flex items-center gap-2">
-                <div className="p-1 rounded bg-[var(--bg-surface)] border border-[var(--border)]">
+          <div className="rounded-2xl bg-slate-900/80 border border-white/10 p-5 shadow-2xl backdrop-blur-xl space-y-4 animate-in fade-in duration-200">
+            {/* Entity Header & Status Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 border border-white/15 flex items-center justify-center shadow-md">
                   {currentEntityDef.icon}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-[var(--text-main)]">
+                    <span className="font-extrabold text-sm text-slate-100">
                       {currentEntityDef.title}
                     </span>
-                    <span className="text-[0.625rem] font-semibold uppercase px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                    <span className="text-[0.625rem] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                       Auto-Detected
                     </span>
+                    {parsedFields.crud_action && (
+                      <span className={`text-[0.625rem] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                        parsedFields.crud_action === 'DELETE'
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/35'
+                          : parsedFields.crud_action === 'UPDATE'
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/35'
+                          : parsedFields.crud_action === 'READ'
+                          ? 'bg-sky-500/20 text-sky-300 border-sky-500/35'
+                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/35'
+                      }`}>
+                        {parsedFields.crud_action === 'DELETE' ? '🔴 DELETE / CANCEL' :
+                         parsedFields.crud_action === 'UPDATE' ? '🟡 UPDATE / EDIT' :
+                         parsedFields.crud_action === 'READ' ? '🔵 VIEW / SEARCH' : '🟢 CREATE / ADD'}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-[0.6875rem] text-[var(--text-muted)]">
+                  <div className="text-xs text-slate-400 font-medium">
                     {currentEntityDef.titleGu}
                   </div>
                 </div>
               </div>
 
-              {/* Status Badge */}
+              {/* Status Verification Badge */}
               {isAllRequiredPresent ? (
-                <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 shadow-sm shadow-emerald-500/10">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   <span>All Required Data Verified</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-                  <AlertTriangle className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-amber-500/15 px-3 py-1.5 rounded-xl border border-amber-500/30 shadow-sm shadow-amber-500/10">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
                   <span>{missingRequiredFields.length} Required Field(s) Missing</span>
                 </div>
               )}
             </div>
 
-            {/* English Verification Narrative */}
+            {/* English Verification Summary Box */}
             {englishSummary && (
-              <div className="p-2.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border)] space-y-1">
-                <div className="text-[0.65rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
-                  <Info className="w-3 h-3 text-sky-600" />
+              <div className="p-3.5 rounded-xl bg-slate-950/70 border border-white/10 space-y-1">
+                <div className="text-[0.65rem] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-sky-400" />
                   <span>English Verification Summary:</span>
                 </div>
-                <div className="text-xs text-[var(--text-main)] font-medium leading-relaxed">
+                <div className="text-xs text-slate-200 font-semibold leading-relaxed">
                   {englishSummary}
                 </div>
               </div>
             )}
 
-            {/* Missing Required Data Alert & Conversational Follow-up */}
+            {/* Missing Fields Prompt Container */}
             {missingRequiredFields.length > 0 && (
-              <div className="p-3 rounded-md bg-amber-500/10 border border-amber-500/30 space-y-2">
-                <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Missing Required Information for {currentEntityDef.title}:</span>
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-2.5">
+                <div className="flex items-center gap-2 text-amber-200 font-bold text-xs">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Missing Required Details for {currentEntityDef.title}:</span>
                 </div>
-                <p className="text-[0.7rem] text-amber-800">
-                  Please speak or type the missing details below to complete your record:
-                </p>
+                <div className="text-xs text-amber-300/80">
+                  Please speak or type the missing fields to complete your ETMS record:
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                   {missingRequiredFields.map((field) => (
-                    <div key={field.key} className="p-2 rounded bg-[var(--bg-surface)] border border-amber-300 space-y-1">
+                    <div key={field.key} className="p-3 rounded-lg bg-slate-950/80 border border-amber-500/35 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-[0.6875rem] text-[var(--text-main)]">
+                        <span className="font-bold text-xs text-slate-200">
                           {field.label} *
                         </span>
-                        <span className="text-[0.6rem] text-rose-600 font-semibold">Required</span>
+                        <span className="text-[0.625rem] text-rose-400 font-bold uppercase">Required</span>
                       </div>
-                      <div className="text-[0.65rem] text-[var(--text-muted)]">
+                      <div className="text-[0.6875rem] text-slate-400">
                         {field.description}
                       </div>
-                      <div className="flex items-center gap-1 pt-1">
-                        <input
-                          type="text"
-                          placeholder={field.placeholder}
-                          className="flex-1 bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--text-main)]"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleCompleteMissingField(field.key, (e.target as HTMLInputElement).value);
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value.trim()) {
-                              handleCompleteMissingField(field.key, e.target.value);
-                            }
-                          }}
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        placeholder={field.placeholder}
+                        className="w-full bg-slate-900 border border-white/15 rounded-md px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleCompleteMissingField(field.key, (e.target as HTMLInputElement).value);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value.trim()) {
+                            handleCompleteMissingField(field.key, e.target.value);
+                          }
+                        }}
+                      />
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Matched Schema Form Fields */}
+            {/* Matched Schema Form Fields Grid */}
             <div>
-              <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2">
+              <div className="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
                 Matched Domain Schema Fields:
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.entries(parsedFields).map(([key, value]) => (
-                  <div key={key} className="p-2 rounded bg-[var(--bg-surface)] border border-[var(--border)]">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[0.65rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] truncate">
+                  <div key={key} className="p-3 rounded-xl bg-slate-950/60 border border-white/10 hover:border-white/20 transition">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[0.675rem] font-bold uppercase tracking-wider text-slate-400 truncate">
                         {key.replace(/_/g, ' ')}
                       </label>
-                      <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     </div>
                     <input
                       type="text"
@@ -1156,7 +1364,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
                           [key]: e.target.value,
                         });
                       }}
-                      className="w-full bg-[var(--bg-surface-elevated)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--text-main)] font-mono focus:outline-none focus:border-[var(--text-main)]"
+                      className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-rose-400"
                     />
                   </div>
                 ))}
@@ -1165,49 +1373,49 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
           </div>
         )}
 
-        {/* 1-Click Fast Utterance Presets */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
-              <span>Quick Test Samples (Click to test Auto-Intent Detection)</span>
-              <HelpCircle className="w-3 h-3 text-[var(--text-muted)]" />
+        {/* QUICK TEST SAMPLES (1-CLICK TEST UTTERANCES) */}
+        <div className="rounded-2xl bg-slate-900/60 border border-white/10 p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[0.7rem] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <span>Quick Test Utterance Presets (1-Click Test)</span>
+              <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
             </label>
-            <span className="text-[0.625rem] text-[var(--text-muted)]">No microphone required</span>
+            <span className="text-[0.675rem] text-slate-400">No mic required</span>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {SAMPLE_UTTERANCES.map((sample, idx) => (
               <div
                 key={idx}
-                className="p-2 rounded-md bg-[var(--bg-surface-elevated)] border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                className="p-3 rounded-xl bg-slate-950/80 border border-white/10 hover:border-white/20 flex flex-col justify-between gap-2 transition"
               >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[0.625rem] font-bold px-1.5 py-0.2 rounded bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-main)]">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[0.65rem] font-extrabold uppercase px-2 py-0.5 rounded-md bg-slate-800 text-slate-200 border border-white/10">
                       {sample.tag}
                     </span>
                   </div>
-                  <div className="text-[0.7rem] text-[var(--text-main)] truncate">
+                  <div className="text-[0.725rem] font-medium text-slate-200 line-clamp-2">
                     &quot;{sample.gu}&quot;
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1.5 pt-1">
                   <button
                     type="button"
                     onClick={() => handlePlaySamplePreset(sample, 'gu')}
-                    className="px-2.5 py-1 rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--text-main)] text-[0.65rem] font-semibold text-amber-800 flex items-center gap-1"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-[0.6875rem] font-bold text-amber-300 flex items-center justify-center gap-1 transition cursor-pointer"
                   >
-                    <Volume2 className="w-3 h-3 text-amber-600" />
-                    <span>Speak (Gujarati)</span>
+                    <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Gujarati Voice</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handlePlaySamplePreset(sample, 'en')}
-                    className="px-2.5 py-1 rounded border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--text-main)] text-[0.65rem] font-semibold text-sky-800 flex items-center gap-1"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-[0.6875rem] font-bold text-sky-300 flex items-center justify-center gap-1 transition cursor-pointer"
                   >
-                    <Volume2 className="w-3 h-3 text-sky-600" />
-                    <span>Speak (English)</span>
+                    <Volume2 className="w-3.5 h-3.5 text-sky-400" />
+                    <span>English Voice</span>
                   </button>
                 </div>
               </div>
@@ -1216,12 +1424,12 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
         </div>
       </div>
 
-      {/* Drawer Sticky Footer */}
-      <div className="sticky bottom-0 bg-[var(--bg-surface)] border-t border-[var(--border)] p-4 flex items-center justify-between gap-3">
+      {/* STICKY FOOTER (APPLE DESIGN SYSTEM) */}
+      <div className="sticky bottom-0 bg-slate-950/90 backdrop-blur-xl border-t border-white/10 p-4 flex items-center justify-between gap-3 z-50">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-xs font-semibold text-[var(--text-main)] transition"
+          className="px-5 py-2.5 rounded-xl border border-white/15 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-200 transition cursor-pointer"
         >
           Cancel
         </button>
@@ -1231,36 +1439,36 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
             <button
               type="button"
               onClick={() => handlePlaySamplePreset(SAMPLE_UTTERANCES[0], 'gu')}
-              className="px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-xs font-semibold text-[var(--text-main)] flex items-center gap-1.5"
+              className="px-5 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-xs font-bold text-amber-300 flex items-center gap-2 transition cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Fill Sample Lot</span>
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Test Sample Lot</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handleSaveToDatabase}
               disabled={isSaving || !isAllRequiredPresent}
-              className={`px-5 py-2 rounded-md text-xs font-bold flex items-center gap-2 transition active:scale-95 shadow-sm ${
+              className={`px-6 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition transform active:scale-95 shadow-lg cursor-pointer ${
                 isAllRequiredPresent
-                  ? 'bg-[var(--text-main)] text-[var(--bg-surface)] hover:opacity-90'
-                  : 'bg-[var(--border)] text-[var(--text-muted)] cursor-not-allowed opacity-60'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 hover:opacity-90 shadow-emerald-500/25'
+                  : 'bg-slate-800 text-slate-500 border border-white/10 cursor-not-allowed opacity-60'
               }`}
             >
               {isSaving ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
                   <span>Saving to ETMS...</span>
                 </>
               ) : isAllRequiredPresent ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <Check className="w-4 h-4 text-slate-950" />
                   <span>Save {currentEntityDef?.title} into ETMS</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4 text-slate-950" />
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
                   <span>Complete Required Fields to Save</span>
                 </>
               )}
