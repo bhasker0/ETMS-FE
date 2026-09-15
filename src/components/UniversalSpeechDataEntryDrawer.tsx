@@ -21,15 +21,18 @@ import {
   Info,
   CheckCircle2,
   RotateCcw,
+  Plus,
 } from 'lucide-react';
 import { Drawer } from '@/components/ui/drawer';
 import { useI18n } from '@/lib/i18n';
 import { toast } from 'sonner';
+import { useAppDrawer } from '@/lib/app-drawer-context';
 
-// APIs for direct creation
-import { InwardChallansApi } from '@/lib/api/challans';
-import { KarigarsApi, WageType } from '@/lib/api/karigars';
-import { PartiesApi } from '@/lib/api/parties';
+// APIs for direct creation & verification
+import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
+import { KarigarsApi, KarigarApiItem, WageType } from '@/lib/api/karigars';
+import { PartiesApi, PartyApiItem } from '@/lib/api/parties';
+import { MachinesApi, MachineApiItem } from '@/lib/api/machines';
 import { ExpensesApi, ExpenseCategory } from '@/lib/api/expenses';
 import { PurchasesApi } from '@/lib/api/purchases';
 import { ShiftLogsApi, ShiftType } from '@/lib/api/shift-logs';
@@ -336,6 +339,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
   onSuccess,
 }) => {
   const { t } = useI18n();
+  const { openDrawer } = useAppDrawer();
 
   const [activeLanguage, setActiveLanguage] = useState<'auto' | 'gu-IN' | 'hi-IN' | 'en-IN' | 'mr-IN' | 'ta-IN' | 'te-IN' | 'kn-IN' | 'bn-IN' | 'pa-IN' | 'ur-IN'>('auto');
   const [detectedLanguageLabel, setDetectedLanguageLabel] = useState<string>('Auto (All Regional Embroidery Hubs)');
@@ -347,6 +351,64 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
   const [detectedType, setDetectedType] = useState<DetectedEntityType | null>(null);
   const [englishSummary, setEnglishSummary] = useState('');
   const [parsedFields, setParsedFields] = useState<Record<string, string | number>>({});
+
+  // Real-time DB master lists state
+  const [dbParties, setDbParties] = useState<PartyApiItem[]>([]);
+  const [dbKarigars, setDbKarigars] = useState<KarigarApiItem[]>([]);
+  const [dbMachines, setDbMachines] = useState<MachineApiItem[]>([]);
+  const [dbChallans, setDbChallans] = useState<InwardChallanApiItem[]>([]);
+
+  // Verification state for linked master entity
+  const [verificationState, setVerificationState] = useState<{
+    entityType?: 'party' | 'karigar' | 'machine' | 'challan' | 'supplier';
+    status: 'CONFIRMED' | 'NOT_FOUND' | 'MISSING';
+    spokenName?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    matchedRecord?: any;
+  }>({ status: 'MISSING' });
+
+  // Load live DB master lists when drawer opens
+  useEffect(() => {
+    if (isOpen) {
+      PartiesApi.getAll().then(setDbParties).catch(() => {});
+      KarigarsApi.getAll().then(setDbKarigars).catch(() => {});
+      MachinesApi.getAll().then(setDbMachines).catch(() => {});
+      InwardChallansApi.getAll().then(setDbChallans).catch(() => {});
+    }
+  }, [isOpen]);
+
+  // Fuzzy Lookup Helpers for Real-time Entity Resolution
+  const findMatchingParty = (spokenName: string): PartyApiItem | null => {
+    if (!spokenName || !spokenName.trim()) return null;
+    const target = spokenName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return (
+      dbParties.find((p) => {
+        const pName = p.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return pName.includes(target) || target.includes(pName);
+      }) || null
+    );
+  };
+
+  const findMatchingKarigar = (spokenName: string): KarigarApiItem | null => {
+    if (!spokenName || !spokenName.trim()) return null;
+    const target = spokenName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return (
+      dbKarigars.find((k) => {
+        const kName = k.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return kName.includes(target) || target.includes(kName);
+      }) || null
+    );
+  };
+
+  const findMatchingMachine = (spokenName: string): MachineApiItem | null => {
+    if (!spokenName || !spokenName.trim()) return null;
+    const numMatch = spokenName.match(/\d+/);
+    if (numMatch) {
+      const num = numMatch[0];
+      return dbMachines.find((m) => m.machine_no.includes(num)) || null;
+    }
+    return null;
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
@@ -649,7 +711,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
     return 'challan';
   };
 
-  // 2. Extract Fields & Produce English Structured Breakdown
+  // 2. Extract Fields & Produce English Structured Breakdown (Pure Dynamic Extraction + DB Resolution)
   const processSpokenInput = (text: string) => {
     if (!text.trim()) return;
 
@@ -685,100 +747,187 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       switch (type) {
         case 'challan': {
           const lotMatch = text.match(/(?:લોટ|lot|no|નંબર)\s*[:#-]?\s*(\w+)/i);
-          extracted.lot_no = lotMatch ? `LOT-${lotMatch[1].toUpperCase().replace(/^LOT-/, '')}` : numbers[0] ? `LOT-${numbers[0]}` : 'LOT-9140';
+          extracted.lot_no = lotMatch ? `LOT-${lotMatch[1].toUpperCase().replace(/^LOT-/, '')}` : (numbers[0] && numbers[0] < 100000 ? `LOT-${numbers[0]}` : '');
           
           const meterMatch = cleanText.match(/(\d+)\s*(?:મીટર|મી|meter|m)/i);
-          extracted.inward_meters = meterMatch ? Number(meterMatch[1]) : numbers.find((n) => n >= 500 && n <= 10000) || 1850;
+          extracted.inward_meters = meterMatch ? Number(meterMatch[1]) : (numbers.find((n) => n >= 50 && n <= 10000) || '');
 
           const takaMatch = cleanText.match(/(\d+)\s*(?:તાકા|તાન|ટાકા|taka|rolls|pcs)/i);
-          extracted.than_count = takaMatch ? Number(takaMatch[1]) : numbers.find((n) => n > 0 && n <= 100) || 18;
+          extracted.than_count = takaMatch ? Number(takaMatch[1]) : (numbers.find((n) => n > 0 && n <= 100) || '');
 
           if (lower.includes('georgette') || lower.includes('જ્યોર્જેટ')) extracted.fabric_quality = 'Pure Georgette 60g';
           else if (lower.includes('crepe') || lower.includes('ક્રેપ')) extracted.fabric_quality = 'Crepe Silk';
           else if (lower.includes('organza') || lower.includes('ઓર્ગેન્ઝા')) extracted.fabric_quality = 'Organza Tissue';
-          else extracted.fabric_quality = 'Pure Georgette 60g';
+          else extracted.fabric_quality = '';
 
           const rateMatch = text.match(/(?:ભાવ|rate|પૈસા)\s*[:#-]?\s*(\d+(?:\.\d+)?)/i);
-          extracted.jobwork_price_per_1k = rateMatch ? Number(rateMatch[1]) : 0.40;
+          extracted.jobwork_price_per_1k = rateMatch ? Number(rateMatch[1]) : '';
 
-          if (lower.includes('રાધે') || lower.includes('radhe')) extracted.trader_name = 'Shri Radhe Krishna Textiles';
-          else if (lower.includes('રામ') || lower.includes('ram')) extracted.trader_name = 'Shree Ram Fabrics';
-          else if (lower.includes('સુરત') || lower.includes('surat')) extracted.trader_name = 'Surat Silk Prints';
-          else extracted.trader_name = 'Shri Radhe Krishna Textiles';
+          let spokenPartyName = '';
+          if (lower.includes('રાધે') || lower.includes('radhe')) spokenPartyName = 'Radhe Krishna';
+          else if (lower.includes('રામ') || lower.includes('ram')) spokenPartyName = 'Shree Ram';
+          else if (lower.includes('સુરત') || lower.includes('surat')) spokenPartyName = 'Surat Silk Prints';
+
+          const matchedParty = findMatchingParty(spokenPartyName);
+          if (matchedParty) {
+            extracted.trader_name = matchedParty.name;
+            extracted.trader_gstin = matchedParty.gstin || '';
+            extracted.party_id = matchedParty.id;
+            setVerificationState({
+              entityType: 'party',
+              status: 'CONFIRMED',
+              spokenName: spokenPartyName || matchedParty.name,
+              matchedRecord: matchedParty,
+            });
+          } else if (spokenPartyName) {
+            extracted.trader_name = spokenPartyName;
+            extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '';
+            setVerificationState({
+              entityType: 'party',
+              status: 'NOT_FOUND',
+              spokenName: spokenPartyName,
+            });
+          } else {
+            extracted.trader_name = '';
+            extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '';
+            setVerificationState({
+              entityType: 'party',
+              status: 'MISSING',
+            });
+          }
 
           const challanNoMatch = text.match(/(?:challan|ચલણ)\s*(?:no|નંબર)?\s*[:#-]?\s*(\w+)/i);
-          extracted.challan_no = challanNoMatch ? challanNoMatch[1].toUpperCase() : `CH-2026-${Math.floor(100 + Math.random() * 900)}`;
+          extracted.challan_no = challanNoMatch ? challanNoMatch[1].toUpperCase() : '';
           extracted.challan_date = new Date().toISOString().split('T')[0];
-          extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS9988Z1Z9';
-          
+
           const designMatch = text.match(/(?:ડિઝાઇન|design|dsn)\s*[:#-]?\s*(\w+)/i);
-          extracted.design_no = designMatch ? `DSN-${designMatch[1].replace(/^DSN-/, '')}` : 'DSN-104';
-          
+          extracted.design_no = designMatch ? `DSN-${designMatch[1].replace(/^DSN-/, '')}` : '';
+
           const stitchMatch = cleanText.match(/(\d+)\s*(?:ટાંકા|સ્ટીચ|stitches|st)/i);
-          extracted.stitch_count = stitchMatch ? Number(stitchMatch[1]) : numbers.find((n) => n >= 10000) || 185000;
-          
-          extracted.karigar_commission_rate = 0.05;
+          extracted.stitch_count = stitchMatch ? Number(stitchMatch[1]) : (numbers.find((n) => n >= 10000) || '');
+
+          extracted.karigar_commission_rate = '';
           extracted.karigar_commission_type = 'PER_1K_STITCHES';
           extracted.status = 'RECEIVED';
-          extracted.notes = `Voice recorded lot entry: ${text}`;
+          extracted.notes = text;
 
-          summary = `Recorded Inward Grey Fabric Lot #${extracted.lot_no} of ${extracted.inward_meters} meters (${extracted.than_count} Taka) in ${extracted.fabric_quality} for trader "${extracted.trader_name}" at ₹${extracted.jobwork_price_per_1k} jobwork rate.`;
+          summary = `Recorded Inward Grey Fabric Lot ${extracted.lot_no ? '#' + extracted.lot_no : ''} ${extracted.inward_meters ? extracted.inward_meters + 'm' : ''} for trader "${extracted.trader_name || 'Unspecified'}".`;
           break;
         }
 
         case 'shift': {
           const machineMatch = text.match(/(?:મશીન|machine|m\/?c)\s*[:#-]?\s*(\d+)/i);
-          extracted.machine_no = machineMatch ? `Machine #0${machineMatch[1]}` : 'Machine #02';
+          const spokenMachineNo = machineMatch ? machineMatch[1] : '';
+          extracted.machine_no = spokenMachineNo ? `Machine #0${spokenMachineNo}` : '';
+
+          const matchedMachine = findMatchingMachine(spokenMachineNo);
+          if (matchedMachine) {
+            extracted.machine_id = matchedMachine.id;
+            extracted.machine_no = matchedMachine.machine_no;
+          }
 
           if (lower.includes('નાઈટ') || lower.includes('night') || lower.includes('રાત')) {
             extracted.shift_type = 'NIGHT';
+          } else if (lower.includes('ડે') || lower.includes('day') || lower.includes('દિવસ')) {
+            extracted.shift_type = 'DAY';
           } else {
             extracted.shift_type = 'DAY';
           }
 
           const designMatch = text.match(/(?:ડિઝાઇન|design|dsn)\s*[:#-]?\s*(\w+)/i);
-          extracted.design_no = designMatch ? `DSN-${designMatch[1].replace(/^DSN-/, '')}` : 'DSN-104';
+          extracted.design_no = designMatch ? `DSN-${designMatch[1].replace(/^DSN-/, '')}` : '';
 
           const stitchMatch = cleanText.match(/(\d+)\s*(?:ટાંકા|સ્ટીચ|stitches|st)/i);
-          extracted.stitches_count = stitchMatch ? Number(stitchMatch[1]) : numbers.find((n) => n >= 10000) || 185000;
+          extracted.stitches_count = stitchMatch ? Number(stitchMatch[1]) : (numbers.find((n) => n >= 10000) || '');
 
-          if (lower.includes('મુકેશ') || lower.includes('mukesh')) extracted.operator_name = 'Mukesh Solanki';
-          else if (lower.includes('સુરેશ') || lower.includes('suresh')) extracted.operator_name = 'Suresh Patel';
-          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) extracted.operator_name = 'Dinesh Yadav';
-          else extracted.operator_name = 'Mukesh Solanki';
+          let spokenOp = '';
+          if (lower.includes('મુકેશ') || lower.includes('mukesh')) spokenOp = 'Mukesh Solanki';
+          else if (lower.includes('સુરેશ') || lower.includes('suresh')) spokenOp = 'Suresh Patel';
+          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) spokenOp = 'Dinesh Yadav';
+          else if (lower.includes('રમેશ') || lower.includes('ramesh')) spokenOp = 'Ramesh Patel';
 
-          extracted.meter_count = numbers.find((n) => n > 50 && n < 1000) || 160;
+          const matchedKarigar = findMatchingKarigar(spokenOp);
+          if (matchedKarigar) {
+            extracted.operator_name = matchedKarigar.name;
+            extracted.karigar_id = matchedKarigar.id;
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'CONFIRMED',
+              spokenName: spokenOp || matchedKarigar.name,
+              matchedRecord: matchedKarigar,
+            });
+          } else if (spokenOp) {
+            extracted.operator_name = spokenOp;
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'NOT_FOUND',
+              spokenName: spokenOp,
+            });
+          } else {
+            extracted.operator_name = '';
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'MISSING',
+            });
+          }
 
+          extracted.meter_count = numbers.find((n) => n > 10 && n < 2000) || '';
           extracted.shift_date = new Date().toISOString().split('T')[0];
-          extracted.start_counter = 0;
-          extracted.end_counter = extracted.stitches_count;
-          extracted.inward_challan_id = `challan-${Math.floor(1000 + Math.random() * 9000)}`;
-          extracted.downtime_minutes = numbers.find((n) => n > 0 && n <= 120) || 15;
-          extracted.downtime_reason = lower.includes('oil') ? 'Oil & Cleaning Check' : lower.includes('thread') ? 'Thread Breakage Maintenance' : 'Scheduled Machine Inspection';
+          extracted.start_counter = '';
+          extracted.end_counter = extracted.stitches_count || '';
+          extracted.inward_challan_id = '';
+          extracted.downtime_minutes = numbers.find((n) => n > 0 && n <= 120) || '';
+          extracted.downtime_reason = '';
 
-          summary = `Logged ${extracted.shift_type} shift on ${extracted.machine_no} operated by ${extracted.operator_name}. Total stitches produced: ${extracted.stitches_count} on Design #${extracted.design_no} (${extracted.meter_count}m produced).`;
+          summary = `Logged ${extracted.shift_type} shift on ${extracted.machine_no || 'Unassigned Machine'} operated by ${extracted.operator_name || 'Unassigned Operator'}. Total stitches: ${extracted.stitches_count || 0}.`;
           break;
         }
 
         case 'uchapat': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 100) || 2500;
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 100) || '');
 
-          if (lower.includes('મુકેશ') || lower.includes('mukesh')) extracted.karigar_name = 'Mukesh Solanki';
-          else if (lower.includes('રમેશ') || lower.includes('ramesh')) extracted.karigar_name = 'Ramesh Patel';
-          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) extracted.karigar_name = 'Dinesh Yadav';
-          else extracted.karigar_name = 'Ramesh Patel';
+          let spokenKarigar = '';
+          if (lower.includes('મુકેશ') || lower.includes('mukesh')) spokenKarigar = 'Mukesh Solanki';
+          else if (lower.includes('રમેશ') || lower.includes('ramesh')) spokenKarigar = 'Ramesh Patel';
+          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) spokenKarigar = 'Dinesh Yadav';
+          else if (lower.includes('સુરેશ') || lower.includes('suresh')) spokenKarigar = 'Suresh Patel';
+
+          const matchedK = findMatchingKarigar(spokenKarigar);
+          if (matchedK) {
+            extracted.karigar_name = matchedK.name;
+            extracted.karigar_id = matchedK.id;
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'CONFIRMED',
+              spokenName: spokenKarigar || matchedK.name,
+              matchedRecord: matchedK,
+            });
+          } else if (spokenKarigar) {
+            extracted.karigar_name = spokenKarigar;
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'NOT_FOUND',
+              spokenName: spokenKarigar,
+            });
+          } else {
+            extracted.karigar_name = '';
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'MISSING',
+            });
+          }
 
           extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('ઓનલાઇન') ? 'UPI' : 'CASH';
-          extracted.remarks = 'Weekly family grocery advance (Voice Entry)';
+          extracted.remarks = text;
           extracted.date = new Date().toISOString().split('T')[0];
           extracted.is_settled = 'false';
 
-          summary = `Issued wage advance (Uchapat) of ₹${extracted.amount} to worker ${extracted.karigar_name} via ${extracted.payment_mode}.`;
+          summary = `Issued wage advance (Uchapat) of ₹${extracted.amount || 0} to worker ${extracted.karigar_name || 'Unspecified Worker'} via ${extracted.payment_mode}.`;
           break;
         }
 
         case 'expense': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 100) || 1450;
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 100) || '');
 
           if (lower.includes('ઓઈલ') || lower.includes('oil')) {
             extracted.title = 'Machine Lubricant Oil 5L';
@@ -790,99 +939,177 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
             extracted.title = 'Shift Factory Refreshments';
             extracted.expense_type = 'FACTORY_REFRESHMENTS';
           } else {
-            extracted.title = 'Factory Operational Consumables';
+            extracted.title = text.length > 5 ? text : '';
             extracted.expense_type = 'CONSUMABLES';
           }
 
-          extracted.payee_name = lower.includes('સચીન') || lower.includes('sachin') ? 'Standard Mill Spares, Sachin GIDC' : 'Standard Factory Spares Surat';
-          extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('online') ? 'UPI' : 'CASH';
+          let spokenPayee = '';
+          if (lower.includes('સચીન') || lower.includes('sachin')) spokenPayee = 'Standard Mill Spares, Sachin GIDC';
+          else if (lower.includes('સ્પેર') || lower.includes('spares')) spokenPayee = 'Standard Factory Spares Surat';
 
+          extracted.payee_name = spokenPayee;
+          extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('online') ? 'UPI' : 'CASH';
           extracted.category = lower.includes('indirect') ? 'INDIRECT' : 'DIRECT';
           extracted.expense_date = new Date().toISOString().split('T')[0];
-          extracted.reference_no = `REF-${Math.floor(1000 + Math.random() * 9000)}`;
+          extracted.reference_no = '';
           extracted.is_gst_applicable = gstMatch || lower.includes('gst') ? 'true' : 'false';
-          extracted.gst_amount = lower.includes('gst') ? Math.round(Number(extracted.amount) * 0.18) : 0;
-          extracted.description = `Spoken voucher: ${text}`;
+          extracted.gst_amount = lower.includes('gst') && extracted.amount ? Math.round(Number(extracted.amount) * 0.18) : '';
+          extracted.description = text;
 
-          summary = `Recorded expense voucher of ₹${extracted.amount} for "${extracted.title}" paid to ${extracted.payee_name} via ${extracted.payment_mode}.`;
+          summary = `Recorded expense voucher of ₹${extracted.amount || 0} for "${extracted.title || 'General Expense'}" paid to ${extracted.payee_name || 'Unspecified Payee'}.`;
           break;
         }
 
         case 'karigar': {
-          if (lower.includes('મુકેશ') || lower.includes('mukesh')) extracted.name = 'Mukesh Solanki';
-          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) extracted.name = 'Dinesh Yadav';
-          else if (lower.includes('રમેશ') || lower.includes('ramesh')) extracted.name = 'Ramesh Patel';
-          else extracted.name = 'Mukesh Solanki';
+          let spokenName = '';
+          if (lower.includes('મુકેશ') || lower.includes('mukesh')) spokenName = 'Mukesh Solanki';
+          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) spokenName = 'Dinesh Yadav';
+          else if (lower.includes('રમેશ') || lower.includes('ramesh')) spokenName = 'Ramesh Patel';
+          else if (lower.includes('સુરેશ') || lower.includes('suresh')) spokenName = 'Suresh Patel';
+
+          extracted.name = spokenName;
+          const existingK = findMatchingKarigar(spokenName);
+          if (existingK) {
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'CONFIRMED',
+              spokenName,
+              matchedRecord: existingK,
+            });
+          } else if (spokenName) {
+            setVerificationState({
+              entityType: 'karigar',
+              status: 'NOT_FOUND',
+              spokenName,
+            });
+          }
 
           if (lower.includes('માસ્ટર') || lower.includes('master')) extracted.role = 'Master Operator';
           else if (lower.includes('કટર') || lower.includes('helper') || lower.includes('હેલ્પર')) extracted.role = 'Thread Cutter Helper';
-          else extracted.role = 'Embroidery Operator';
+          else if (lower.includes('ઓપરેટર') || lower.includes('operator')) extracted.role = 'Embroidery Operator';
+          else extracted.role = '';
 
-          extracted.mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825144556';
-          extracted.rate_per_1000_stitches = numbers.find((n) => n < 5 && n > 0) || 0.42;
-          extracted.machine_assignment = 'Machine #02';
-
+          extracted.mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '';
+          extracted.rate_per_1000_stitches = numbers.find((n) => n < 5 && n > 0) || '';
+          extracted.machine_assignment = '';
           extracted.wage_type = lower.includes('fixed') || lower.includes('monthly') ? 'FIXED_MONTHLY' : 'PIECE_RATE';
-          extracted.default_monthly_salary = 18000;
-          extracted.incentive_threshold_value = 200000;
+          extracted.default_monthly_salary = '';
+          extracted.incentive_threshold_value = '';
           extracted.incentive_threshold_type = 'STITCHES';
-          extracted.incentive_rate = 0.05;
+          extracted.incentive_rate = '';
           extracted.incentive_rate_type = 'PER_1K_STITCHES';
           extracted.is_active = 'true';
 
-          summary = `Registered new Karigar profile: ${extracted.name} (${extracted.role}) with mobile ${extracted.mobile} at stitch rate ₹${extracted.rate_per_1000_stitches}/1k stitches on ${extracted.machine_assignment}.`;
+          summary = `Registered Karigar profile: ${extracted.name || 'Unspecified Worker'} (${extracted.role || 'Operator'}) with mobile ${extracted.mobile || 'N/A'}.`;
           break;
         }
 
         case 'party': {
-          extracted.name = lower.includes('સુરત') ? 'Surat Silk Prints' : 'Shree Ram Fabrics';
-          extracted.gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS9988Z1Z9';
-          extracted.city = 'Surat';
-          extracted.contact_person = 'Kishore Bhai';
-          extracted.mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825088776';
+          let spokenParty = '';
+          if (lower.includes('સુરત') || lower.includes('surat')) spokenParty = 'Surat Silk Prints';
+          else if (lower.includes('રાધે') || lower.includes('radhe')) spokenParty = 'Shri Radhe Krishna Textiles';
+          else if (lower.includes('રામ') || lower.includes('ram')) spokenParty = 'Shree Ram Fabrics';
 
-          extracted.email = `info@${String(extracted.name).toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
-          extracted.address = 'Ring Road Textile Market, Surat';
+          const matchedParty = findMatchingParty(spokenParty);
+          if (matchedParty) {
+            extracted.name = matchedParty.name;
+            extracted.gstin = matchedParty.gstin || '';
+            extracted.city = matchedParty.city || 'Surat';
+            setVerificationState({
+              entityType: 'party',
+              status: 'CONFIRMED',
+              spokenName: spokenParty || matchedParty.name,
+              matchedRecord: matchedParty,
+            });
+          } else if (spokenParty) {
+            extracted.name = spokenParty;
+            extracted.gstin = gstMatch ? gstMatch[0].toUpperCase() : '';
+            extracted.city = 'Surat';
+            setVerificationState({
+              entityType: 'party',
+              status: 'NOT_FOUND',
+              spokenName: spokenParty,
+            });
+          } else {
+            extracted.name = '';
+            extracted.gstin = gstMatch ? gstMatch[0].toUpperCase() : '';
+            extracted.city = 'Surat';
+            setVerificationState({
+              entityType: 'party',
+              status: 'MISSING',
+            });
+          }
+
+          extracted.contact_person = '';
+          extracted.mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '';
+          extracted.email = '';
+          extracted.address = '';
           extracted.state_code = '24';
           extracted.credit_period_days = 30;
           extracted.opening_balance = 0;
           extracted.is_active = 'true';
 
-          summary = `Registered textile party profile "${extracted.name}" located in ${extracted.city} (GSTIN: ${extracted.gstin}, Contact: ${extracted.contact_person} ${extracted.mobile}).`;
+          summary = `Registered Party profile: "${extracted.name || 'Unspecified Party'}" (GSTIN: ${extracted.gstin || 'N/A'}).`;
           break;
         }
 
         case 'purchase': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 500) || 8500;
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 500) || '');
+
+          let spokenSupplier = '';
           if (lower.includes('shrihari') || lower.includes('શ્રીહરિ') || lower.includes('shree hari') || lower.includes('શ્રી હરિ')) {
-            extracted.supplier_name = 'Shrihari Threads & Cones';
+            spokenSupplier = 'Shrihari Threads & Cones';
+          }
+
+          const matchedSupplier = findMatchingParty(spokenSupplier);
+          if (matchedSupplier) {
+            extracted.supplier_name = matchedSupplier.name;
+            extracted.supplier_gstin = matchedSupplier.gstin || '';
+            setVerificationState({
+              entityType: 'supplier',
+              status: 'CONFIRMED',
+              spokenName: spokenSupplier || matchedSupplier.name,
+              matchedRecord: matchedSupplier,
+            });
+          } else if (spokenSupplier) {
+            extracted.supplier_name = spokenSupplier;
+            setVerificationState({
+              entityType: 'supplier',
+              status: 'NOT_FOUND',
+              spokenName: spokenSupplier,
+            });
           } else {
-            extracted.supplier_name = 'Shree Hari Threads & Cones';
+            extracted.supplier_name = spokenSupplier || '';
+            setVerificationState({
+              entityType: 'supplier',
+              status: 'MISSING',
+            });
           }
 
           if (lower.includes('bobbin') || lower.includes('બોબીન') || lower.includes('dora') || lower.includes('દોરા')) {
             extracted.item_name = '50 Bobbin Embroidery Dora / Filament Thread';
-          } else {
+          } else if (lower.includes('thread') || lower.includes('દોરા')) {
             extracted.item_name = 'Polyester Filament Embroidery Thread 120D/2';
+          } else {
+            extracted.item_name = '';
           }
 
-          extracted.quantity = numbers.find((n) => n > 0 && n <= 100) || 50;
+          extracted.quantity = numbers.find((n) => n > 0 && n <= 500) || '';
           extracted.payment_mode = (lower.includes('rokla') || lower.includes('rokda') || lower.includes('રોકડા') || lower.includes('રોકલા') || lower.includes('cash')) ? 'CASH' : (lower.includes('upi') || lower.includes('યુપીઆઈ')) ? 'UPI' : 'CASH';
-
-          extracted.supplier_gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS1122K1Z5';
-          extracted.supplier_phone = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825122334';
-          extracted.invoice_no = `INV-PUR-${Math.floor(100 + Math.random() * 900)}`;
+          extracted.supplier_gstin = gstMatch ? gstMatch[0].toUpperCase() : '';
+          extracted.supplier_phone = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '';
+          extracted.invoice_no = '';
           extracted.invoice_date = new Date().toISOString().split('T')[0];
           extracted.category = 'YARN_THREAD';
           extracted.payment_status = 'PAID';
           extracted.unit = 'CONES';
-          extracted.rate = Math.round(Number(extracted.amount) / Number(extracted.quantity || 1));
-          extracted.subtotal = extracted.amount;
-          extracted.gst_amount = lower.includes('gst') ? Math.round(Number(extracted.amount) * 0.05) : 0;
-          extracted.paid_amount = extracted.amount;
-          extracted.notes = `Voice recorded purchase: ${text}`;
+          extracted.rate = (extracted.amount && extracted.quantity) ? Math.round(Number(extracted.amount) / Number(extracted.quantity)) : '';
+          extracted.subtotal = extracted.amount || '';
+          extracted.gst_amount = lower.includes('gst') && extracted.amount ? Math.round(Number(extracted.amount) * 0.05) : '';
+          extracted.paid_amount = extracted.amount || '';
+          extracted.notes = text;
 
-          summary = `Logged material purchase of ${extracted.quantity} bobbins of ${extracted.item_name} from ${extracted.supplier_name} for ₹${extracted.amount} (${extracted.payment_mode}).`;
+          summary = `Logged material purchase from ${extracted.supplier_name || 'Unspecified Vendor'} for ₹${extracted.amount || 0}.`;
           break;
         }
 
@@ -900,38 +1127,59 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
             extracted.rate_per_1000 = rate;
             extracted.amount = Math.round(qty * rate * 100) / 100;
           } else {
-            extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 1000) || 18500;
-            extracted.inward_meters = 1850;
-            extracted.outward_meters = 1800;
-            extracted.rate_per_1000 = 0.40;
+            extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 1000) || '');
+            extracted.inward_meters = qty || '';
+            extracted.outward_meters = '';
+            extracted.rate_per_1000 = rate || '';
           }
 
-          if (lower.includes('રાધે') || lower.includes('radha') || lower.includes('radhe')) {
-            extracted.party_name = 'Shri Radhe Krishna Textiles';
-          } else if (lower.includes('રામ') || lower.includes('ram')) {
-            extracted.party_name = 'Shree Ram Fabrics';
-          } else if (lower.includes('સુરત') || lower.includes('surat')) {
-            extracted.party_name = 'Surat Silk Prints';
+          let spokenParty = '';
+          if (lower.includes('રાધે') || lower.includes('radha') || lower.includes('radhe')) spokenParty = 'Shri Radhe Krishna Textiles';
+          else if (lower.includes('રામ') || lower.includes('ram')) spokenParty = 'Shree Ram Fabrics';
+          else if (lower.includes('સુરત') || lower.includes('surat')) spokenParty = 'Surat Silk Prints';
+
+          const matchedParty = findMatchingParty(spokenParty);
+          if (matchedParty) {
+            extracted.party_name = matchedParty.name;
+            extracted.trader_gstin = matchedParty.gstin || '';
+            setVerificationState({
+              entityType: 'party',
+              status: 'CONFIRMED',
+              spokenName: spokenParty || matchedParty.name,
+              matchedRecord: matchedParty,
+            });
+          } else if (spokenParty) {
+            extracted.party_name = spokenParty;
+            extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '';
+            setVerificationState({
+              entityType: 'party',
+              status: 'NOT_FOUND',
+              spokenName: spokenParty,
+            });
           } else {
-            extracted.party_name = 'Shri Radhe Krishna Textiles';
+            extracted.party_name = '';
+            extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '';
+            setVerificationState({
+              entityType: 'party',
+              status: 'MISSING',
+            });
           }
 
-          extracted.invoice_no = `INV-2026-${Math.floor(100 + Math.random() * 900)}`;
+          extracted.invoice_no = '';
           extracted.invoice_date = new Date().toISOString().split('T')[0];
-          extracted.trader_gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS9988Z1Z9';
-          extracted.trader_mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825088776';
+          extracted.trader_mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '';
           extracted.sac_code = '9988';
-          extracted.total_stitches = 185000;
+          extracted.total_stitches = numbers.find((n) => n >= 10000) || '';
           extracted.machine_heads = 12;
-          extracted.gross_amount = extracted.amount;
-          extracted.cgst_amount = Math.round(Number(extracted.amount) * 0.025 * 100) / 100;
-          extracted.sgst_amount = Math.round(Number(extracted.amount) * 0.025 * 100) / 100;
+          extracted.gross_amount = extracted.amount || '';
+          extracted.cgst_amount = extracted.amount ? Math.round(Number(extracted.amount) * 0.025 * 100) / 100 : '';
+          extracted.sgst_amount = extracted.amount ? Math.round(Number(extracted.amount) * 0.025 * 100) / 100 : '';
           extracted.igst_amount = 0;
           extracted.is_interstate = 'false';
           extracted.shrinkage_percent = 2.7;
-          extracted.notes = `SAC 9988 Outward jobwork invoice: ${text}`;
+          extracted.notes = text;
 
-          summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name} totaling ₹${extracted.amount}.`;
+          summary = `Created SAC 9988 Tax Invoice for ${extracted.party_name || 'Unspecified Party'} totaling ₹${extracted.amount || 0}.`;
           break;
         }
       }
@@ -940,6 +1188,27 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       setEnglishSummary(actionPrefix + summary);
       setIsProcessing(false);
       toast.success(`Auto-detected ${crudAction} intent for ${ENTITY_DEFINITIONS[type].title}!`);
+
+      // Speech synthesis voice prompt for missing required fields
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const entityDef = ENTITY_DEFINITIONS[type];
+        const missing = entityDef.requiredFields
+          .filter((req) => !extracted[req.key] || String(extracted[req.key]).trim() === '')
+          .map((f) => f.label);
+
+        if (missing.length > 0) {
+          try {
+            window.speechSynthesis.cancel();
+            const voiceMessage = `Captured ${entityDef.title}. Please speak or enter the following missing details: ${missing.join(', ')}.`;
+            const utterance = new SpeechSynthesisUtterance(voiceMessage);
+            utterance.lang = 'en-IN';
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+          } catch (_e) {
+            // ignore TTS error
+          }
+        }
+      }
     }, 500);
   };
 
@@ -1537,6 +1806,69 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
                 <div className="text-xs text-slate-200 font-semibold leading-relaxed">
                   {englishSummary}
                 </div>
+              </div>
+            )}
+
+            {/* Real-time DB Master Entity Confirmation & 1-Click Action Dock */}
+            {verificationState.status === 'CONFIRMED' && verificationState.matchedRecord && (
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 text-emerald-200 text-xs shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div>
+                    <div className="font-extrabold text-xs text-slate-100 flex items-center gap-1.5">
+                      <span>Confirmed Live DB Master Record:</span>
+                      <span className="text-emerald-300 underline font-mono">
+                        {verificationState.matchedRecord.name || verificationState.matchedRecord.machine_no}
+                      </span>
+                    </div>
+                    {verificationState.matchedRecord.gstin && (
+                      <div className="text-[0.6875rem] text-emerald-400/80 font-mono mt-0.5">
+                        GSTIN: {verificationState.matchedRecord.gstin} &bull; City: {verificationState.matchedRecord.city || 'Surat'}
+                      </div>
+                    )}
+                    {verificationState.matchedRecord.mobile && (
+                      <div className="text-[0.6875rem] text-emerald-400/80 font-mono mt-0.5">
+                        Phone: {verificationState.matchedRecord.mobile} &bull; Active Master Record
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <span className="text-[0.625rem] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
+                  Verified in DB
+                </span>
+              </div>
+            )}
+
+            {verificationState.status === 'NOT_FOUND' && verificationState.spokenName && (
+              <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-amber-500/10 border border-amber-500/35 flex flex-wrap items-center justify-between gap-3 text-amber-200 text-xs shadow-md">
+                <div className="flex items-center gap-2.5">
+                  <AlertTriangle className="w-4.5 h-4.5 text-amber-400 shrink-0 animate-pulse" />
+                  <div>
+                    <div className="font-extrabold text-xs text-amber-200">
+                      Master Record &quot;{verificationState.spokenName}&quot; not found in ETMS Database
+                    </div>
+                    <div className="text-[0.6875rem] text-amber-300/80 mt-0.5">
+                      You must register this {verificationState.entityType?.toUpperCase()} in master database before linking transaction records.
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (verificationState.entityType === 'party' || verificationState.entityType === 'supplier') {
+                      openDrawer('ADD_PARTY', { initialName: verificationState.spokenName });
+                    } else if (verificationState.entityType === 'karigar') {
+                      openDrawer('ADD_KARIGAR', { initialName: verificationState.spokenName });
+                    } else if (verificationState.entityType === 'machine') {
+                      openDrawer('ADD_MACHINE', { initialMachineNo: verificationState.spokenName });
+                    }
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-xs transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transform active:scale-95 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 text-slate-950" />
+                  <span>Create {verificationState.entityType?.toUpperCase()} First</span>
+                </button>
               </div>
             )}
 
