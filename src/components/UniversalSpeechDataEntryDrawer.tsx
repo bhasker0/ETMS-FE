@@ -481,6 +481,55 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
     return 'challan';
   };
 
+  // Extraction Helpers for Dynamic Voice Commands
+  const extractPhoneNumber = (inputText: string): string => {
+    const kwMatch = inputText.match(/(?:phone|mobile|mo|contact|cell|number|નંબર|મોબાઈલ|ફોન)\s*(?:number|no|#)?\s*[:=-]?\s*(\+?91[\s-]?)?([6-9][\d\s-]{8,14}\d)/i);
+    if (kwMatch) {
+      const digits = kwMatch[2].replace(/\D/g, '');
+      if (digits.length === 10) return digits;
+    }
+    const genericMatch = inputText.match(/(?:\+91[\s-]?)?\b([6-9](?:\s*\d){9})\b/);
+    if (genericMatch) {
+      const digits = genericMatch[1].replace(/\D/g, '');
+      if (digits.length === 10) return digits;
+    }
+    return '';
+  };
+
+  const extractGSTIN = (inputText: string): string => {
+    const match = inputText.match(/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}\b/i);
+    return match ? match[0].toUpperCase() : '';
+  };
+
+  const extractName = (inputText: string, prefixKeywords: string[]): string => {
+    const pattern = prefixKeywords.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    const regex = new RegExp(
+      `(?:${pattern})\\s*[:=-]?\\s*([A-Za-z\\u0A80-\\u0AFF\\s.'-]+?)(?=\\s*(?:phone|mobile|mo\\b|contact|cell|gst|gstin|city|location|shahar|bhav|rate|price|amount|bill|lot|machine|role|than|taka|meters|meter|stitches|st\\b|₹|\\+?\\d{4,}|$))`,
+      'i'
+    );
+    const match = inputText.match(regex);
+    if (match && match[1]?.trim()) {
+      const clean = match[1]
+        .trim()
+        .replace(/^(is|for|to|of|ne|maate|માટે|ને|નું|ની)\s+/i, '')
+        .replace(/[,.-]+$/, '')
+        .trim();
+      if (clean.length >= 2) return clean;
+    }
+    return '';
+  };
+
+  const extractCityName = (inputText: string): string => {
+    const match = inputText.match(/(?:city|location|shahar|market|ગામ|શહેર|માર્કેટ)\s*[:=-]?\s*([A-Za-z\u0A80-\u0AFF]+)/i);
+    if (match && match[1]) return match[1].trim();
+    const lower = inputText.toLowerCase();
+    const knownCities = ['surat', 'ahmedabad', 'mumbai', 'sachin', 'palsana', 'katargam', 'varachha', 'pandesara', 'bhatar', 'delhi', 'jaipur', 'kolkata'];
+    for (const c of knownCities) {
+      if (lower.includes(c)) return c.charAt(0).toUpperCase() + c.slice(1);
+    }
+    return '';
+  };
+
   // 2. Extract Fields & Produce English Structured Breakdown
   const processSpokenInput = (text: string) => {
     if (!text.trim()) return;
@@ -497,8 +546,6 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 
       // Common extractions with commas cleaned:
       const cleanText = text.replace(/,/g, '');
-      const phoneMatch = text.match(/(\+91[\s-]?)?([6-9]\d{4}[\s-]?\d{5})/);
-      const gstMatch = text.match(/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}\b/i);
       const numbers = (cleanText.match(/\b\d+(\.\d+)?\b/g) || []).map(Number);
       
       const explicitAmtMatch =
@@ -508,35 +555,50 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 
       switch (type) {
         case 'challan': {
-          const lotMatch = text.match(/(?:લોટ|lot|no|નંબર)\s*[:#-]?\s*(\w+)/i);
-          extracted.lot_no = lotMatch ? `LOT-${lotMatch[1].toUpperCase().replace(/^LOT-/, '')}` : numbers[0] ? `LOT-${numbers[0]}` : 'LOT-9140';
+          const lotMatch = text.match(/(?:લોટ|lot|challan|ચલણ)\s*(?:no|number|#)?\s*[:#-]?\s*([A-Za-z0-9-]+)/i);
+          extracted.lot_no = lotMatch
+            ? lotMatch[1].toUpperCase().startsWith('LOT-')
+              ? lotMatch[1].toUpperCase()
+              : `LOT-${lotMatch[1].toUpperCase()}`
+            : numbers[0]
+            ? `LOT-${numbers[0]}`
+            : '';
           
-          const meterMatch = cleanText.match(/(\d+)\s*(?:મીટર|મી|meter|m)/i);
-          extracted.inward_meters = meterMatch ? Number(meterMatch[1]) : numbers.find((n) => n >= 500 && n <= 10000) || 1850;
+          const meterMatch = cleanText.match(/(\d+(?:\.\d+)?)\s*(?:મીટર|મી|meter|meters|m\b)/i);
+          extracted.inward_meters = meterMatch ? Number(meterMatch[1]) : (numbers.find((n) => n >= 100 && n <= 50000) || '');
 
-          const takaMatch = cleanText.match(/(\d+)\s*(?:તાકા|તાન|ટાકા|taka|rolls|pcs)/i);
-          extracted.than_count = takaMatch ? Number(takaMatch[1]) : numbers.find((n) => n > 0 && n <= 100) || 18;
+          const takaMatch = cleanText.match(/(\d+)\s*(?:તાકા|તાન|ટાકા|taka|than|rolls|pcs)\b/i);
+          extracted.than_count = takaMatch ? Number(takaMatch[1]) : (numbers.find((n) => n > 0 && n <= 150) || '');
 
           if (lower.includes('georgette') || lower.includes('જ્યોર્જેટ')) extracted.fabric_quality = 'Pure Georgette 60g';
           else if (lower.includes('crepe') || lower.includes('ક્રેપ')) extracted.fabric_quality = 'Crepe Silk';
           else if (lower.includes('organza') || lower.includes('ઓર્ગેન્ઝા')) extracted.fabric_quality = 'Organza Tissue';
-          else extracted.fabric_quality = 'Pure Georgette 60g';
+          else if (lower.includes('viscose') || lower.includes('વિસ્કોસ')) extracted.fabric_quality = 'Viscose Chiffon';
+          else if (lower.includes('cotton') || lower.includes('કોટન')) extracted.fabric_quality = 'Cotton Satin';
+          else {
+            const fabricSpoken = extractName(text, ['quality', 'fabric', 'કાપડ', 'ગ્રે', 'કવોલિટી']);
+            extracted.fabric_quality = fabricSpoken || '';
+          }
 
-          const rateMatch = text.match(/(?:ભાવ|rate|પૈસા)\s*[:#-]?\s*(\d+(?:\.\d+)?)/i);
-          extracted.jobwork_price_per_1k = rateMatch ? Number(rateMatch[1]) : 0.40;
+          const rateMatch =
+            cleanText.match(/(?:ભાવ|rate|bhav|પૈસા)\s*[:#-]?\s*(\d+(?:\.\d+)?)/i) ||
+            cleanText.match(/(\d+(?:\.\d+)?)\s*(?:પૈસા|paisa)/i);
+          extracted.jobwork_price_per_1k = rateMatch
+            ? Number(rateMatch[1]) > 5
+              ? Number(rateMatch[1]) / 100
+              : Number(rateMatch[1])
+            : '';
 
-          if (lower.includes('રાધે') || lower.includes('radhe')) extracted.trader_name = 'Shri Radhe Krishna Textiles';
-          else if (lower.includes('રામ') || lower.includes('ram')) extracted.trader_name = 'Shree Ram Fabrics';
-          else if (lower.includes('સુરત') || lower.includes('surat')) extracted.trader_name = 'Surat Silk Prints';
-          else extracted.trader_name = 'Shri Radhe Krishna Textiles';
+          const traderSpoken = extractName(text, ['trader', 'party', 'for', 'client', 'maate', 'વેપારી', 'પાર્ટી', 'માટે']);
+          extracted.trader_name = traderSpoken || '';
 
-          summary = `Recorded Inward Grey Fabric Lot #${extracted.lot_no} of ${extracted.inward_meters} meters (${extracted.than_count} Taka) in ${extracted.fabric_quality} for trader "${extracted.trader_name}" at ₹${extracted.jobwork_price_per_1k} jobwork rate.`;
+          summary = `Recorded Inward Fabric Lot #${extracted.lot_no || '---'} of ${extracted.inward_meters || 0}m (${extracted.than_count || 0} Taka) in ${extracted.fabric_quality || 'fabric'} for "${extracted.trader_name || 'Party'}".`;
           break;
         }
 
         case 'shift': {
-          const machineMatch = text.match(/(?:મશીન|machine|m\/?c)\s*[:#-]?\s*(\d+)/i);
-          extracted.machine_no = machineMatch ? `Machine #0${machineMatch[1]}` : 'Machine #02';
+          const machineMatch = text.match(/(?:મશીન|machine|m\/?c)\s*(?:no|number|#)?\s*[:#-]?\s*(\d+)/i);
+          extracted.machine_no = machineMatch ? `Machine #${machineMatch[1].padStart(2, '0')}` : '';
 
           if (lower.includes('નાઈટ') || lower.includes('night') || lower.includes('રાત')) {
             extracted.shift_type = 'NIGHT';
@@ -544,119 +606,145 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
             extracted.shift_type = 'DAY';
           }
 
-          const designMatch = text.match(/(?:ડિઝાઇન|design|dsn)\s*[:#-]?\s*(\w+)/i);
-          extracted.design_no = designMatch ? `DSN-${designMatch[1].replace(/^DSN-/, '')}` : 'DSN-104';
+          const designMatch = text.match(/(?:ડિઝાઇન|design|dsn)\s*(?:no|#)?\s*[:#-]?\s*([A-Za-z0-9-]+)/i);
+          extracted.design_no = designMatch
+            ? designMatch[1].toUpperCase().startsWith('DSN-')
+              ? designMatch[1].toUpperCase()
+              : `DSN-${designMatch[1].toUpperCase()}`
+            : '';
 
-          const stitchMatch = cleanText.match(/(\d+)\s*(?:ટાંકા|સ્ટીચ|stitches|st)/i);
-          extracted.stitches_count = stitchMatch ? Number(stitchMatch[1]) : numbers.find((n) => n >= 10000) || 185000;
+          const stitchMatch = cleanText.match(/(\d+)\s*(?:ટાંકા|સ્ટીચ|stitches|st)\b/i);
+          extracted.stitches_count = stitchMatch ? Number(stitchMatch[1]) : (numbers.find((n) => n >= 5000) || '');
 
-          if (lower.includes('મુકેશ') || lower.includes('mukesh')) extracted.operator_name = 'Mukesh Solanki';
-          else if (lower.includes('સુરેશ') || lower.includes('suresh')) extracted.operator_name = 'Suresh Patel';
-          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) extracted.operator_name = 'Dinesh Yadav';
-          else extracted.operator_name = 'Mukesh Solanki';
+          const operatorSpoken = extractName(text, ['operator', 'karigar', 'worker', 'ઓપરેટર', 'કારીગર', 'ચલાવનાર']);
+          extracted.operator_name = operatorSpoken || '';
 
-          extracted.meter_count = numbers.find((n) => n > 50 && n < 1000) || 160;
+          const meterMatch = cleanText.match(/(\d+(?:\.\d+)?)\s*(?:મીટર|મી|meter|meters|m\b)/i);
+          extracted.meter_count = meterMatch ? Number(meterMatch[1]) : (numbers.find((n) => n > 10 && n < 1000) || '');
 
-          summary = `Logged ${extracted.shift_type} shift on ${extracted.machine_no} operated by ${extracted.operator_name}. Total stitches produced: ${extracted.stitches_count} on Design #${extracted.design_no} (${extracted.meter_count}m produced).`;
+          summary = `Logged ${extracted.shift_type} shift on ${extracted.machine_no || 'Machine'} by ${extracted.operator_name || 'Operator'} (${extracted.stitches_count || 0} stitches, ${extracted.meter_count || 0}m).`;
           break;
         }
 
         case 'uchapat': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 100) || 2500;
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 50) || '');
+          const karigarSpoken = extractName(text, ['to', 'ne', 'karigar', 'worker', 'કારીગર', 'ને']);
+          extracted.karigar_name = karigarSpoken || '';
+          extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('online') ? 'UPI' : 'CASH';
+          extracted.remarks = 'Wage advance (Voice Entry)';
 
-          if (lower.includes('મુકેશ') || lower.includes('mukesh')) extracted.karigar_name = 'Mukesh Solanki';
-          else if (lower.includes('રમેશ') || lower.includes('ramesh')) extracted.karigar_name = 'Ramesh Patel';
-          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) extracted.karigar_name = 'Dinesh Yadav';
-          else extracted.karigar_name = 'Ramesh Patel';
-
-          extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('ઓનલાઇન') ? 'UPI' : 'CASH';
-          extracted.remarks = 'Weekly family grocery advance (Voice Entry)';
-
-          summary = `Issued wage advance (Uchapat) of ₹${extracted.amount} to worker ${extracted.karigar_name} via ${extracted.payment_mode}.`;
+          summary = `Issued wage advance of ₹${extracted.amount || 0} to worker ${extracted.karigar_name || 'Karigar'} via ${extracted.payment_mode}.`;
           break;
         }
 
         case 'expense': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 100) || 1450;
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 10) || '');
 
+          const titleSpoken = extractName(text, ['expense', 'for', 'ખર્ચ', 'બાબત']);
           if (lower.includes('ઓઈલ') || lower.includes('oil')) {
-            extracted.title = 'Machine Lubricant Oil 5L';
+            extracted.title = titleSpoken || 'Machine Lubricant Oil';
             extracted.expense_type = 'MACHINE_MAINTENANCE';
-          } else if (lower.includes('સોય') || lower.includes('needle') || lower.includes('બોબીન')) {
-            extracted.title = 'Organ Needles & Bobbin Spares';
+          } else if (lower.includes('સોય') || lower.includes('needle') || lower.includes('બોબીન') || lower.includes('spares')) {
+            extracted.title = titleSpoken || 'Machine Needles & Spares';
             extracted.expense_type = 'THREAD_CONSUMABLES';
           } else if (lower.includes('ચા') || lower.includes('tea') || lower.includes('નાસ્તો')) {
-            extracted.title = 'Shift Factory Refreshments';
+            extracted.title = titleSpoken || 'Shift Factory Refreshments';
             extracted.expense_type = 'FACTORY_REFRESHMENTS';
           } else {
-            extracted.title = 'Factory Operational Consumables';
+            extracted.title = titleSpoken || 'Factory Operational Consumables';
             extracted.expense_type = 'CONSUMABLES';
           }
 
-          extracted.payee_name = lower.includes('સચીન') || lower.includes('sachin') ? 'Standard Mill Spares, Sachin GIDC' : 'Standard Factory Spares Surat';
+          const payeeSpoken = extractName(text, ['to', 'payee', 'vendor', 'store', 'paid to', 'ને', 'દુકાન']);
+          extracted.payee_name = payeeSpoken || '';
           extracted.payment_mode = lower.includes('યુપીઆઈ') || lower.includes('upi') || lower.includes('online') ? 'UPI' : 'CASH';
 
-          summary = `Recorded expense voucher of ₹${extracted.amount} for "${extracted.title}" paid to ${extracted.payee_name} via ${extracted.payment_mode}.`;
+          summary = `Recorded expense voucher of ₹${extracted.amount || 0} for "${extracted.title}"${extracted.payee_name ? ' to ' + extracted.payee_name : ''} via ${extracted.payment_mode}.`;
           break;
         }
 
         case 'karigar': {
-          if (lower.includes('મુકેશ') || lower.includes('mukesh')) extracted.name = 'Mukesh Solanki';
-          else if (lower.includes('દિનેશ') || lower.includes('dinesh')) extracted.name = 'Dinesh Yadav';
-          else if (lower.includes('રમેશ') || lower.includes('ramesh')) extracted.name = 'Ramesh Patel';
-          else extracted.name = 'Mukesh Solanki';
+          const spokenName = extractName(text, ['karigar name', 'worker name', 'name', 'karigar', 'worker', 'artisan', 'કારીગર', 'નામ']);
+          extracted.name = spokenName || '';
+          extracted.mobile = extractPhoneNumber(text);
 
           if (lower.includes('માસ્ટર') || lower.includes('master')) extracted.role = 'Master Operator';
-          else if (lower.includes('કટર') || lower.includes('helper') || lower.includes('હેલ્પર')) extracted.role = 'Thread Cutter Helper';
+          else if (lower.includes('કટર') || lower.includes('cutter') || lower.includes('helper') || lower.includes('હેલ્પર')) extracted.role = 'Thread Cutter Helper';
+          else if (lower.includes('operator') || lower.includes('ઓપરેટર')) extracted.role = 'Embroidery Operator';
           else extracted.role = 'Embroidery Operator';
 
-          extracted.mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825144556';
-          extracted.rate_per_1000_stitches = numbers.find((n) => n < 5 && n > 0) || 0.42;
-          extracted.machine_assignment = 'Machine #02';
+          const rateMatch =
+            cleanText.match(/(?:rate|ભાવ|bhav|પૈસા|price|₹)\s*[:#-]?\s*(\d+(?:\.\d+)?)/i) ||
+            cleanText.match(/(\d+(?:\.\d+)?)\s*(?:પૈસા|paisa|rate|per\s*meter)/i);
+          extracted.rate_per_1000_stitches = rateMatch
+            ? Number(rateMatch[1]) > 5
+              ? Number(rateMatch[1]) / 100
+              : Number(rateMatch[1])
+            : '';
 
-          summary = `Registered new Karigar profile: ${extracted.name} (${extracted.role}) with mobile ${extracted.mobile} at stitch rate ₹${extracted.rate_per_1000_stitches}/1k stitches on ${extracted.machine_assignment}.`;
+          const mcMatch = text.match(/(?:machine|મશીન|m\/?c)\s*[:#-]?\s*(\d+)/i);
+          extracted.machine_assignment = mcMatch ? `Machine #${mcMatch[1].padStart(2, '0')}` : '';
+
+          summary = `Registered Karigar "${extracted.name || 'Artisan'}" (${extracted.role})${extracted.mobile ? ' Mobile: ' + extracted.mobile : ''}${extracted.rate_per_1000_stitches ? ' @ ₹' + extracted.rate_per_1000_stitches + '/1k st' : ''}.`;
           break;
         }
 
         case 'party': {
-          extracted.name = lower.includes('સુરત') ? 'Surat Silk Prints' : 'Shree Ram Fabrics';
-          extracted.gstin = gstMatch ? gstMatch[0].toUpperCase() : '24AAACS9988Z1Z9';
-          extracted.city = 'Surat';
-          extracted.contact_person = 'Kishore Bhai';
-          extracted.mobile = phoneMatch ? phoneMatch[0].replace(/[\s-]/g, '') : '9825088776';
+          const spokenName = extractName(text, ['party name', 'name', 'party', 'vepari', 'trader', 'firm', 'company', 'client', 'વેપારી', 'પાર્ટી', 'નામ']);
+          extracted.name = spokenName || '';
+          extracted.mobile = extractPhoneNumber(text);
+          extracted.gstin = extractGSTIN(text);
+          extracted.city = extractCityName(text);
+          extracted.contact_person = extractName(text, ['contact person', 'contact', 'person', 'bhai', 'સંપર્ક']);
 
-          summary = `Registered textile party profile "${extracted.name}" located in ${extracted.city} (GSTIN: ${extracted.gstin}, Contact: ${extracted.contact_person} ${extracted.mobile}).`;
+          const summaryParts: string[] = [];
+          if (extracted.name) summaryParts.push(`"${extracted.name}"`);
+          else summaryParts.push('profile');
+          if (extracted.city) summaryParts.push(`located in ${extracted.city}`);
+          if (extracted.gstin) summaryParts.push(`(GSTIN: ${extracted.gstin})`);
+          if (extracted.contact_person) summaryParts.push(`(Contact: ${extracted.contact_person})`);
+          if (extracted.mobile) summaryParts.push(`(Mobile: ${extracted.mobile})`);
+
+          summary = `Registered textile party ${summaryParts.join(' ')}.`;
           break;
         }
 
         case 'purchase': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 500) || 8500;
-          if (lower.includes('shrihari') || lower.includes('શ્રીહરિ') || lower.includes('shree hari') || lower.includes('શ્રી હરિ')) {
-            extracted.supplier_name = 'Shrihari Threads & Cones';
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 50) || '');
+          const supplierSpoken = extractName(text, ['from', 'supplier', 'store', 'vendor', 'dukan', 'માંથી', 'દુકાન']);
+          extracted.supplier_name = supplierSpoken || '';
+
+          const itemSpoken = extractName(text, ['item', 'material', 'dora', 'thread', 'દોરા', 'બોબીન', 'માલ']);
+          if (itemSpoken) {
+            extracted.item_name = itemSpoken;
+          } else if (lower.includes('bobbin') || lower.includes('બોબીન') || lower.includes('dora') || lower.includes('દોરા')) {
+            extracted.item_name = 'Embroidery Thread / Bobbin Dora';
           } else {
-            extracted.supplier_name = 'Shree Hari Threads & Cones';
+            extracted.item_name = 'Embroidery Consumables';
           }
 
-          if (lower.includes('bobbin') || lower.includes('બોબીન') || lower.includes('dora') || lower.includes('દોરા')) {
-            extracted.item_name = '50 Bobbin Embroidery Dora / Filament Thread';
-          } else {
-            extracted.item_name = 'Polyester Filament Embroidery Thread 120D/2';
-          }
+          const qtyMatch = cleanText.match(/(\d+)\s*(?:cones|bobbin|pcs|rolls|બોબીન|કોન)\b/i);
+          extracted.quantity = qtyMatch ? Number(qtyMatch[1]) : (numbers.find((n) => n > 0 && n <= 200) || '');
+          extracted.payment_mode = lower.includes('rokla') || lower.includes('rokda') || lower.includes('રોકડા') || lower.includes('રોકલા') || lower.includes('cash') ? 'CASH' : lower.includes('upi') || lower.includes('યુપીઆઈ') ? 'UPI' : 'CASH';
 
-          extracted.quantity = numbers.find((n) => n > 0 && n <= 100) || 50;
-          extracted.payment_mode = (lower.includes('rokla') || lower.includes('rokda') || lower.includes('રોકડા') || lower.includes('રોકલા') || lower.includes('cash')) ? 'CASH' : (lower.includes('upi') || lower.includes('યુપીઆઈ')) ? 'UPI' : 'CASH';
-
-          summary = `Logged material purchase of ${extracted.quantity} bobbins of ${extracted.item_name} from ${extracted.supplier_name} for ₹${extracted.amount} (${extracted.payment_mode}).`;
+          summary = `Logged material purchase of ${extracted.quantity || ''} ${extracted.item_name} from "${extracted.supplier_name || 'Vendor'}" for ₹${extracted.amount || 0} (${extracted.payment_mode}).`;
           break;
         }
 
         case 'invoice': {
-          extracted.amount = amtMatch ? Number(amtMatch[1]) : numbers.find((n) => n >= 1000) || 18500;
-          extracted.party_name = 'Shri Radhe Krishna Textiles';
-          extracted.invoice_no = `INV-2026-${Math.floor(100 + Math.random() * 900)}`;
+          extracted.amount = amtMatch ? Number(amtMatch[1]) : (numbers.find((n) => n >= 100) || '');
+          const partySpoken = extractName(text, ['for', 'party', 'client', 'trader', 'maate', 'પાર્ટી', 'માટે']);
+          extracted.party_name = partySpoken || '';
+
+          const invMatch = text.match(/(?:invoice|bill|ઇનવોઇસ|બિલ)\s*(?:no|number|#)?\s*[:#-]?\s*([A-Za-z0-9-]+)/i);
+          extracted.invoice_no = invMatch
+            ? invMatch[1].toUpperCase().startsWith('INV-')
+              ? invMatch[1].toUpperCase()
+              : `INV-${invMatch[1].toUpperCase()}`
+            : `INV-2026-${Math.floor(100 + Math.random() * 900)}`;
           extracted.sac_code = '9988';
 
-          summary = `Created SAC 9988 Jobwork Outward Tax Invoice #${extracted.invoice_no} for ${extracted.party_name} totaling ₹${extracted.amount}.`;
+          summary = `Created Jobwork Tax Invoice #${extracted.invoice_no} for "${extracted.party_name || 'Client'}" totaling ₹${extracted.amount || 0}.`;
           break;
         }
       }
