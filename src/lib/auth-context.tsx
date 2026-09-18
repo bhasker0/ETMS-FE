@@ -38,6 +38,7 @@ interface AuthContextType {
   companies: CompanyMembership[];
   munimApprovedCompanies: CompanyMembership[];
   allAvailableCompanies: CompanyMembership[];
+  featureFlags: Record<string, boolean>;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (mobile: string, password: string, companyId?: string) => Promise<void>;
@@ -47,6 +48,7 @@ interface AuthContextType {
   requestPasswordReset: (mobile: string) => Promise<{ success: boolean; message: string }>;
   verifyAndResetPassword: (mobile: string, otp: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   hasPermission: (permission: string) => boolean;
+  hasCompanyFeature: (featureKey: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -57,6 +59,7 @@ const AuthContext = createContext<AuthContextType>({
   companies: [],
   munimApprovedCompanies: [],
   allAvailableCompanies: [],
+  featureFlags: {},
   isAuthenticated: false,
   isLoading: true,
   login: async () => {},
@@ -66,6 +69,7 @@ const AuthContext = createContext<AuthContextType>({
   requestPasswordReset: async () => ({ success: true, message: 'OTP sent' }),
   verifyAndResetPassword: async () => ({ success: true, message: 'Password reset successful' }),
   hasPermission: () => false,
+  hasCompanyFeature: () => true,
 });
 
 interface AuthPayload {
@@ -74,6 +78,7 @@ interface AuthPayload {
   activeCompanyId: string;
   companies?: CompanyMembership[];
   munimApprovedCompanies?: CompanyMembership[];
+  featureFlags?: Record<string, boolean>;
 }
 
 interface GenericApiResponse<T = unknown> {
@@ -88,16 +93,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
   const [companies, setCompanies] = useState<CompanyMembership[]>([]);
   const [munimApprovedCompanies, setMunimApprovedCompanies] = useState<CompanyMembership[]>([]);
+  const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   const handleAuthSuccess = React.useCallback((data: AuthPayload) => {
-    const { accessToken, user, activeCompanyId, companies, munimApprovedCompanies } = data;
+    const { accessToken, user, activeCompanyId, companies, munimApprovedCompanies, featureFlags: flags } = data;
 
     setToken(accessToken);
     setUser(user);
     setActiveCompanyId(activeCompanyId);
     setCompanies(companies || []);
     setMunimApprovedCompanies(munimApprovedCompanies || []);
+    if (flags) {
+      setFeatureFlags(flags);
+    }
 
     if (typeof window !== 'undefined') {
       localStorage.setItem('etms_access_token', accessToken);
@@ -105,6 +114,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('etms_active_company_id', activeCompanyId);
       localStorage.setItem('etms_companies', JSON.stringify(companies || []));
       localStorage.setItem('etms_munim_companies', JSON.stringify(munimApprovedCompanies || []));
+      if (flags) {
+        localStorage.setItem('etms_feature_flags', JSON.stringify(flags));
+      }
       document.cookie = `etms_access_token=${encodeURIComponent(accessToken)}; path=/; max-age=2592000; SameSite=Lax`;
     }
   }, []);
@@ -118,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const savedCompanies = localStorage.getItem('etms_companies');
         const savedMunimCompanies = localStorage.getItem('etms_munim_companies');
         const savedActiveCompanyId = localStorage.getItem('etms_active_company_id');
+        const savedFlags = localStorage.getItem('etms_feature_flags');
 
         if (savedToken && savedUser) {
           setToken(savedToken);
@@ -127,6 +140,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCompanies(comps);
           setMunimApprovedCompanies(mComps);
           setActiveCompanyId(savedActiveCompanyId || (comps[0]?.id) || (mComps[0]?.id) || null);
+          if (savedFlags) {
+            setFeatureFlags(JSON.parse(savedFlags));
+          }
           if (typeof window !== 'undefined') {
             document.cookie = `etms_access_token=${encodeURIComponent(savedToken)}; path=/; max-age=2592000; SameSite=Lax`;
           }
@@ -198,15 +214,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const switchCompany = async (companyId: string) => {
     try {
-      const res = await apiClient.post<GenericApiResponse<{ activeCompanyId?: string }>>('/api/v1/auth/switch-company', {
+      const res = await apiClient.post<GenericApiResponse<{ activeCompanyId?: string; featureFlags?: Record<string, boolean> }>>('/api/v1/auth/switch-company', {
         companyId,
-      }) as unknown as GenericApiResponse<{ activeCompanyId?: string }>;
+      }) as unknown as GenericApiResponse<{ activeCompanyId?: string; featureFlags?: Record<string, boolean> }>;
 
-      if (res?.data?.activeCompanyId || companyId) {
-        const nextId = res?.data?.activeCompanyId || companyId;
-        setActiveCompanyId(nextId);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('etms_active_company_id', nextId);
+      const nextId = res?.data?.activeCompanyId || companyId;
+      setActiveCompanyId(nextId);
+      if (res?.data?.featureFlags) {
+        setFeatureFlags(res.data.featureFlags);
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('etms_active_company_id', nextId);
+        if (res?.data?.featureFlags) {
+          localStorage.setItem('etms_feature_flags', JSON.stringify(res.data.featureFlags));
         }
       }
     } catch (_e) {
@@ -245,12 +265,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setActiveCompanyId(null);
       setCompanies([]);
       setMunimApprovedCompanies([]);
+      setFeatureFlags({});
       if (typeof window !== 'undefined') {
         localStorage.removeItem('etms_access_token');
         localStorage.removeItem('etms_user_profile');
         localStorage.removeItem('etms_active_company_id');
         localStorage.removeItem('etms_companies');
         localStorage.removeItem('etms_munim_companies');
+        localStorage.removeItem('etms_feature_flags');
         document.cookie = 'etms_access_token=; path=/; max-age=0; SameSite=Lax';
       }
     }
@@ -274,6 +296,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [activeCompany]
   );
 
+  const hasCompanyFeature = useCallback(
+    (featureKey: string): boolean => {
+      if (!featureKey) return true;
+      if (activeCompany?.role === 'SUPER_ADMIN') return true;
+
+      const cleanKey = featureKey.replace(/^feature_/, '').replace(/_enabled$/, '');
+      const candidates = [
+        featureKey,
+        `feature_${featureKey}`,
+        `${featureKey}_enabled`,
+        `feature_${featureKey}_enabled`,
+        cleanKey,
+        `feature_${cleanKey}`,
+        `${cleanKey}_enabled`,
+        `feature_${cleanKey}_enabled`,
+      ];
+
+      for (const cand of candidates) {
+        if (cand in featureFlags) {
+          return Boolean(featureFlags[cand]);
+        }
+      }
+
+      return true; // default open unless explicitly disabled
+    },
+    [activeCompany, featureFlags]
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -284,6 +334,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         companies,
         munimApprovedCompanies,
         allAvailableCompanies,
+        featureFlags,
         isAuthenticated: !!token && !!user,
         isLoading,
         login,
@@ -293,6 +344,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestPasswordReset,
         verifyAndResetPassword,
         hasPermission,
+        hasCompanyFeature,
       }}
     >
       {children}

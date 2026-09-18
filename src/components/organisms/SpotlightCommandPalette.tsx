@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAppDrawer } from '@/lib/app-drawer-context';
 import { useI18n } from '@/lib/i18n';
 import { useFeatureFlags } from '@/lib/featureFlags';
+import { useAuth } from '@/lib/auth-context';
 import {
   Search,
   Clock,
@@ -32,6 +33,7 @@ interface PaletteItem {
   icon: React.ReactNode;
   badge?: string;
   keywords: string[];
+  feature?: string;
   perform: () => void;
 }
 
@@ -45,6 +47,8 @@ export const SpotlightCommandPalette: React.FC = () => {
 
   const router = useRouter();
   const { openDrawer } = useAppDrawer();
+  const { hasCompanyFeature } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const { t } = useI18n();
   const tr = t as unknown as Record<string, string>;
 
@@ -59,6 +63,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Speak in Gujarati, Hindi or English to auto-enter Lots, Shifts, Karigars, or Expenses',
         icon: <Mic className="w-4 h-4 text-rose-500 animate-pulse" />,
         badge: 'Voice AI',
+        feature: 'speech_data_entry',
         keywords: ['speech', 'voice', 'bhashini', 'boline', 'audio', 'mic', 'gu-in', 'indic', 'asr', 'challan', 'shift', 'karigar', 'expense', 'uchapat'],
         perform: () => window.dispatchEvent(new CustomEvent('open-speech-data-entry')),
       },
@@ -70,6 +75,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Record stitches, machine heads, RPM & shift meters',
         icon: <Clock className="w-4 h-4 text-emerald-500" />,
         badge: 'Drawer',
+        feature: 'shift_production',
         keywords: ['shift', 'log', 'meter', 'stitch', 'rpm', 'karigar', 'fabric'],
         perform: () => openDrawer('LOG_SHIFT', {}),
       },
@@ -80,6 +86,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Receive grey fabric rolls from party with SAC 9988',
         icon: <Truck className="w-4 h-4 text-sky-500" />,
         badge: 'Drawer',
+        feature: 'inward_challans',
         keywords: ['lot', 'challan', 'inward', 'party', 'grey', 'taka', 'fabric'],
         perform: () => openDrawer('ADD_CHALLAN', {}),
       },
@@ -90,6 +97,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Register textile trader / customer profile & GSTIN',
         icon: <Users className="w-4 h-4 text-indigo-500" />,
         badge: 'Drawer',
+        feature: 'parties',
         keywords: ['party', 'trader', 'client', 'gstin', 'broker', 'firm'],
         perform: () => openDrawer('ADD_PARTY', {}),
       },
@@ -100,6 +108,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Generate SAC 9988 job-work tax bill with CGST/SGST',
         icon: <FileText className="w-4 h-4 text-amber-500" />,
         badge: 'Drawer',
+        feature: 'outward_invoices',
         keywords: ['invoice', 'bill', 'sac 9988', 'tax', 'gst', 'outward'],
         perform: () => openDrawer('CREATE_INVOICE', {}),
       },
@@ -110,6 +119,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Log yarn, zari, needles, machine oil & factory supplies',
         icon: <ShoppingBag className="w-4 h-4 text-violet-500" />,
         badge: 'Drawer',
+        feature: 'purchases',
         keywords: ['purchase', 'raw material', 'yarn', 'zari', 'thread', 'needles', 'supplier'],
         perform: () => openDrawer('CREATE_PURCHASE', {}),
       },
@@ -120,6 +130,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Record direct/indirect expenses, electricity, maintenance, chai-pani',
         icon: <Receipt className="w-4 h-4 text-rose-500" />,
         badge: 'Drawer',
+        feature: 'expenses',
         keywords: ['expense', 'petty cash', 'electricity', 'rent', 'chai', 'indirect', 'direct'],
         perform: () => openDrawer('CREATE_EXPENSE', {}),
       },
@@ -130,6 +141,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Register multi-head embroidery machine into factory fleet',
         icon: <Wrench className="w-4 h-4 text-teal-500" />,
         badge: 'Drawer',
+        feature: 'machines',
         keywords: ['machine', 'heads', 'embroidery', 'fleet', 'rpm'],
         perform: () => openDrawer('ADD_MACHINE', {}),
       },
@@ -140,6 +152,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Enroll machine operator, master, or shift helper',
         icon: <UserPlus className="w-4 h-4 text-emerald-500" />,
         badge: 'Drawer',
+        feature: 'karigars',
         keywords: ['karigar', 'worker', 'operator', 'master', 'rate', 'wage'],
         perform: () => openDrawer('ADD_KARIGAR', {}),
       },
@@ -150,6 +163,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Issue mid-term wage advance via Cash or UPI',
         icon: <Wallet className="w-4 h-4 text-amber-500" />,
         badge: 'Drawer',
+        feature: 'uchapat_advance',
         keywords: ['uchapat', 'advance', 'loan', 'karigar', 'cash', 'upi'],
         perform: () => openDrawer('ADD_UCHAPAT', {}),
       },
@@ -160,6 +174,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Settle piece-rate earnings, reconcile uchapat advances & payslips',
         icon: <Calculator className="w-4 h-4 text-blue-500" />,
         badge: 'Drawer',
+        feature: 'wage_hisab',
         keywords: ['hisab', 'salary', 'settle', 'piece rate', 'karigar hisab'],
         perform: () => openDrawer('COMPUTE_HISAB', {}),
       },
@@ -170,6 +185,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: tr.thread_ledgerSubtitle || 'Track cone inward, color lots, stitch efficiency & yarn wastage',
         icon: <Layers className="w-4 h-4 text-indigo-500" />,
         badge: 'Drawer',
+        feature: 'inward_challans',
         keywords: ['thread', 'yarn', 'zari', 'cone', 'wastage', 'lot', 'consumption', 'dora'],
         perform: () => openDrawer('THREAD_LEDGER', {}),
       },
@@ -180,6 +196,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: tr.maint_subtitle || 'Log machine stops, mechanical breakdowns, technician notes & repair expenses',
         icon: <Wrench className="w-4 h-4 text-amber-500" />,
         badge: 'Drawer',
+        feature: 'machines',
         keywords: ['maintenance', 'breakdown', 'downtime', 'repair', 'mistri', 'stoppage', 'needle'],
         perform: () => openDrawer('MACHINE_MAINTENANCE', {}),
       },
@@ -190,6 +207,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: tr.shrink_subtitle || 'Scientific shrinkage calculation & quality certificate for textile traders',
         icon: <Truck className="w-4 h-4 text-emerald-500" />,
         badge: 'Drawer',
+        feature: 'inward_challans',
         keywords: ['shrinkage', 'tolerance', 'certificate', 'loss', 'inward', 'outward', 'meters'],
         perform: () => openDrawer('SHRINKAGE_CERTIFICATE', {}),
       },
@@ -200,6 +218,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: tr.ugraani_subtitle || 'Credit aging buckets, interest on delayed payment & WhatsApp reminder',
         icon: <Users className="w-4 h-4 text-sky-500" />,
         badge: 'Drawer',
+        feature: 'parties',
         keywords: ['ugraani', 'recovery', 'aging', 'credit', 'whatsapp', 'reminder', 'trader'],
         perform: () => openDrawer('UGRAANI_RECOVERY', {}),
       },
@@ -210,6 +229,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: tr.wageSlip_subtitle || 'Shift stitch summary, rate calculation, Uchapat advances deduction & net wage',
         icon: <FileText className="w-4 h-4 text-teal-500" />,
         badge: 'Drawer',
+        feature: 'wage_hisab',
         keywords: ['wage slip', 'payslip', 'pavati', 'karigar wage', 'uchapat', 'hisab slip'],
         perform: () => openDrawer('KARIGAR_WAGE_SLIP', {}),
       },
@@ -220,6 +240,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: tr.sacTally_subtitle || 'Direct job-work tax computation (2.5% + 2.5% / 5%) & Tally envelope export',
         icon: <FileSpreadsheet className="w-4 h-4 text-purple-500" />,
         badge: 'Drawer',
+        feature: 'tally_export',
         keywords: ['sac 9988', 'tally', 'xml', 'gst', 'cgst', 'sgst', 'export', 'tally prime'],
         perform: () => openDrawer('SAC_INVOICING_TALLY', {}),
       },
@@ -232,6 +253,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Live machine telemetry, floor KPIs & design progress',
         icon: <Layers className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'dashboard',
         keywords: ['dashboard', 'home', 'overview', 'kpi', 'telemetry'],
         perform: () => router.push('/'),
       },
@@ -242,6 +264,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Shift logs, meters produced, day/night shifts & defect records',
         icon: <Clock className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'shift_production',
         keywords: ['shifts', 'shift logs', 'meters', 'telemetry'],
         perform: () => router.push('/shift'),
       },
@@ -252,6 +275,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Fleet monitoring, multi-head specifications & live state',
         icon: <Wrench className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'machines',
         keywords: ['machines', 'fleet', 'heads', 'status'],
         perform: () => router.push('/machines'),
       },
@@ -262,6 +286,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Worker roster, wage hisab settlements & advance ledgers',
         icon: <Users className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'karigars',
         keywords: ['karigars', 'workers', 'salary', 'wages', 'uchapat'],
         perform: () => router.push('/karigars'),
       },
@@ -272,6 +297,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Fabric inwards, grey roll tracking & lot shrinkage',
         icon: <Truck className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'inward_challans',
         keywords: ['challans', 'inward lots', 'fabric', 'rolls', 'shrinkage'],
         perform: () => router.push('/challans'),
       },
@@ -282,6 +308,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Customer directory, party ledgers & job-work accounts',
         icon: <Users className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'parties',
         keywords: ['parties', 'traders', 'clients', 'gstin', 'ledger'],
         perform: () => router.push('/parties'),
       },
@@ -292,6 +319,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'SAC 9988 job-work billing, tax invoices & PDF printing',
         icon: <FileText className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'outward_invoices',
         keywords: ['invoices', 'bills', 'sac 9988', 'gst', 'tax bills'],
         perform: () => router.push('/invoices'),
       },
@@ -302,6 +330,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Procurement ledger, yarn/zari purchases & supplier balances',
         icon: <ShoppingBag className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'purchases',
         keywords: ['purchases', 'yarn', 'zari', 'materials', 'supplies'],
         perform: () => router.push('/purchases'),
       },
@@ -312,6 +341,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Direct & indirect expense tracking, electricity & salaries',
         icon: <Receipt className="w-4 h-4 text-[var(--text-muted)]" />,
         badge: 'Page',
+        feature: 'expenses',
         keywords: ['expenses', 'direct expenses', 'indirect expenses', 'costs'],
         perform: () => router.push('/expenses'),
       },
@@ -322,6 +352,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'Production, financial, party ledgers & Excel/PDF exports',
         icon: <BarChart3 className="w-4 h-4 text-indigo-500" />,
         badge: 'Page',
+        feature: 'reports',
         keywords: ['reports', 'excel', 'analytics', 'audit', 'summary'],
         perform: () => router.push('/reports'),
       },
@@ -332,6 +363,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         description: 'CA collaboration, GSTR-1 verification & 1-click Tally XML export',
         icon: <FileSpreadsheet className="w-4 h-4 text-amber-500" />,
         badge: 'Page',
+        feature: 'munim_portal',
         keywords: ['munim', 'tally', 'accountant', 'ca', 'gstr-1', 'xml'],
         perform: () => router.push('/munim/dashboard'),
       },
@@ -339,24 +371,29 @@ export const SpotlightCommandPalette: React.FC = () => {
     [openDrawer, router, tr]
   );
 
-  // Filter items based on user search
+  // Filter items based on active company feature flags and user search query
   const filteredItems = useMemo(() => {
+    const isFeatureAllowed = (featureKey?: string) => {
+      if (!featureKey || featureKey === 'dashboard') return true;
+      return hasCompanyFeature(featureKey) && isEnabled(featureKey);
+    };
+
+    const allowedItems = items.filter((item) => isFeatureAllowed(item.feature));
     const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
+    if (!q) return allowedItems;
+    return allowedItems.filter(
       (item) =>
         item.title.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q) ||
         item.keywords.some((k) => k.toLowerCase().includes(q))
     );
-  }, [items, search]);
+  }, [items, search, hasCompanyFeature, isEnabled]);
 
   // Reset selected index when search changes
   useEffect(() => {
     setSelectedIndex(0);
   }, [search]);
 
-  const { isEnabled } = useFeatureFlags();
   const [isListening, setIsListening] = useState(false);
 
   // Global keyboard shortcuts (Ctrl + K, Ctrl + Space / Cmd + Space, Escape)

@@ -74,17 +74,20 @@ export default function FactoryDashboard() {
     });
   }, [isAuthenticated, activeCompany?.id]);
 
+  const { hasCompanyFeature } = useAuth();
+
   const fetchDashboardData = async () => {
     if (!isAuthenticated) return;
     setLoading(true);
     try {
-      const [mList, sList, iList, cList, aLots] = await Promise.all([
-        MachinesApi.getAll().catch(() => []),
-        ShiftLogsApi.getAll().catch(() => []),
-        OutwardInvoicesApi.getAll().catch(() => []),
-        InwardChallansApi.getAll().catch(() => []),
-        InwardChallansApi.getActivePendingLots().catch(() => []),
-      ]);
+      const promises: Promise<any>[] = [
+        hasCompanyFeature('machines') ? MachinesApi.getAll().catch(() => []) : Promise.resolve([]),
+        hasCompanyFeature('shift_production') ? ShiftLogsApi.getAll().catch(() => []) : Promise.resolve([]),
+        hasCompanyFeature('outward_invoices') ? OutwardInvoicesApi.getAll().catch(() => []) : Promise.resolve([]),
+        hasCompanyFeature('inward_challans') ? InwardChallansApi.getAll().catch(() => []) : Promise.resolve([]),
+        hasCompanyFeature('inward_challans') ? InwardChallansApi.getActivePendingLots().catch(() => []) : Promise.resolve([]),
+      ];
+      const [mList, sList, iList, cList, aLots] = await Promise.all(promises);
       setMachines(mList);
       setShifts(sList);
       setInvoices(iList);
@@ -181,6 +184,7 @@ export default function FactoryDashboard() {
   const renderCardContent = (cardId: string, index: number) => {
     switch (cardId) {
       case 'fleet_status':
+        if (!hasCompanyFeature('machines')) return null;
         return (
           <div
             key="fleet_status"
@@ -264,6 +268,7 @@ export default function FactoryDashboard() {
         );
 
       case 'production_output':
+        if (!hasCompanyFeature('shift_production')) return null;
         return (
           <div
             key="production_output"
@@ -344,6 +349,7 @@ export default function FactoryDashboard() {
         );
 
       case 'sac_billing':
+        if (!hasCompanyFeature('outward_invoices')) return null;
         return (
           <div
             key="sac_billing"
@@ -437,6 +443,7 @@ export default function FactoryDashboard() {
         );
 
       case 'inward_lots':
+        if (!hasCompanyFeature('inward_challans')) return null;
         return (
           <div
             key="inward_lots"
@@ -590,32 +597,38 @@ export default function FactoryDashboard() {
             <span>{(t as unknown as Record<string, string>).resetLayout || 'Reset'}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => openDrawer('LOG_SHIFT', {}, () => fetchDashboardData())}
-            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-medium rounded-xs text-2xs transition shadow-xs cursor-pointer active:scale-[0.98]"
-          >
-            <Plus className="w-3 h-3" />
-            <span>{t.navShiftNew || 'Log Shift'}</span>
-          </button>
+          {hasCompanyFeature('shift_production') && (
+            <button
+              type="button"
+              onClick={() => openDrawer('LOG_SHIFT', {}, () => fetchDashboardData())}
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-medium rounded-xs text-2xs transition shadow-xs cursor-pointer active:scale-[0.98]"
+            >
+              <Plus className="w-3 h-3" />
+              <span>{t.navShiftNew || 'Log Shift'}</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => openDrawer('ADD_CHALLAN', {}, () => fetchDashboardData())}
-            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)] border border-[var(--border)] font-medium rounded-xs text-2xs transition shadow-xs cursor-pointer active:scale-[0.98]"
-          >
-            <Truck className="w-3 h-3 text-[var(--text-muted)]" />
-            <span>{t.dash_inwardLot || t.saveChallan || 'Inward Lot'}</span>
-          </button>
+          {hasCompanyFeature('inward_challans') && (
+            <button
+              type="button"
+              onClick={() => openDrawer('ADD_CHALLAN', {}, () => fetchDashboardData())}
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)] border border-[var(--border)] font-medium rounded-xs text-2xs transition shadow-xs cursor-pointer active:scale-[0.98]"
+            >
+              <Truck className="w-3 h-3 text-[var(--text-muted)]" />
+              <span>{t.dash_inwardLot || t.saveChallan || 'Inward Lot'}</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => openDrawer('CREATE_INVOICE', {}, () => fetchDashboardData())}
-            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)] border border-[var(--border)] font-medium rounded-xs text-2xs transition shadow-xs cursor-pointer active:scale-[0.98]"
-          >
-            <FileText className="w-3 h-3 text-[var(--text-muted)]" />
-            <span>{t.dash_sac9988Bill || t.navInvoices || 'SAC 9988 Bill'}</span>
-          </button>
+          {hasCompanyFeature('outward_invoices') && (
+            <button
+              type="button"
+              onClick={() => openDrawer('CREATE_INVOICE', {}, () => fetchDashboardData())}
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)] border border-[var(--border)] font-medium rounded-xs text-2xs transition shadow-xs cursor-pointer active:scale-[0.98]"
+            >
+              <FileText className="w-3 h-3 text-[var(--text-muted)]" />
+              <span>{t.dash_sac9988Bill || t.navInvoices || 'SAC 9988 Bill'}</span>
+            </button>
+          )}
         </div>
       </div>
 

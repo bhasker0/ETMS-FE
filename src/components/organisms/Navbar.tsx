@@ -32,12 +32,14 @@ import {
 import { toast } from 'sonner';
 import { useConfig } from '@/lib/config-context';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { useFeatureFlags } from '@/lib/featureFlags';
 import { CompanyConfigDrawer } from './CompanyConfigDrawer';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, activeCompany, allAvailableCompanies, switchCompany, logout, login } = useAuth();
+  const { user, activeCompany, allAvailableCompanies, switchCompany, logout, login, hasCompanyFeature } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const { t } = useI18n();
 
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
@@ -55,17 +57,17 @@ export const Navbar: React.FC = () => {
   ];
 
   const navItems = [
-    { href: '/', label: 'DASHBOARD', icon: <Layers className="w-3.5 h-3.5" /> },
-    { href: '/shift', label: 'SHIFTS', icon: <Clock className="w-3.5 h-3.5" /> },
-    { href: '/machines', label: 'MACHINES', icon: <Wrench className="w-3.5 h-3.5" /> },
-    { href: '/karigars', label: 'KARIGARS', icon: <Users className="w-3.5 h-3.5" /> },
-    { href: '/challans', label: 'INWARD LOTS', icon: <Truck className="w-3.5 h-3.5" /> },
-    { href: '/parties', label: 'PARTIES', icon: <Briefcase className="w-3.5 h-3.5" /> },
-    { href: '/invoices', label: 'INVOICES', icon: <FileText className="w-3.5 h-3.5" /> },
-    { href: '/purchases', label: 'PURCHASES', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-    { href: '/expenses', label: 'EXPENSES', icon: <Receipt className="w-3.5 h-3.5" /> },
-    { href: '/reports', label: 'REPORTS', icon: <BarChart3 className="w-3.5 h-3.5 text-indigo-500" /> },
-    { href: '/munim/dashboard', label: 'MUNIM', icon: <FileSpreadsheet className="w-3.5 h-3.5 text-accent" /> },
+    { href: '/', label: 'DASHBOARD', icon: <Layers className="w-3.5 h-3.5" />, feature: 'dashboard' },
+    { href: '/shift', label: 'SHIFTS', icon: <Clock className="w-3.5 h-3.5" />, feature: 'shift_production' },
+    { href: '/machines', label: 'MACHINES', icon: <Wrench className="w-3.5 h-3.5" />, feature: 'machines' },
+    { href: '/karigars', label: 'KARIGARS', icon: <Users className="w-3.5 h-3.5" />, feature: 'karigars' },
+    { href: '/challans', label: 'INWARD LOTS', icon: <Truck className="w-3.5 h-3.5" />, feature: 'inward_challans' },
+    { href: '/parties', label: 'PARTIES', icon: <Briefcase className="w-3.5 h-3.5" />, feature: 'parties' },
+    { href: '/invoices', label: 'INVOICES', icon: <FileText className="w-3.5 h-3.5" />, feature: 'outward_invoices' },
+    { href: '/purchases', label: 'PURCHASES', icon: <ShoppingBag className="w-3.5 h-3.5" />, feature: 'purchases' },
+    { href: '/expenses', label: 'EXPENSES', icon: <Receipt className="w-3.5 h-3.5" />, feature: 'expenses' },
+    { href: '/reports', label: 'REPORTS', icon: <BarChart3 className="w-3.5 h-3.5 text-indigo-500" />, feature: 'reports' },
+    { href: '/munim/dashboard', label: 'MUNIM', icon: <FileSpreadsheet className="w-3.5 h-3.5 text-accent" />, feature: 'munim_portal' },
   ];
 
   const headerActions = [
@@ -74,44 +76,59 @@ export const Navbar: React.FC = () => {
       label: 'Log Shift',
       icon: <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
       onClick: () => openDrawer('LOG_SHIFT', {}),
+      feature: 'shift_production',
     },
     {
       id: 'add-lot',
       label: 'Add Lot',
       icon: <Truck className="w-4 h-4 text-sky-600 dark:text-sky-400" />,
       onClick: () => openDrawer('ADD_CHALLAN', {}),
+      feature: 'inward_challans',
     },
     {
       id: 'add-party',
       label: 'Add Parties',
       icon: <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />,
       onClick: () => openDrawer('ADD_PARTY', {}),
+      feature: 'parties',
     },
     {
       id: 'add-invoice',
       label: 'Add Invoice',
       icon: <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
       onClick: () => openDrawer('CREATE_INVOICE', {}),
+      feature: 'outward_invoices',
     },
     {
       id: 'add-purchase',
       label: 'Add Purchase',
       icon: <ShoppingBag className="w-4 h-4 text-violet-600 dark:text-violet-400" />,
       onClick: () => openDrawer('CREATE_PURCHASE', {}),
+      feature: 'purchases',
     },
     {
       id: 'add-expense',
       label: 'Add Expense',
       icon: <Receipt className="w-4 h-4 text-rose-600 dark:text-rose-400" />,
       onClick: () => openDrawer('CREATE_EXPENSE', {}),
+      feature: 'expenses',
     },
     {
       id: 'speech-data-entry',
       label: 'Voice Entry',
       icon: <Mic className="w-4 h-4 text-rose-500 animate-pulse" />,
       onClick: () => window.dispatchEvent(new CustomEvent('open-speech-data-entry')),
+      feature: 'speech_data_entry',
     },
   ];
+
+  const isFeatureAllowed = (featureKey?: string) => {
+    if (!featureKey || featureKey === 'dashboard') return true;
+    return hasCompanyFeature(featureKey) && isEnabled(featureKey);
+  };
+
+  const visibleNavItems = navItems.filter((item) => isFeatureAllowed(item.feature));
+  const visibleHeaderActions = headerActions.filter((action) => isFeatureAllowed(action.feature));
 
   const handlePersonaSwitch = async (persona: typeof personas[0]) => {
     try {
@@ -212,7 +229,7 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {/* Quick Action Symbols (Desktop) */}
           <div className="hidden lg:flex items-center gap-1">
-            {headerActions.map((action) => (
+            {visibleHeaderActions.map((action) => (
               <div key={action.id} className="relative group">
                 <button
                   type="button"
@@ -347,7 +364,7 @@ export const Navbar: React.FC = () => {
 
       {/* Main Tab Navigation HUD: Swipeable on both Mobile & Desktop */}
       <div className="w-full max-w-7xl mx-auto px-1.5 sm:px-6 flex items-center gap-0.5 sm:gap-1 overflow-x-auto h-8 border-t border-[var(--border)] no-scrollbar">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
@@ -369,30 +386,32 @@ export const Navbar: React.FC = () => {
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[var(--bg-surface)] border-b border-[var(--border)] p-2.5 space-y-2 font-sans animate-in slide-in-from-top-1 duration-150">
-          {/* 6 Quick Action Grid for Mobile */}
-          <div>
-            <div className="text-[0.625rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 px-0.5">
-              Quick Actions (Create)
+          {/* Quick Action Grid for Mobile */}
+          {visibleHeaderActions.length > 0 && (
+            <div>
+              <div className="text-[0.625rem] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 px-0.5">
+                Quick Actions (Create)
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {visibleHeaderActions.map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      action.onClick();
+                    }}
+                    className="p-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] border border-[var(--border)] rounded-md flex flex-col items-center justify-center gap-1 text-center transition cursor-pointer active:scale-95"
+                  >
+                    {action.icon}
+                    <span className="text-[0.65rem] font-semibold text-[var(--text-main)] truncate max-w-full">
+                      {action.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-1.5">
-              {headerActions.map((action) => (
-                <button
-                  key={action.id}
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    action.onClick();
-                  }}
-                  className="p-2 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] border border-[var(--border)] rounded-md flex flex-col items-center justify-center gap-1 text-center transition cursor-pointer active:scale-95"
-                >
-                  {action.icon}
-                  <span className="text-[0.65rem] font-semibold text-[var(--text-main)] truncate max-w-full">
-                    {action.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* All Modules List */}
           <div className="pt-1.5 border-t border-[var(--border)] space-y-0.5">
@@ -400,7 +419,7 @@ export const Navbar: React.FC = () => {
               Modules Navigation
             </div>
             <div className="grid grid-cols-2 gap-1">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                 return (
                   <Link
