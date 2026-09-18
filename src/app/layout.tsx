@@ -38,6 +38,9 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'ETMS Surat',
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 };
 
 export const viewport: Viewport = {
