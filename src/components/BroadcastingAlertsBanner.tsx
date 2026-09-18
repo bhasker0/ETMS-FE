@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Megaphone, X, Bell } from 'lucide-react';
 import { useFeatureFlags } from '@/lib/featureFlags';
 import { useI18n } from '@/lib/i18n';
@@ -34,6 +35,7 @@ const SAMPLE_BROADCASTS: BroadcastMessage[] = [
 ];
 
 export function BroadcastingAlertsBanner() {
+  const pathname = usePathname();
   const { isEnabled } = useFeatureFlags();
   const { language } = useI18n();
   const [alerts] = useState<BroadcastMessage[]>(SAMPLE_BROADCASTS);
@@ -41,7 +43,7 @@ export function BroadcastingAlertsBanner() {
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
   const [showDrawer, setShowDrawer] = useState(false);
 
-  if (!isEnabled('feature_broadcasting_alerts')) {
+  if (pathname === '/login' || pathname === '/forgot-password' || !isEnabled('feature_broadcasting_alerts')) {
     return null;
   }
 

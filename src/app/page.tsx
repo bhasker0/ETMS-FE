@@ -35,7 +35,7 @@ export default function FactoryDashboard() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -53,7 +53,7 @@ export default function FactoryDashboard() {
 
   // Load layout preferences on mount / company change
   useEffect(() => {
-    if (!activeCompany?.id) return;
+    if (!isAuthenticated || !activeCompany?.id) return;
     const cacheKey = `etms_dash_layout_${activeCompany.id}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
@@ -72,9 +72,10 @@ export default function FactoryDashboard() {
         localStorage.setItem(cacheKey, JSON.stringify(remoteOrder));
       }
     });
-  }, [activeCompany?.id]);
+  }, [isAuthenticated, activeCompany?.id]);
 
   const fetchDashboardData = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
       const [mList, sList, iList, cList, aLots] = await Promise.all([
@@ -97,8 +98,10 @@ export default function FactoryDashboard() {
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [activeCompany?.id]);
+    if (isAuthenticated) {
+      fetchDashboardData();
+    }
+  }, [isAuthenticated, activeCompany?.id]);
 
   // Persist updated layout order locally and to backend
   const saveCardOrder = async (newOrder: string[]) => {
@@ -159,6 +162,15 @@ export default function FactoryDashboard() {
   const resetLayout = () => {
     saveCardOrder(DEFAULT_DASHBOARD_CARDS);
   };
+
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-[#111111] border-t-transparent animate-spin" />
+        <p className="text-xs text-[#777777]">Redirecting to login...</p>
+      </div>
+    );
+  }
 
   const totalMeters = shifts.reduce((acc, s) => acc + Number(s.total_meters || 0), 0);
   const totalStitches = shifts.reduce((acc, s) => acc + Number(s.total_stitches || 0), 0);

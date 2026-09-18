@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Mic } from 'lucide-react';
 import { UniversalSpeechDataEntryDrawer, SpeechCategory } from './UniversalSpeechDataEntryDrawer';
 
 export function FloatingVoiceTrigger() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [initialCategory, setInitialCategory] = useState<SpeechCategory>('challan');
 
@@ -22,6 +24,10 @@ export function FloatingVoiceTrigger() {
       window.removeEventListener('open-speech-data-entry', handleOpenSpeech);
     };
   }, []);
+
+  if (pathname === '/login' || pathname === '/forgot-password') {
+    return null;
+  }
 
   return (
     <>

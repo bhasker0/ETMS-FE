@@ -105,10 +105,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('etms_active_company_id', activeCompanyId);
       localStorage.setItem('etms_companies', JSON.stringify(companies || []));
       localStorage.setItem('etms_munim_companies', JSON.stringify(munimApprovedCompanies || []));
+      document.cookie = `etms_access_token=${encodeURIComponent(accessToken)}; path=/; max-age=2592000; SameSite=Lax`;
     }
   }, []);
 
-  // Initialize auth from localStorage
+  // Initialize auth from localStorage & cookie sync
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -126,6 +127,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCompanies(comps);
           setMunimApprovedCompanies(mComps);
           setActiveCompanyId(savedActiveCompanyId || (comps[0]?.id) || (mComps[0]?.id) || null);
+          if (typeof window !== 'undefined') {
+            document.cookie = `etms_access_token=${encodeURIComponent(savedToken)}; path=/; max-age=2592000; SameSite=Lax`;
+          }
+        } else if (typeof window !== 'undefined') {
+          document.cookie = 'etms_access_token=; path=/; max-age=0; SameSite=Lax';
         }
       } catch (err) {
         console.warn('Auth hydration error:', err);
@@ -245,6 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('etms_active_company_id');
         localStorage.removeItem('etms_companies');
         localStorage.removeItem('etms_munim_companies');
+        document.cookie = 'etms_access_token=; path=/; max-age=0; SameSite=Lax';
       }
     }
   };

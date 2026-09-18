@@ -25,8 +25,15 @@ import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const { t } = useI18n();
+
+  // If already authenticated, redirect to dashboard
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   const [mobile, setMobile] = useState('9825012345');
   const [password, setPassword] = useState('Password@123');
@@ -71,7 +78,9 @@ export default function LoginPage() {
     try {
       await login(mobile, password);
       toast.success(t.appName ? `${t.appName} - Sign in successful` : 'Login successful! Welcome to ETMS Surat');
-      router.push('/');
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const callbackUrl = params?.get('callbackUrl') || '/';
+      router.push(callbackUrl);
     } catch (err: any) {
       toast.error('Login failed: ' + err.message);
     } finally {
@@ -86,13 +95,26 @@ export default function LoginPage() {
     try {
       await login(pMobile, 'Password@123');
       toast.success('Logged in successfully!');
-      router.push('/');
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const callbackUrl = params?.get('callbackUrl') || '/';
+      router.push(callbackUrl);
     } catch (err: any) {
       toast.error('Login failed: ' + err.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-[var(--bg-canvas)]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-[#111111] border-t-transparent animate-spin" />
+          <p className="text-xs text-[#666666]">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[var(--bg-canvas)]">

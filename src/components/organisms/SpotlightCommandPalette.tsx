@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAppDrawer } from '@/lib/app-drawer-context';
 import { useI18n } from '@/lib/i18n';
 import { useFeatureFlags } from '@/lib/featureFlags';
@@ -36,6 +36,7 @@ interface PaletteItem {
 }
 
 export const SpotlightCommandPalette: React.FC = () => {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -360,6 +361,11 @@ export const SpotlightCommandPalette: React.FC = () => {
 
   // Global keyboard shortcuts (Ctrl + K, Ctrl + Space / Cmd + Space, Escape)
   useEffect(() => {
+    if (pathname === '/login' || pathname === '/forgot-password') {
+      setIsOpen(false);
+      return;
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isEnabled('feature_command_palette')) return;
       // Ctrl + K or Ctrl + Space or Meta + K / Meta + Space
@@ -385,7 +391,7 @@ export const SpotlightCommandPalette: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-spotlight', handleCustomOpen);
     };
-  }, [isEnabled]);
+  }, [isEnabled, pathname]);
 
   const handleVoiceSearch = () => {
     if (!isEnabled('feature_command_palette')) return;
