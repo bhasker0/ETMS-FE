@@ -27,7 +27,7 @@ class StructuredClientLogger {
     const companyId = typeof window !== 'undefined' ? localStorage.getItem('etms_company_id') || 'comp-1' : 'comp-1';
 
     return {
-      id: `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       timestamp: new Date().toISOString(),
       level,
       message,

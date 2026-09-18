@@ -30,24 +30,26 @@ export function FloatingVoiceTrigger() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-2 px-3.5 py-2.5 bg-[#111111] text-[#F7F6F3] rounded-full shadow-lg hover:shadow-xl border border-white/20 transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-          title="Universal Speech Data Entry (Bhashini Indic ASR)"
-          aria-label="Universal Speech Data Entry"
+          className="group relative flex items-center gap-2.5 px-4 py-3 bg-slate-950/85 text-slate-100 rounded-full shadow-2xl hover:shadow-purple-500/30 border border-white/20 backdrop-blur-xl transition-all transform hover:-translate-y-1 active:scale-95 cursor-pointer ring-1 ring-white/10"
+          title="Universal Voice Assistant (Bhashini Indic ASR)"
+          aria-label="Universal Voice Assistant"
         >
           <div className="relative flex items-center justify-center">
-            <span className="absolute -top-1 -right-1 flex h-2 w-2">
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-tr from-rose-500 to-amber-400"></span>
             </span>
-            <Mic className="w-4 h-4 text-rose-400 animate-pulse" />
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-rose-500/20 via-purple-500/20 to-amber-500/20 flex items-center justify-center border border-white/15">
+              <Mic className="w-4 h-4 text-rose-400 animate-pulse" />
+            </div>
           </div>
 
-          <span className="text-xs font-bold tracking-tight pr-1">
-            Voice Entry
+          <span className="text-xs font-bold tracking-tight text-slate-100 pr-0.5">
+            Voice Assistant
           </span>
 
-          <span className="hidden sm:inline-block text-[0.625rem] font-semibold uppercase px-1.5 py-0.5 rounded bg-white/10 text-amber-300">
-            ASR
+          <span className="hidden sm:inline-block text-[0.625rem] font-extrabold uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-rose-500/20 text-rose-300 border border-rose-500/30">
+            Zero-Click AI
           </span>
         </button>
       </div>
