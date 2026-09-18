@@ -112,13 +112,13 @@ export default function ChallansListPage() {
           <div>
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
               <Truck className="w-3.5 h-3.5 text-[var(--text-main)]" />
-              <span>Fabric Inward • Delivery Routing</span>
+              <span>Challans</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
-              Job Work Challans & Fabric Lots ({challans.length} Recorded)
+              Inward Challans ({challans.length})
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Inward gray cloth delivery notes, quality inspections, and machine quota allocation
+              Inward fabric lots, delivery challans, and processing status
             </p>
           </div>
 
@@ -129,7 +129,7 @@ export default function ChallansListPage() {
               className="px-3.5 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-xs shadow-xs shrink-0 cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              <span>Register Inward Lot</span>
+              <span>New Challan</span>
             </button>
           </div>
         </div>

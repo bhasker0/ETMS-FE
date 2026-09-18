@@ -152,12 +152,12 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
             : 'Setting';
 
           if (flagKey) {
-            toast.info(`⚙️ Parameter Updated: ${formattedName} is now ${isEnabledVal ? 'ENABLED' : 'DISABLED'}`, {
+            toast.info(`Parameter Updated: ${formattedName} is now ${isEnabledVal ? 'ENABLED' : 'DISABLED'}`, {
               description: 'Operational permissions refreshed in real time from OPS.',
               duration: 4000,
             });
           } else {
-            toast.info(`⚙️ Company Parameters Refreshed from OPS`, {
+            toast.info(`Company Parameters Refreshed`, {
               description: 'Updated operational settings applied in real time.',
               duration: 3500,
             });
@@ -204,6 +204,9 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
           // ignore
         }
       };
+      etmsEventSource.onerror = () => {
+        // Handled silently when running in standalone mode
+      };
     } catch (_err) {
       // ignore
     }
@@ -220,6 +223,9 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
           // ignore
         }
       };
+      opsEventSource.onerror = () => {
+        // Handled silently
+      };
     } catch (_err) {
       // ignore
     }
@@ -235,25 +241,28 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // Purely event-driven parameter updates:
+    // Only refresh when an explicit parameter change event is dispatched locally or received via SSE
     const handleCompanySwitch = (e: Event) => {
       const customEvent = e as CustomEvent<{ companyId?: string }>;
       refreshFlags(customEvent.detail?.companyId);
     };
 
-    // Fallback heartbeat synchronization every 4 seconds
-    const intervalId = setInterval(() => {
-      refreshFlags();
-    }, 4000);
+    const handleParameterUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ companyId?: string }>;
+      refreshFlags(customEvent.detail?.companyId);
+    };
 
     window.addEventListener('storage', handleStorage);
     window.addEventListener('etms-company-switched', handleCompanySwitch);
+    window.addEventListener('etms-parameters-updated', handleParameterUpdate);
 
     return () => {
-      clearInterval(intervalId);
       etmsEventSource?.close();
       opsEventSource?.close();
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('etms-company-switched', handleCompanySwitch);
+      window.removeEventListener('etms-parameters-updated', handleParameterUpdate);
     };
   }, []);
 

@@ -71,13 +71,13 @@ export default function KarigarsMasterPage() {
           <div>
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
               <Users className="w-3.5 h-3.5 text-[var(--text-main)]" />
-              <span>Karigar Roster • Master Directory</span>
+              <span>Karigars</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
-              Operators & Karigar Profiles ({karigars.length} Enrolled)
+              Karigars ({karigars.length})
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Embroidery machine operators, wage basis models, and mobile contacts
+              Operator profiles, wage rates, and contact details
             </p>
           </div>
 
@@ -86,7 +86,7 @@ export default function KarigarsMasterPage() {
             className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Enroll Operator</span>
+            <span>New Karigar</span>
           </button>
         </div>
 

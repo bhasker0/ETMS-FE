@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const { user, activeCompany, allAvailableCompanies, switchCompany, logout, login, hasCompanyFeature } = useAuth();
+  const { user, activeCompany, allAvailableCompanies, switchCompany, logout, hasCompanyFeature } = useAuth();
   const { isEnabled } = useFeatureFlags();
   const { t } = useI18n();
 
@@ -54,14 +54,6 @@ export const Navbar: React.FC = () => {
   const { openConfigDrawer } = useConfig();
   const { openDrawer } = useAppDrawer();
 
-
-  // Quick test personas
-  const personas = [
-    { name: 'Bhavesh Patel (Owner)', mobile: '9825012345', role: 'COMPANY_ADMIN', firm: 'Radhe Krishna Emb.' },
-    { name: 'Sanjay Mehta (Supervisor)', mobile: '9825099001', role: 'SUPERVISOR', firm: 'Radhe Krishna Emb.' },
-    { name: 'Kantibhai (Munim/CA)', mobile: '9825099999', role: 'MUNIM', firm: 'Kantibhai & Co.' },
-    { name: 'Ghanshyam Shah (Owner 2)', mobile: '9825054321', role: 'COMPANY_ADMIN', firm: 'Shree Ram Textiles' },
-  ];
 
   const navItems = [
     { href: '/', label: 'DASHBOARD', icon: <Layers className="w-3.5 h-3.5" />, feature: 'dashboard' },
@@ -139,22 +131,12 @@ export const Navbar: React.FC = () => {
   const visibleNavItems = navItems.filter((item) => isFeatureAllowed(item.feature));
   const visibleHeaderActions = headerActions.filter((action) => isFeatureAllowed(action.feature));
 
-  const handlePersonaSwitch = async (persona: typeof personas[0]) => {
-    try {
-      await login(persona.mobile, 'Password@123');
-      toast.success(`Switched persona to ${persona.name}`);
-      setProfileDropdownOpen(false);
-      router.refresh();
-    } catch (e: unknown) {
-      toast.error('Login failed: ' + (e instanceof Error ? e.message : 'Unknown error'));
-    }
-  };
-
   const handleCompanySelect = async (companyId: string) => {
     try {
       await switchCompany(companyId);
       toast.success('Company context switched');
       setCompanyDropdownOpen(false);
+      setProfileDropdownOpen(false);
       router.refresh();
     } catch (e: unknown) {
       toast.error('Failed to switch company: ' + (e instanceof Error ? e.message : 'Unknown error'));
@@ -314,34 +296,38 @@ export const Navbar: React.FC = () => {
                   <div className="text-[0.6875rem] text-[var(--text-muted)] font-medium mt-0.5">Role: <span className="text-[var(--text-main)] font-semibold">{activeCompany?.role || 'OPERATOR'}</span></div>
                 </div>
 
-                <div className="px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                  {t.fastPersonaSwitchTitle || 'Fast Persona Switch'}
-                </div>
+                {allAvailableCompanies.length > 1 && (
+                  <>
+                    <div className="px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                      Switch Company
+                    </div>
 
-                <div className="space-y-0.5">
-                  {personas.map((p) => {
-                    const isSelected = user?.mobile === p.mobile;
-                    return (
-                      <button
-                        key={p.mobile}
-                        onClick={() => handlePersonaSwitch(p)}
-                        className={`w-full px-2 py-1 text-left flex items-center justify-between text-xs rounded-md transition ${
-                          isSelected
-                            ? 'bg-[var(--text-main)] text-[var(--bg-surface)] font-semibold'
-                            : 'hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)]'
-                        }`}
-                      >
-                        <div className="truncate pr-1">
-                          <div className="font-semibold truncate">{p.name}</div>
-                          <div className={`text-[0.65rem] truncate ${isSelected ? 'text-[var(--bg-surface)]/80' : 'text-[var(--text-muted)]'}`}>
-                            {p.role} • {p.firm}
-                          </div>
-                        </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-[var(--bg-surface)] shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
+                    <div className="space-y-0.5">
+                      {allAvailableCompanies.map((comp) => {
+                        const isSelected = activeCompany?.id === comp.id;
+                        return (
+                          <button
+                            key={comp.id}
+                            onClick={() => handleCompanySelect(comp.id)}
+                            className={`w-full px-2 py-1 text-left flex items-center justify-between text-xs rounded-md transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-[var(--text-main)] text-[var(--bg-surface)] font-semibold'
+                                : 'hover:bg-[var(--bg-surface-elevated)] text-[var(--text-main)]'
+                            }`}
+                          >
+                            <div className="truncate pr-1">
+                              <div className="font-semibold truncate">{comp.name}</div>
+                              <div className={`text-[0.65rem] truncate ${isSelected ? 'text-[var(--bg-surface)]/80' : 'text-[var(--text-muted)]'}`}>
+                                {comp.role || 'Member'} • {comp.gstin || 'GST Registered'}
+                              </div>
+                            </div>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-[var(--bg-surface)] shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
 
                 <div className="pt-1 border-t border-[var(--border)]">
                   <button

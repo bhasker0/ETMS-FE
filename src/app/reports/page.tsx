@@ -277,14 +277,14 @@ function ReportsDashboardContent() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
                 <BarChart3 className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Executive Analytics & Factory Auditing</span>
+                <span>Reports</span>
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight mt-1">
-              Report Dashboard
+              Reports
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Production counters, job-work sales, inward lots, purchases, expenses, and net factory profit & loss
+              Production, sales, challans, purchases, expenses, and P&L statements
             </p>
           </div>
 

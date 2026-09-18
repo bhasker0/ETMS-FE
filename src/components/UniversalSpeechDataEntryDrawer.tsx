@@ -1748,7 +1748,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
                 onChange={(e) => setActiveLanguage(e.target.value as any)}
                 className="bg-slate-900/90 border border-white/15 text-slate-200 text-[0.725rem] font-semibold rounded-lg px-2.5 py-1.5 outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400/50 transition cursor-pointer max-w-[210px] sm:max-w-none truncate shadow-inner"
               >
-                <option value="auto">✨ Auto-Detect (Pan-India Embroidery Hubs)</option>
+                <option value="auto">Auto-Detect (Pan-India Embroidery Hubs)</option>
                 <option value="gu-IN">ગુજરાતી (Gujarati) • Surat & Ahmedabad</option>
                 <option value="hi-IN">हिन्दी (Hindi) • UP & Pan-India Karigar Workforce</option>
                 <option value="mr-IN">मराठी (Marathi) • Bhiwandi, Ichalkaranji & Malegaon</option>
@@ -1897,9 +1897,9 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
                           ? 'bg-sky-500/20 text-sky-300 border-sky-500/35'
                           : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/35'
                       }`}>
-                        {parsedFields.crud_action === 'DELETE' ? '🔴 DELETE / CANCEL' :
-                         parsedFields.crud_action === 'UPDATE' ? '🟡 UPDATE / EDIT' :
-                         parsedFields.crud_action === 'READ' ? '🔵 VIEW / SEARCH' : '🟢 CREATE / ADD'}
+                        {parsedFields.crud_action === 'DELETE' ? 'DELETE / CANCEL' :
+                         parsedFields.crud_action === 'UPDATE' ? 'UPDATE / EDIT' :
+                         parsedFields.crud_action === 'READ' ? 'VIEW / SEARCH' : 'CREATE / ADD'}
                       </span>
                     )}
                   </div>

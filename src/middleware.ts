@@ -13,6 +13,18 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Never intercept Next.js internals, static assets, chunks, CSS, or scripts
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/static') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/sso.html' ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
+  }
+
   // Read access token from cookie
   const token = request.cookies.get('etms_access_token')?.value;
   const isAuthenticated = Boolean(token && token.trim() !== '');
@@ -24,7 +36,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // 2. If user is unauthenticated and attempts to access protected routes (e.g. `/`, `/shift`, `/challans`, etc.)
+  // 2. If user is unauthenticated and attempts to access protected routes (e.g. `/`, `/machines`, etc.)
   if (!isAuthRoute && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
     if (pathname !== '/') {
@@ -38,14 +50,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - icons / manifest / service worker assets
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)',
+    '/((?!_next/static|_next/image|_next/webpack-hmr|api|favicon.ico).*)',
   ],
 };

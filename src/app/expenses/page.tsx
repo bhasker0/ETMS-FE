@@ -97,14 +97,14 @@ export default function ExpensesPage() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
                 <Receipt className="w-3.5 h-3.5 text-[var(--text-main)]" />
-                <span>Cost & Overhead Accounting</span>
+                <span>Expenses</span>
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight mt-1">
-              Expense Management
+              Expenses ({expenses.length})
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Track Direct Manufacturing Costs (Electricity, Machine Repairs, Fuel, Carting) vs Indirect Administrative Costs (Rent, Salaries, Karigar Advances / Uchapat, Tea, Taxes)
+              Factory operational costs, utilities, repairs, and overhead records
             </p>
           </div>
 
@@ -125,7 +125,7 @@ export default function ExpensesPage() {
               className="px-3.5 py-2 bg-[var(--text-main)] hover:bg-[#2c2c2c] text-[var(--bg-surface)] font-semibold text-xs rounded-md transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Record Expense</span>
+              <span>New Expense</span>
             </button>
           </div>
         </div>

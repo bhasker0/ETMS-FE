@@ -6,9 +6,12 @@ export interface MachineApiItem {
   head_count: 24 | 32 | 44 | 66;
   rpm: number;
   make_model?: string;
-  status?: 'RUNNING' | 'STOPPED' | 'MAINTENANCE' | string;
+  status?: 'running' | 'stopped' | 'RUNNING' | 'STOPPED' | 'MAINTENANCE' | string;
   is_active: boolean;
   company_id: string;
+  api_key?: string;
+  stitch_count?: number;
+  last_telemetry_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +22,13 @@ export interface CreateMachineDto {
   rpm?: number;
   make_model?: string;
   is_active?: boolean;
+}
+
+export interface TelemetryIngestPayload {
+  machineId: string;
+  status: 'running' | 'stopped';
+  stitchCount: number;
+  apiKey?: string;
 }
 
 export const MachinesApi = {
@@ -46,7 +56,20 @@ export const MachinesApi = {
     return data as MachineApiItem;
   },
 
+  regenerateApiKey: async (id: string): Promise<{ id: string; machine_no: string; api_key: string; message: string }> => {
+    const res = await apiClient.post<{ id: string; machine_no: string; api_key: string; message: string }>(`/api/v1/machines/${id}/regenerate-key`);
+    const data = (res as unknown as { data?: any })?.data || res;
+    return data;
+  },
+
+  sendTelemetry: async (payload: TelemetryIngestPayload): Promise<any> => {
+    const res = await apiClient.post('/api/v1/machines/telemetry', payload);
+    const data = (res as unknown as { data?: any })?.data || res;
+    return data;
+  },
+
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/v1/machines/${id}`);
   },
 };
+

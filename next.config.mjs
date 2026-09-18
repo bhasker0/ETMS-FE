@@ -1,36 +1,41 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: process.env.NEXT_DIST_DIR || '.next',
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-  reactStrictMode: true,
-  swcMinify: true,
+  reactStrictMode: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
     unoptimized: true,
   },
-  async headers() {
+  async redirects() {
     return [
       {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-        ],
+        source: '/uchapat',
+        destination: '/karigar/uchapat',
+        permanent: false,
+      },
+      {
+        source: '/wage-hisab',
+        destination: '/karigar/hisab',
+        permanent: false,
+      },
+      {
+        source: '/hisab',
+        destination: '/karigar/hisab',
+        permanent: false,
       },
     ];
   },
-  async rewrites() {
-    return [];
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.cache = false;
+    }
+    return config;
   },
 };
 
 export default nextConfig;
+

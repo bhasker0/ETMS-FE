@@ -67,7 +67,7 @@ export default function MunimDashboardPage() {
   const handleRespond = async (requestId: string, action: 'ACCEPT' | 'REJECT' | 'REVOKE') => {
     try {
       await MunimApi.respondToRequest(requestId, action);
-      toast.success(`[SUCCESS] Request ${action.toLowerCase()}ed`);
+      toast.success(`Request ${action.toLowerCase()}ed`);
       fetchMunimData();
     } catch (err: any) {
       toast.error('Action failed: ' + err.message);
@@ -82,7 +82,7 @@ export default function MunimDashboardPage() {
         endDate,
         onlyUnsynced,
       });
-      toast.success('[DOWNLOADED] Tally Prime XML accounting payload');
+      toast.success('Downloaded Tally Prime XML accounting payload');
     } catch (err: any) {
       toast.error('Export failed: ' + err.message);
     } finally {
@@ -172,7 +172,7 @@ export default function MunimDashboardPage() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    toast.success(`[GENERATED] Official GSTN GSTR-1 JSON return for period ${curFp}`);
+    toast.success(`Generated GSTR-1 JSON return for period ${curFp}`);
   };
 
   return (
@@ -183,13 +183,13 @@ export default function MunimDashboardPage() {
           <div>
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
               <Coins className="w-3.5 h-3.5 text-[var(--text-main)]" />
-              <span>Munim Financial Telemetry • Multi-Firm Cockpit</span>
+              <span>Munim Portal</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
-              Munim Accounting & Khata Cockpit
+              Munim Dashboard
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Consolidated cashbook, outstanding client khata ledgers, and government tax returns
+              Consolidated cashbook, client ledgers, and tax returns
             </p>
           </div>
 
@@ -198,7 +198,7 @@ export default function MunimDashboardPage() {
             className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm shrink-0 cursor-pointer"
           >
             <Send className="w-4 h-4" />
-            <span>Link Factory Client Unit</span>
+            <span>Link Factory</span>
           </button>
         </div>
 

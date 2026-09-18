@@ -79,14 +79,14 @@ export default function DiagnosticsPage() {
     await offlineStore.syncPendingQueue();
     setPendingSyncCount(offlineStore.getPendingCount());
     setIsSyncing(false);
-    toast.success('[SYNC] IndexedDB pending queue dispatched to backend');
+    toast.success('IndexedDB pending queue dispatched to backend');
   };
 
   const handleExecutePurge = () => {
     offlineStore.purgeLocalCache();
     setPendingSyncCount(0);
     setConfirmPurge(false);
-    toast.success('[STORAGE] Offline local cache purged completely');
+    toast.success('Offline local cache purged successfully');
   };
 
   const handleExportDump = () => {
@@ -108,7 +108,7 @@ export default function DiagnosticsPage() {
     a.download = `etms-diagnostic-dump-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('[DUMP] System forensic diagnostics archive generated');
+    toast.success('System diagnostics archive generated');
   };
 
   if (shouldCrash) {
@@ -122,19 +122,19 @@ export default function DiagnosticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Telemetry Controls */}
+      {/* Top Header */}
       <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
               <Terminal className="w-3.5 h-3.5 text-[var(--text-main)]" />
-              <span>Hardware Diagnostics • Telemetry Terminal</span>
+              <span>Diagnostics</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
-              Diagnostics & Sensor Suite
+              Diagnostics & System Health
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Hardware probes, IndexedDB buffer inspection, and thermal printer pairing
+              Offline storage buffer, local cache status, and hardware logs
             </p>
           </div>
 

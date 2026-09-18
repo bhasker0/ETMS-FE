@@ -100,14 +100,14 @@ export default function PurchasesPage() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
                 <ShoppingBag className="w-3.5 h-3.5 text-[var(--text-main)]" />
-                <span>Raw Materials & Factory Spares</span>
+                <span>Purchases</span>
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight mt-1">
-              Purchase Invoices
+              Purchases ({purchases.length})
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Record yarn/dhaga, metallic zari, needles, oil, and machine spare parts purchases with input GST tracking
+              Material, yarn, needles, and spare parts purchase invoices
             </p>
           </div>
 
@@ -128,7 +128,7 @@ export default function PurchasesPage() {
               className="px-3.5 py-2 bg-[var(--text-main)] hover:bg-[#2c2c2c] text-[var(--bg-surface)] font-semibold text-xs rounded-md transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Record Purchase</span>
+              <span>New Purchase</span>
             </button>
           </div>
         </div>

@@ -78,13 +78,13 @@ export default function PartiesMasterPage() {
           <div>
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
               <Briefcase className="w-3.5 h-3.5 text-[var(--text-main)]" />
-              <span>Trader Master Roster • Client Khata Directory</span>
+              <span>Parties</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
-              Registered Traders & Job Work Parties
+              Parties ({parties.length})
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Credit terms, GST status, and direct ledger statement links
+              Client accounts, credit terms, and GST details
             </p>
           </div>
 
@@ -93,7 +93,7 @@ export default function PartiesMasterPage() {
             className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Enroll Trader Party</span>
+            <span>New Party</span>
           </button>
         </div>
 

@@ -74,13 +74,13 @@ export default function ShiftLogsListPage() {
           <div>
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
               <Clock className="w-3.5 h-3.5 text-[var(--text-main)]" />
-              <span>Shift Telemetry • Production Log</span>
+              <span>Shift Logs</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
-              Shift Logs & Meter Archive ({shifts.length} Entries)
+              Shift Records ({shifts.length})
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Day & Night production tallies, Karigar piece-rates, and spindle downtime logs
+              Day and night shift production entries and stitch counter records
             </p>
           </div>
 
@@ -89,7 +89,7 @@ export default function ShiftLogsListPage() {
             className="px-3.5 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-sm shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Log Shift Counter</span>
+            <span>Log Shift</span>
           </button>
         </div>
 

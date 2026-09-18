@@ -78,11 +78,11 @@ export default function InvoicesListPage() {
 
   const handleTallyExport = async () => {
     setTallyExporting(true);
-    toast.info('[>> GENERATING TALLY XML PAYLOAD...]');
+    toast.info('Generating Tally XML export...');
     try {
       // Simulate Tally XML payload generation
       await new Promise((resolve) => setTimeout(resolve, 800));
-      toast.success(`[EXPORTED] ${invoices.length} Invoices converted to Tally Prime XML schema`);
+      toast.success(`${invoices.length} Invoices exported to Tally Prime XML schema`);
     } catch (e: any) {
       toast.error('Tally export failed: ' + e.message);
     } finally {
@@ -109,13 +109,13 @@ export default function InvoicesListPage() {
           <div>
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-1">
               <FileText className="w-3.5 h-3.5 text-[var(--text-main)]" />
-              <span>Tax Invoices • Tally Integration</span>
+              <span>Invoices</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] tracking-tight">
-              Outward Tax Invoices (SAC 9988)
+              Invoices ({invoices.length})
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Embroidery job work billing, 5% GST computation, and accounting sync ledger
+              Outward tax invoices (SAC 9988) and GST computation
             </p>
           </div>
 
@@ -126,7 +126,7 @@ export default function InvoicesListPage() {
               className="px-3 py-1.5 bg-[var(--bg-surface-elevated)] hover:bg-[var(--border)] text-[var(--text-main)] border border-[var(--border)] font-medium text-xs flex items-center gap-1.5 rounded-md transition cursor-pointer shadow-xs"
             >
               <FileCode className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{tallyExporting ? 'Exporting XML...' : 'Tally XML Export'}</span>
+              <span>{tallyExporting ? 'Exporting...' : 'Tally XML Export'}</span>
             </button>
 
             <button
@@ -135,7 +135,7 @@ export default function InvoicesListPage() {
               className="px-3.5 py-2 bg-[var(--primary)] hover:bg-[#9494ff] text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition rounded-md shadow-xs shrink-0 cursor-pointer active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              <span>Create Tax Invoice</span>
+              <span>New Invoice</span>
             </button>
           </div>
         </div>

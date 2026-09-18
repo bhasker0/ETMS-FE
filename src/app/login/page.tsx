@@ -41,36 +41,101 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const testPersonas = [
+  interface TenantPersona {
+    role: string;
+    name: string;
+    firm: string;
+    mobile: string;
+    badge: string;
+    companyId?: string;
+  }
+
+  const DEFAULT_PERSONAS: TenantPersona[] = [
     {
-      role: t.auth_roleOwner || 'Company Owner',
+      role: 'Tenant Owner',
       name: 'Bhavesh Patel',
-      firm: 'Radhe Krishna Embroidery',
+      firm: 'Radhe Krishna Embroidery Works',
       mobile: '9825012345',
-      badge: 'Full Admin',
+      badge: 'RADHEEMB',
+      companyId: '11111111-1111-1111-1111-111111111111',
     },
     {
-      role: t.auth_roleSupervisor || 'Supervisor',
-      name: 'Sanjay Mehta',
-      firm: 'Radhe Krishna Embroidery',
-      mobile: '9825099001',
-      badge: 'Shift & Challan',
+      role: 'Tenant Owner',
+      name: 'Jayeshbhai Patel',
+      firm: 'Shiv Shakti Embroidery Hub',
+      mobile: '9825123456',
+      badge: 'SHIV_4124',
+      companyId: '9f5bc3c9-88c4-42ba-b96c-4d1d9997514d',
     },
     {
-      role: t.auth_roleMunim || 'Munim / CA',
-      name: 'Kantibhai Accountant',
-      firm: 'Multi-Firm Client Access',
-      mobile: '9825099999',
-      badge: 'Tally & GSTR-1',
+      role: 'Tenant Owner',
+      name: 'Sureshbhai',
+      firm: 'Om Sai Embroidery OM_8893',
+      mobile: '9876573349',
+      badge: 'OM_8893',
+      companyId: '3b7ac596-083a-47c2-9a30-d4fd75a10707',
     },
     {
-      role: t.auth_roleOwner2 || 'Tenant Owner',
+      role: 'Tenant Owner',
       name: 'Ghanshyam Shah',
-      firm: 'Shree Ram Textiles',
+      firm: 'Shree Ram Textiles & Embroidery',
       mobile: '9825054321',
-      badge: 'Tenant Isolation',
+      badge: 'SHREERAM_2222',
+      companyId: '24242424-2424-2424-2424-242424242424',
+    },
+    {
+      role: 'Tenant Owner',
+      name: 'Jaimin',
+      firm: 'Jaimin',
+      mobile: '9876543210',
+      badge: 'HMS365',
+      companyId: '6050d03a-441e-4626-93bf-00ffb96b5c91',
     },
   ];
+
+  const [personas, setPersonas] = useState<TenantPersona[]>(DEFAULT_PERSONAS);
+
+  // Dynamically sync active companies from OPS API
+  React.useEffect(() => {
+    const fetchActiveCompanies = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/companies?status=ACTIVE');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            const activeList: TenantPersona[] = json.data
+              .filter((c: any) => c.status === 'ACTIVE' && (c.mobile || c.phone))
+              .map((c: any) => {
+                const rawPhone = c.mobile || c.phone || '';
+                const digits = rawPhone.replace(/\D/g, '').slice(-10);
+                if (digits.length !== 10) return null;
+                return {
+                  role: c.isSeed ? 'OPS Master' : 'Tenant Owner',
+                  name: c.contactPerson || c.name,
+                  firm: c.name,
+                  mobile: digits,
+                  badge: c.code || 'ACTIVE',
+                  companyId: c.id,
+                };
+              })
+              .filter(Boolean) as TenantPersona[];
+
+            if (activeList.length > 0) {
+              setPersonas(activeList);
+              const primaryTenant = activeList.find((p) => p.companyId !== '00000000-0000-0000-0000-000000000000') || activeList[0];
+              if (primaryTenant) {
+                setMobile(primaryTenant.mobile);
+              }
+            }
+          }
+        }
+      } catch (_err) {
+        // Fallback to verified active personas
+      }
+    };
+
+    fetchActiveCompanies();
+  }, []);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,13 +153,13 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (pMobile: string) => {
-    setMobile(pMobile);
+  const handleQuickLogin = async (p: TenantPersona) => {
+    setMobile(p.mobile);
     setPassword('Password@123');
     setSubmitting(true);
     try {
-      await login(pMobile, 'Password@123');
-      toast.success('Logged in successfully!');
+      await login(p.mobile, 'Password@123', p.companyId);
+      toast.success(`Signed in to ${p.firm}`);
       const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
       const callbackUrl = params?.get('callbackUrl') || '/';
       router.push(callbackUrl);
@@ -341,22 +406,22 @@ export default function LoginPage() {
             </form>
           </div>
 
-          {/* Quick Demo Persona Switcher */}
+          {/* Quick Active Tenant Switcher */}
           <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between text-xs font-bold text-[var(--text-main)] border-b border-[var(--border)] pb-2">
               <div className="flex items-center gap-1.5 text-[var(--primary)]">
                 <UserCheck className="w-4 h-4" />
-                <span>{t.auth_demoAccounts || '1-Click Demo Accounts'}</span>
+                <span>Active Tenants (1-Click Login)</span>
               </div>
-              <span className="text-2xs text-[var(--text-muted)] font-mono">{t.auth_instantLogin || 'Instant Login'}</span>
+              <span className="text-2xs text-[var(--text-muted)] font-mono">OPS Synced</span>
             </div>
 
             <div className="grid grid-cols-1 gap-2">
-              {testPersonas.map((p) => (
+              {personas.map((p) => (
                 <button
-                  key={p.mobile}
-                  onClick={() => handleQuickLogin(p.mobile)}
-                  className="w-full p-2.5 bg-[var(--bg-canvas)] hover:bg-[var(--bg-surface-elevated)] border border-[var(--border)] hover:border-[var(--primary)] rounded-xl text-left transition-all flex items-center justify-between group"
+                  key={`${p.companyId || p.mobile}`}
+                  onClick={() => handleQuickLogin(p)}
+                  className="w-full p-2.5 bg-[var(--bg-canvas)] hover:bg-[var(--bg-surface-elevated)] border border-[var(--border)] hover:border-[var(--primary)] rounded-xl text-left transition-all flex items-center justify-between group cursor-pointer"
                 >
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
@@ -368,7 +433,7 @@ export default function LoginPage() {
                       </span>
                     </div>
                     <div className="text-2xs text-[var(--text-muted)]">
-                      {p.role} • <span className="font-mono text-[var(--primary)]">{p.mobile}</span>
+                      {p.firm} • <span className="font-mono text-[var(--primary)]">{p.mobile}</span>
                     </div>
                   </div>
 

@@ -32,6 +32,10 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Surat Embroidery Micro-ERP (SAC 9988)',
   description: 'Clean Minimalist Micro-ERP for Surat Embroidery Factory Owners, Karigars & Munims',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+  },
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
