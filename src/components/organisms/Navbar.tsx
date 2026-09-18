@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n';
@@ -38,15 +39,21 @@ import { CompanyConfigDrawer } from './CompanyConfigDrawer';
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const { user, activeCompany, allAvailableCompanies, switchCompany, logout, login, hasCompanyFeature } = useAuth();
   const { isEnabled } = useFeatureFlags();
   const { t } = useI18n();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { openConfigDrawer } = useConfig();
   const { openDrawer } = useAppDrawer();
+
 
   // Quick test personas
   const personas = [
@@ -124,8 +131,10 @@ export const Navbar: React.FC = () => {
 
   const isFeatureAllowed = (featureKey?: string) => {
     if (!featureKey || featureKey === 'dashboard') return true;
+    if (!mounted) return true; // Stable SSR fallback
     return hasCompanyFeature(featureKey) && isEnabled(featureKey);
   };
+
 
   const visibleNavItems = navItems.filter((item) => isFeatureAllowed(item.feature));
   const visibleHeaderActions = headerActions.filter((action) => isFeatureAllowed(action.feature));

@@ -1,8 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { toast } from 'sonner';
 
 export interface ETMSFeatureFlags {
+
+
   feature_broadcasting_alerts: boolean;
   feature_kyc_onboarding: boolean;
   feature_command_palette: boolean;
@@ -126,6 +129,101 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refreshFlags();
 
+    const handleIncomingEvent = (eventData: any) => {
+      try {
+        const currentCompanyId =
+          localStorage.getItem('etms_active_company_id') ||
+          localStorage.getItem('etms_company_id');
+
+        if (
+          eventData.company_id &&
+          currentCompanyId &&
+          eventData.company_id !== currentCompanyId &&
+          eventData.company_id !== '00000000-0000-0000-0000-000000000000'
+        ) {
+          return;
+        }
+
+        if (eventData.type === 'FEATURE_FLAG_UPDATED' || eventData.type === 'PARAMETER_UPDATED') {
+          const flagKey = eventData.key;
+          const isEnabledVal = eventData.enabled;
+          const formattedName = flagKey
+            ? flagKey.replace(/^feature_/, '').replace(/_/g, ' ').toUpperCase()
+            : 'Setting';
+
+          if (flagKey) {
+            toast.info(`⚙️ Parameter Updated: ${formattedName} is now ${isEnabledVal ? 'ENABLED' : 'DISABLED'}`, {
+              description: 'Operational permissions refreshed in real time from OPS.',
+              duration: 4000,
+            });
+          } else {
+            toast.info(`⚙️ Company Parameters Refreshed from OPS`, {
+              description: 'Updated operational settings applied in real time.',
+              duration: 3500,
+            });
+          }
+
+          if (eventData.feature_flags) {
+            setFlags((prev) => {
+              const updated = { ...prev, ...eventData.feature_flags };
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+              return updated;
+            });
+          } else if (flagKey) {
+            setFlags((prev) => {
+              const cleanKey = flagKey.replace(/^feature_/, '').replace(/_enabled$/, '');
+              const updated = {
+                ...prev,
+                [flagKey]: Boolean(isEnabledVal),
+                [`feature_${cleanKey}`]: Boolean(isEnabledVal),
+                [`${cleanKey}_enabled`]: Boolean(isEnabledVal),
+                [cleanKey]: Boolean(isEnabledVal),
+              };
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+              return updated;
+            });
+          }
+
+          refreshFlags(currentCompanyId || undefined);
+          window.dispatchEvent(new CustomEvent('etms-parameters-updated', { detail: eventData }));
+        }
+      } catch (err) {
+        console.error('Error handling realtime sync event:', err);
+      }
+    };
+
+    // 1. Connect to ETMS Backend SSE stream
+    let etmsEventSource: EventSource | null = null;
+    try {
+      etmsEventSource = new EventSource('http://localhost:4000/api/v1/ops-sync/events');
+      etmsEventSource.onmessage = (e) => {
+        try {
+          const parsed = JSON.parse(e.data);
+          handleIncomingEvent(parsed);
+        } catch (_err) {
+          // ignore
+        }
+      };
+    } catch (_err) {
+      // ignore
+    }
+
+    // 2. Connect to OPS Backend SSE stream
+    let opsEventSource: EventSource | null = null;
+    try {
+      opsEventSource = new EventSource('http://localhost:5000/api/companies/events');
+      opsEventSource.onmessage = (e) => {
+        try {
+          const parsed = JSON.parse(e.data);
+          handleIncomingEvent(parsed);
+        } catch (_err) {
+          // ignore
+        }
+      };
+    } catch (_err) {
+      // ignore
+    }
+
     // Listen for cross-tab or runtime storage updates
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
@@ -142,13 +240,23 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
       refreshFlags(customEvent.detail?.companyId);
     };
 
+    // Fallback heartbeat synchronization every 4 seconds
+    const intervalId = setInterval(() => {
+      refreshFlags();
+    }, 4000);
+
     window.addEventListener('storage', handleStorage);
     window.addEventListener('etms-company-switched', handleCompanySwitch);
+
     return () => {
+      clearInterval(intervalId);
+      etmsEventSource?.close();
+      opsEventSource?.close();
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('etms-company-switched', handleCompanySwitch);
     };
   }, []);
+
 
   const isEnabled = (flagKey: keyof ETMSFeatureFlags | string): boolean => {
     if (!flagKey) return true;

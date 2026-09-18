@@ -158,7 +158,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     initAuth();
+
+    const handleParamsUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key?: string; enabled?: boolean; feature_flags?: Record<string, boolean> }>;
+      if (customEvent.detail?.feature_flags) {
+        setFeatureFlags((prev) => ({ ...prev, ...customEvent.detail.feature_flags }));
+      } else if (customEvent.detail?.key) {
+        const flagKey = customEvent.detail.key;
+        const cleanKey = flagKey.replace(/^feature_/, '').replace(/_enabled$/, '');
+        const boolVal = Boolean(customEvent.detail.enabled);
+        setFeatureFlags((prev) => ({
+          ...prev,
+          [flagKey]: boolVal,
+          [`feature_${cleanKey}`]: boolVal,
+          [`${cleanKey}_enabled`]: boolVal,
+          [cleanKey]: boolVal,
+        }));
+      }
+    };
+
+    window.addEventListener('etms-parameters-updated', handleParamsUpdate);
+    return () => {
+      window.removeEventListener('etms-parameters-updated', handleParamsUpdate);
+    };
   }, []);
+
 
   const requestPasswordReset = async (mobile: string) => {
     try {
