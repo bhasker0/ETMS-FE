@@ -5,12 +5,21 @@ import { usePathname } from 'next/navigation';
 import { Mic } from 'lucide-react';
 import { UniversalSpeechDataEntryDrawer, SpeechCategory } from './UniversalSpeechDataEntryDrawer';
 
+import { useFeatureFlags } from '@/lib/featureFlags';
+import { useAuth } from '@/lib/auth-context';
+
 export function FloatingVoiceTrigger() {
   const pathname = usePathname();
+  const { isEnabled } = useFeatureFlags();
+  const { hasCompanyFeature } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [initialCategory, setInitialCategory] = useState<SpeechCategory>('challan');
 
+  const isVoiceAllowed = hasCompanyFeature('speech_data_entry') && isEnabled('feature_speech_data_entry');
+
   useEffect(() => {
+    if (!isVoiceAllowed) return;
+
     const handleOpenSpeech = (e: Event) => {
       const customEvent = e as CustomEvent<{ category?: SpeechCategory }>;
       if (customEvent.detail?.category) {
@@ -23,9 +32,9 @@ export function FloatingVoiceTrigger() {
     return () => {
       window.removeEventListener('open-speech-data-entry', handleOpenSpeech);
     };
-  }, []);
+  }, [isVoiceAllowed]);
 
-  if (pathname === '/login' || pathname === '/forgot-password') {
+  if (pathname === '/login' || pathname === '/forgot-password' || !isVoiceAllowed) {
     return null;
   }
 

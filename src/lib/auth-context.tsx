@@ -118,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('etms_feature_flags', JSON.stringify(flags));
       }
       document.cookie = `etms_access_token=${encodeURIComponent(accessToken)}; path=/; max-age=2592000; SameSite=Lax`;
+      window.dispatchEvent(new CustomEvent('etms-company-switched', { detail: { companyId: activeCompanyId } }));
     }
   }, []);
 
@@ -228,12 +229,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (res?.data?.featureFlags) {
           localStorage.setItem('etms_feature_flags', JSON.stringify(res.data.featureFlags));
         }
+        window.dispatchEvent(new CustomEvent('etms-company-switched', { detail: { companyId: nextId } }));
       }
     } catch (_e) {
       // Fallback local update
       setActiveCompanyId(companyId);
       if (typeof window !== 'undefined') {
         localStorage.setItem('etms_active_company_id', companyId);
+        window.dispatchEvent(new CustomEvent('etms-company-switched', { detail: { companyId } }));
       }
     }
   };

@@ -27,6 +27,8 @@ import { Drawer } from '@/components/ui/drawer';
 import { useI18n } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { useAppDrawer } from '@/lib/app-drawer-context';
+import { useFeatureFlags } from '@/lib/featureFlags';
+import { useAuth } from '@/lib/auth-context';
 
 // APIs for direct creation & verification
 import { InwardChallansApi, InwardChallanApiItem } from '@/lib/api/challans';
@@ -340,6 +342,10 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
 }) => {
   const { t } = useI18n();
   const { openDrawer } = useAppDrawer();
+  const { isEnabled } = useFeatureFlags();
+  const { hasCompanyFeature } = useAuth();
+
+  const isVoiceAllowed = hasCompanyFeature('speech_data_entry') && isEnabled('feature_speech_data_entry');
 
   const [activeLanguage, setActiveLanguage] = useState<'auto' | 'gu-IN' | 'hi-IN' | 'en-IN' | 'mr-IN' | 'ta-IN' | 'te-IN' | 'kn-IN' | 'bn-IN' | 'pa-IN' | 'ur-IN'>('auto');
   const [detectedLanguageLabel, setDetectedLanguageLabel] = useState<string>('Auto (All Regional Embroidery Hubs)');
@@ -356,7 +362,7 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
   const [dbParties, setDbParties] = useState<PartyApiItem[]>([]);
   const [dbKarigars, setDbKarigars] = useState<KarigarApiItem[]>([]);
   const [dbMachines, setDbMachines] = useState<MachineApiItem[]>([]);
-  const [dbChallans, setDbChallans] = useState<InwardChallanApiItem[]>([]);
+  const [_dbChallans, setDbChallans] = useState<InwardChallanApiItem[]>([]);
 
   // Verification state for linked master entity
   const [verificationState, setVerificationState] = useState<{
@@ -1676,6 +1682,10 @@ export const UniversalSpeechDataEntryDrawer: React.FC<UniversalSpeechDataEntryDr
       setIsSaving(false);
     }
   };
+
+  if (!isOpen || !isVoiceAllowed) {
+    return null;
+  }
 
   return (
     <Drawer

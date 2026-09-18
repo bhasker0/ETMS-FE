@@ -371,13 +371,16 @@ export const SpotlightCommandPalette: React.FC = () => {
     [openDrawer, router, tr]
   );
 
-  // Filter items based on active company feature flags and user search query
-  const filteredItems = useMemo(() => {
-    const isFeatureAllowed = (featureKey?: string) => {
+  const isFeatureAllowed = React.useCallback(
+    (featureKey?: string) => {
       if (!featureKey || featureKey === 'dashboard') return true;
       return hasCompanyFeature(featureKey) && isEnabled(featureKey);
-    };
+    },
+    [hasCompanyFeature, isEnabled]
+  );
 
+  // Filter items based on active company feature flags and user search query
+  const filteredItems = useMemo(() => {
     const allowedItems = items.filter((item) => isFeatureAllowed(item.feature));
     const q = search.trim().toLowerCase();
     if (!q) return allowedItems;
@@ -387,7 +390,7 @@ export const SpotlightCommandPalette: React.FC = () => {
         item.description.toLowerCase().includes(q) ||
         item.keywords.some((k) => k.toLowerCase().includes(q))
     );
-  }, [items, search, hasCompanyFeature, isEnabled]);
+  }, [items, search, isFeatureAllowed]);
 
   // Reset selected index when search changes
   useEffect(() => {
@@ -494,18 +497,20 @@ export const SpotlightCommandPalette: React.FC = () => {
             className="w-full h-12 bg-transparent text-xs sm:text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-hidden"
           />
           <div className="flex items-center gap-1.5 shrink-0 ml-2">
-            <button
-              type="button"
-              onClick={handleVoiceSearch}
-              className={`p-1.5 rounded-md border transition-colors ${
-                isListening
-                  ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
-                  : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border)] hover:text-[var(--text-main)]'
-              }`}
-              title="Voice Search (Bhashini ASR)"
-            >
-              <Mic className="w-3.5 h-3.5" />
-            </button>
+            {isFeatureAllowed('speech_data_entry') && (
+              <button
+                type="button"
+                onClick={handleVoiceSearch}
+                className={`p-1.5 rounded-md border transition-colors ${
+                  isListening
+                    ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
+                    : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border)] hover:text-[var(--text-main)]'
+                }`}
+                title="Voice Search (Bhashini ASR)"
+              >
+                <Mic className="w-3.5 h-3.5" />
+              </button>
+            )}
             <kbd className="hidden sm:inline-flex items-center text-[0.625rem] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] border border-[var(--border)] text-[var(--text-muted)]">
               Ctrl+K
             </kbd>

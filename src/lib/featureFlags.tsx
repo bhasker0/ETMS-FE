@@ -131,8 +131,18 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
         }
       }
     };
+
+    const handleCompanySwitch = (e: Event) => {
+      const customEvent = e as CustomEvent<{ companyId?: string }>;
+      refreshFlags(customEvent.detail?.companyId);
+    };
+
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    window.addEventListener('etms-company-switched', handleCompanySwitch);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('etms-company-switched', handleCompanySwitch);
+    };
   }, []);
 
   const isEnabled = (flagKey: keyof ETMSFeatureFlags | string): boolean => {

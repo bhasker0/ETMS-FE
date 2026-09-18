@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Mic, Sparkles, RefreshCw } from 'lucide-react';
 import { useFeatureFlags } from '@/lib/featureFlags';
+import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
 interface SpeechDataEntryButtonProps {
@@ -17,10 +18,11 @@ export function SpeechDataEntryButton({
   className = '',
 }: SpeechDataEntryButtonProps) {
   const { isEnabled } = useFeatureFlags();
+  const { hasCompanyFeature } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  if (!isEnabled('feature_speech_data_entry')) {
+  if (!isEnabled('feature_speech_data_entry') || !hasCompanyFeature('speech_data_entry')) {
     return null;
   }
 
