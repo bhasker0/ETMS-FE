@@ -81,18 +81,26 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
     return DEFAULT_FEATURE_FLAGS;
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   const refreshFlags = async (overrideCompanyId?: string) => {
     try {
-      setLoading(true);
       const companyId =
         overrideCompanyId ||
         (typeof window !== 'undefined'
           ? localStorage.getItem('etms_active_company_id') || localStorage.getItem('etms_company_id') || '00000000-0000-0000-0000-000000000000'
           : '00000000-0000-0000-0000-000000000000');
-      const res = await fetch(`${OPS_API_BASE}/companies/${companyId}/feature-flags`);
-      if (res.ok) {
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+      const res = await fetch(`${OPS_API_BASE}/companies/${companyId}/feature-flags`, {
+        signal: controller.signal,
+      }).catch(() => null);
+      
+      clearTimeout(timeoutId);
+
+      if (res && res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
           const merged = { ...DEFAULT_FEATURE_FLAGS, ...json.data };
@@ -104,9 +112,6 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
       }
     } catch (_err) {
       // Fallback gracefully to existing/default flags
-      console.warn('OPS Feature flags sync unavailable, using default/cached flags');
-    } finally {
-      setLoading(false);
     }
   };
 

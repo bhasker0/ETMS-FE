@@ -30,7 +30,7 @@ export default function PartiesMasterPage() {
   const fetchParties = async () => {
     setLoading(true);
     try {
-      const data = await PartiesApi.getAll({ search: searchTerm });
+      const data = await PartiesApi.getAll();
       setParties(data);
     } catch (e: any) {
       console.warn('Parties fetch error:', e);
@@ -41,7 +41,7 @@ export default function PartiesMasterPage() {
 
   useEffect(() => {
     fetchParties();
-  }, [activeCompany?.id, searchTerm]);
+  }, [activeCompany?.id]);
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to deactivate Party "${name}"?`)) return;
@@ -53,6 +53,18 @@ export default function PartiesMasterPage() {
       toast.error('Failed to delete party: ' + err.message);
     }
   };
+
+  const filteredParties = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return parties;
+    return parties.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        (p.gstin && p.gstin.toLowerCase().includes(q)) ||
+        (p.mobile && p.mobile.includes(q)) ||
+        (p.city && p.city.toLowerCase().includes(q))
+    );
+  }, [parties, searchTerm]);
 
   const activeCount = parties.filter((p) => p.is_active).length;
   const gstinCount = parties.filter((p) => p.gstin && p.gstin.startsWith('24')).length;
@@ -134,20 +146,26 @@ export default function PartiesMasterPage() {
 
         {loading ? (
           <div className="py-12 text-center text-xs text-[var(--text-muted)]">Loading directory...</div>
-        ) : parties.length === 0 ? (
+        ) : filteredParties.length === 0 ? (
           <div className="py-12 text-center space-y-3 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-6">
             <Briefcase className="w-10 h-10 text-[var(--text-muted)] mx-auto" />
-            <h3 className="text-sm font-bold text-[var(--text-main)]">No Parties Registered</h3>
+            <h3 className="text-sm font-bold text-[var(--text-main)]">
+              {searchTerm ? 'No Matching Parties Found' : 'No Parties Registered'}
+            </h3>
             <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
-              Add your first textile broker or fabric trader account to start logging inward challans.
+              {searchTerm
+                ? `No textile party matches "${searchTerm}". Try a different name, GSTIN or city.`
+                : 'Add your first textile broker or fabric trader account to start logging inward challans.'}
             </p>
-            <button
-              onClick={() => openDrawer('ADD_PARTY', {}, fetchParties)}
-              className="px-4 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs rounded-md inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add First Party</span>
-            </button>
+            {!searchTerm && (
+              <button
+                onClick={() => openDrawer('ADD_PARTY', {}, fetchParties)}
+                className="px-4 py-2 bg-[var(--text-main)] hover:opacity-90 text-[var(--bg-surface)] font-semibold text-xs rounded-md inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add First Party</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-x-auto shadow-xs">
@@ -165,7 +183,7 @@ export default function PartiesMasterPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)] font-sans">
-                {parties.map((p) => (
+                {filteredParties.map((p) => (
                   <tr key={p.id} className="hover:bg-[var(--bg-surface-elevated)]/50 transition">
                     <td className="p-3.5">
                       <Link

@@ -260,25 +260,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    try {
-      await apiClient.post('/api/v1/auth/logout').catch(() => {});
-    } finally {
-      setToken(null);
-      setUser(null);
-      setActiveCompanyId(null);
-      setCompanies([]);
-      setMunimApprovedCompanies([]);
-      setFeatureFlags({});
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('etms_access_token');
-        localStorage.removeItem('etms_user_profile');
-        localStorage.removeItem('etms_active_company_id');
-        localStorage.removeItem('etms_companies');
-        localStorage.removeItem('etms_munim_companies');
-        localStorage.removeItem('etms_feature_flags');
-        document.cookie = 'etms_access_token=; path=/; max-age=0; SameSite=Lax';
-      }
+    // 1. Immediately reset React state so UI updates with 0 latency
+    setToken(null);
+    setUser(null);
+    setActiveCompanyId(null);
+    setCompanies([]);
+    setMunimApprovedCompanies([]);
+    setFeatureFlags({});
+    setIsLoading(false);
+
+    // 2. Synchronously clear client storage & cookies
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('etms_access_token');
+      localStorage.removeItem('etms_user_profile');
+      localStorage.removeItem('etms_active_company_id');
+      localStorage.removeItem('etms_companies');
+      localStorage.removeItem('etms_munim_companies');
+      localStorage.removeItem('etms_feature_flags');
+      document.cookie = 'etms_access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax';
     }
+
+    // 3. Fire-and-forget backend notification
+    apiClient.post('/api/v1/auth/logout').catch(() => {});
   };
 
   const allAvailableCompanies = [...companies, ...munimApprovedCompanies];

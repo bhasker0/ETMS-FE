@@ -105,12 +105,12 @@ export default function LoginPage() {
     }
   };
 
-  if (isLoading || isAuthenticated) {
+  if (isAuthenticated && !isLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-[var(--bg-canvas)]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-[#111111] border-t-transparent animate-spin" />
-          <p className="text-xs text-[#666666]">Checking authentication...</p>
+          <p className="text-xs text-[#666666]">Redirecting to dashboard...</p>
         </div>
       </div>
     );

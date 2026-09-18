@@ -49,13 +49,7 @@ export default function ShiftLogsListPage() {
 
   useEffect(() => {
     fetchShifts();
-  }, [selectedKarigarId]);
-
-  useEffect(() => {
-    if (activeCompany?.id) {
-      fetchShifts();
-    }
-  }, [activeCompany?.id]);
+  }, [selectedKarigarId, activeCompany?.id]);
 
   const filtered = shifts.filter((s) => {
     const matchesSearch =

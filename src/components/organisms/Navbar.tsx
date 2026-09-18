@@ -336,12 +336,13 @@ export const Navbar: React.FC = () => {
 
                 <div className="pt-1 border-t border-[var(--border)]">
                   <button
-                    onClick={() => {
-                      logout();
+                    type="button"
+                    onClick={async () => {
                       setProfileDropdownOpen(false);
-                      router.push('/login');
+                      await logout();
+                      window.location.href = '/login';
                     }}
-                    className="w-full px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-left flex items-center gap-1.5 font-semibold rounded-md transition text-xs"
+                    className="w-full px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-left flex items-center gap-1.5 font-semibold rounded-md transition text-xs cursor-pointer"
                   >
                     <LogOut className="w-3 h-3" />
                     <span>Sign Out</span>
@@ -370,6 +371,7 @@ export const Navbar: React.FC = () => {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className={`px-2 py-0.5 text-[0.6875rem] font-sans font-medium flex items-center gap-1 rounded transition whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-[var(--bg-surface-elevated)] text-[var(--text-main)] font-semibold border border-[var(--border)]'
